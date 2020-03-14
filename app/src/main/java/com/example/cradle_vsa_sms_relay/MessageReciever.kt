@@ -6,7 +6,7 @@ import android.content.Intent
 import android.telephony.SmsMessage
 
 class MessageReciever : BroadcastReceiver() {
-    var meListener: MessageListener? = null;
+    private var meListener: MessageListener? = null;
 
     fun bindListener(messageListener: MessageListener){
         meListener = messageListener
