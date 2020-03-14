@@ -7,6 +7,9 @@ import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.example.cradle_vsa_sms_relay.activities.MainActivity
+import com.example.cradle_vsa_sms_relay.broad_castrecivers.MessageReciever
+import com.example.cradle_vsa_sms_relay.broad_castrecivers.ServiceToActivityBroadCastReciever
 
 class SmsService : Service(), MessageListener{
     val CHANNEL_ID = "ForegroundServiceChannel"
@@ -15,7 +18,8 @@ class SmsService : Service(), MessageListener{
     private val referralsServerUrl = "https://cmpt373.csil.sfu.ca:8048/api/referral"
     private val referralSummeriesServerUrl =
         "https://cmpt373.csil.sfu.ca:8048/api/mobile/summarized/follow_up"
-    private val binder = ServiceToActivityBroadCastReciever()
+    private val binder =
+        ServiceToActivityBroadCastReciever()
 
 
     override fun onBind(p0: Intent?): IBinder? {
@@ -27,7 +31,8 @@ class SmsService : Service(), MessageListener{
         MessageReciever.bindListener(this)
         val input = intent?.getStringExtra("inputExtra")
         createNotificationChannel()
-        val notificationIntent = Intent(this,MainActivity::class.java)
+        val notificationIntent = Intent(this,
+            MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(this,0,notificationIntent,0)
         val notification = NotificationCompat.Builder(this,CHANNEL_ID)
             .setContentTitle("SMS RELAY SERVICE RUNNING").setContentText(input)

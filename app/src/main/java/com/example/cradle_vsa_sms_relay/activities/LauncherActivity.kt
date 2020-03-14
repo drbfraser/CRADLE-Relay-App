@@ -1,9 +1,7 @@
-package com.example.cradle_vsa_sms_relay
+package com.example.cradle_vsa_sms_relay.activities
 
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
-import android.opengl.Visibility
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -13,6 +11,7 @@ import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
+import com.example.cradle_vsa_sms_relay.R
 import org.json.JSONObject
 
 class LauncherActivity : AppCompatActivity() {
@@ -50,7 +49,7 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     private fun startActivity() {
-        val intent = Intent(this,MainActivity::class.java)
+        val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
     }
 }

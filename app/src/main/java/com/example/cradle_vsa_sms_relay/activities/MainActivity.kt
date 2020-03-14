@@ -1,4 +1,4 @@
-package com.example.cradle_vsa_sms_relay
+package com.example.cradle_vsa_sms_relay.activities
 
 import android.Manifest
 import android.content.Intent
@@ -11,15 +11,21 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.cradle_vsa_sms_relay.*
+import com.example.cradle_vsa_sms_relay.broad_castrecivers.ServiceToActivityBroadCastReciever
 
-class MainActivity : AppCompatActivity(),MessageListener  {
+class MainActivity : AppCompatActivity(),
+    MessageListener {
     var x =5
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setupStartService()
         setupStopService()
-        registerReceiver(ServiceToActivityBroadCastReciever(this), IntentFilter("update"))
+        registerReceiver(
+            ServiceToActivityBroadCastReciever(
+                this
+            ), IntentFilter("update"))
 
     }
 
@@ -53,7 +59,8 @@ class MainActivity : AppCompatActivity(),MessageListener  {
             }
         } else{
             //permission already granted
-            val serviceIntent = Intent(this,SmsService::class.java)
+            val serviceIntent = Intent(this,
+                SmsService::class.java)
             serviceIntent.putExtra("inputExtra","Foreground Service Example in Android")
             ContextCompat.startForegroundService(this,serviceIntent)
         }
@@ -68,7 +75,8 @@ class MainActivity : AppCompatActivity(),MessageListener  {
         if(requestCode==99){
             //do whatever when permissions are granted
 
-            val serviceIntent = Intent(this,SmsService::class.java)
+            val serviceIntent = Intent(this,
+                SmsService::class.java)
             serviceIntent.putExtra("inputExtra","Foreground Service Example in Android")
             ContextCompat.startForegroundService(this,serviceIntent)
         }

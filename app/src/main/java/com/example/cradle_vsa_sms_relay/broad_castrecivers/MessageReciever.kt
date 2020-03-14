@@ -1,10 +1,12 @@
-package com.example.cradle_vsa_sms_relay
+package com.example.cradle_vsa_sms_relay.broad_castrecivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.telephony.SmsMessage
 import android.util.Log
+import com.example.cradle_vsa_sms_relay.MessageListener
+import com.example.cradle_vsa_sms_relay.Sms
 
 /**
  * detects messages receives
@@ -14,7 +16,7 @@ class MessageReciever : BroadcastReceiver() {
     companion object {
         private var meListener: MessageListener? = null;
         fun bindListener(messageListener: MessageListener){
-            Companion.meListener = messageListener
+            meListener = messageListener
         }
     }
 
@@ -26,7 +28,9 @@ class MessageReciever : BroadcastReceiver() {
             val smsMessage = SmsMessage.createFromPdu(element as ByteArray?)
             Log.d("bugg","message in receiver: "+ smsMessage.messageBody);
 
-            Companion.meListener?.messageRecieved(Sms(smsMessage));
+            meListener?.messageRecieved(
+                Sms(smsMessage)
+            );
         }
 
     }
