@@ -23,7 +23,7 @@ class MessageReciever : BroadcastReceiver() {
             val smsMessage = SmsMessage.createFromPdu(element as ByteArray?)
             Log.d("bugg","message in receiver: "+ smsMessage.messageBody);
 
-            Companion.meListener?.messageRecieved(smsMessage);
+            Companion.meListener?.messageRecieved(Sms(smsMessage));
         }
 
     }

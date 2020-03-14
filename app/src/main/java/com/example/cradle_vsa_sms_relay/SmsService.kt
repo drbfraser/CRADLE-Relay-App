@@ -3,10 +3,9 @@ package com.example.cradle_vsa_sms_relay
 import android.app.*
 import android.content.Intent
 import android.os.Build
+import android.os.Bundle
 import android.os.IBinder
-import android.telephony.SmsMessage
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 
 class SmsService : Service(), MessageListener{
@@ -16,6 +15,7 @@ class SmsService : Service(), MessageListener{
     private val referralsServerUrl = "https://cmpt373.csil.sfu.ca:8048/api/referral"
     private val referralSummeriesServerUrl =
         "https://cmpt373.csil.sfu.ca:8048/api/mobile/summarized/follow_up"
+    private val binder = ServiceToActivityBroadCastReciever()
 
 
     override fun onBind(p0: Intent?): IBinder? {
@@ -42,10 +42,17 @@ class SmsService : Service(), MessageListener{
         super.onTaskRemoved(rootIntent)
         stopSelf()
     }
-    override fun messageRecieved(message: SmsMessage) {
+    override fun messageRecieved(message: Sms) {
         //sendMessageToServer()
-        Toast.makeText(this,message.messageBody,Toast.LENGTH_LONG).show()
+       // Toast.makeText(this,message.messageBody,Toast.LENGTH_LONG).show()
         Log.d("bugg","message: "+ message.messageBody);
+        val intent = Intent();
+        val bundle = Bundle();
+
+        bundle.putString("sms",message.toJson().toString())
+        intent.putExtras(bundle)
+        intent.setAction("update")
+        sendBroadcast(intent)
     }
 
 

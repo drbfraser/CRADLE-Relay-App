@@ -2,21 +2,25 @@ package com.example.cradle_vsa_sms_relay
 
 import android.Manifest
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
-class MainActivity : AppCompatActivity() {
-
+class MainActivity : AppCompatActivity(),MessageListener  {
+    var x =5
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setupStartService()
         setupStopService()
+        registerReceiver(ServiceToActivityBroadCastReciever(this), IntentFilter("update"))
+
     }
 
 
@@ -68,5 +72,9 @@ class MainActivity : AppCompatActivity() {
             serviceIntent.putExtra("inputExtra","Foreground Service Example in Android")
             ContextCompat.startForegroundService(this,serviceIntent)
         }
+    }
+
+    override fun messageRecieved(message: Sms) {
+        Toast.makeText(this,"activirtrtfvvvvvvvvvvvvvvvvvvvvvdfsdfm", Toast.LENGTH_SHORT).show()
     }
 }
