@@ -3,6 +3,7 @@ package com.example.cradle_vsa_sms_relay
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import android.telephony.SmsMessage
 
 class SmsService : Service(), MessageListener{
 
@@ -17,7 +18,7 @@ class SmsService : Service(), MessageListener{
     }
 
 
-    override fun messageRecieved(message: String, body: String) {
+    override fun messageRecieved(message: SmsMessage, body: String) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 
     }
