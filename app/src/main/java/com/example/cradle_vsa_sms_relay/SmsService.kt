@@ -37,7 +37,10 @@ class SmsService : Service(), MessageListener{
 
     }
 
-
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        stopSelf()
+    }
     override fun messageRecieved(message: SmsMessage) {
         sendMessageToServer()
     }

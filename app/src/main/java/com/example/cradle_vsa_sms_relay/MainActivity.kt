@@ -1,6 +1,7 @@
 package com.example.cradle_vsa_sms_relay
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -14,7 +15,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        checkpermissions()
         setupStartService()
         setupStopService()
     }
@@ -22,11 +22,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupStopService() {
         findViewById<Button>(R.id.btnStopService).setOnClickListener{
-
         }
     }
 
     private fun setupStartService() {
+        findViewById<Button>(R.id.btnStartService).setOnClickListener{
+            checkpermissions()
+        }
     }
 
 
@@ -47,7 +49,9 @@ class MainActivity : AppCompatActivity() {
             }
         } else{
             //permission already granted
-
+            val serviceIntent = Intent(this,SmsService::class.java)
+            serviceIntent.putExtra("inputExtra","Foreground Service Example in Android")
+            ContextCompat.startForegroundService(this,serviceIntent)
         }
     }
 
@@ -59,6 +63,10 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if(requestCode==99){
             //do whatever when permissions are granted
+
+            val serviceIntent = Intent(this,SmsService::class.java)
+            serviceIntent.putExtra("inputExtra","Foreground Service Example in Android")
+            ContextCompat.startForegroundService(this,serviceIntent)
         }
     }
 }
