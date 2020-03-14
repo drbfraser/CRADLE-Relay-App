@@ -5,6 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 
+/**
+ * this broadcast receiver sends message to activity from service whenever service receives a sms
+ */
 open class ServiceToActivityBroadCastReciever(var mListener: MessageListener? = null) : BroadcastReceiver() {
     override fun onReceive(p0: Context?, p1: Intent?) {
         if (p1 != null) {
@@ -18,5 +21,4 @@ open class ServiceToActivityBroadCastReciever(var mListener: MessageListener? = 
             }
         }
     }
-
 }

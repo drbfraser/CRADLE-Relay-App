@@ -1,6 +1,7 @@
 package com.example.cradle_vsa_sms_relay
 
-public interface MessageListener {
+
+ interface MessageListener {
 
     fun messageRecieved(Sms: Sms)
 }

@@ -4,6 +4,9 @@ import android.telephony.SmsMessage
 import org.json.JSONObject
 import java.io.Serializable
 
+/**
+ * base class for sms body
+ */
 class Sms: Serializable {
     var messageBody:String = ""
 

@@ -6,6 +6,9 @@ import android.content.Intent
 import android.telephony.SmsMessage
 import android.util.Log
 
+/**
+ * detects messages receives
+ */
 class MessageReciever : BroadcastReceiver() {
 
     companion object {
