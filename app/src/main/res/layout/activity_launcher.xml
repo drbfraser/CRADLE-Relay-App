@@ -125,7 +125,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="@string/login_error"
+                android:text="Login error, check the credentials"
                 android:textColor="@color/error"
                 android:visibility="gone"
                 app:layout_constraintStart_toStartOf="@+id/passwordEditText"

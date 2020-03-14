@@ -14,12 +14,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupStopService() {
-        findViewById<Button>(R.id.btnStartService).setOnClickListener{
+        findViewById<Button>(R.id.btnStopService).setOnClickListener{
 
         }
     }
 
     private fun setupStartService() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
