@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.telephony.SmsMessage
+import android.util.Log
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 
 class SmsService : Service(), MessageListener{
@@ -22,8 +24,7 @@ class SmsService : Service(), MessageListener{
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        val messageReciever = MessageReciever();
-        messageReciever.bindListener(this)
+        MessageReciever.bindListener(this)
         val input = intent?.getStringExtra("inputExtra")
         createNotificationChannel()
         val notificationIntent = Intent(this,MainActivity::class.java)
@@ -42,12 +43,11 @@ class SmsService : Service(), MessageListener{
         stopSelf()
     }
     override fun messageRecieved(message: SmsMessage) {
-        sendMessageToServer()
+        //sendMessageToServer()
+        Toast.makeText(this,message.messageBody,Toast.LENGTH_LONG).show()
+        Log.d("bugg","message: "+ message.messageBody);
     }
 
-    private fun sendMessageToServer() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
