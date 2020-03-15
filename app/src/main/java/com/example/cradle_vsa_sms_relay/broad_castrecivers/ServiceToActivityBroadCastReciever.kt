@@ -6,6 +6,7 @@ import android.content.Intent
 import android.util.Log
 import com.example.cradle_vsa_sms_relay.MessageListener
 import com.example.cradle_vsa_sms_relay.Sms
+import org.json.JSONObject
 
 /**
  * this broadcast receiver sends message to activity from service whenever service receives a sms
@@ -15,10 +16,10 @@ open class ServiceToActivityBroadCastReciever(var mListener: MessageListener? = 
         if (p1 != null) {
             if (p1.action.equals("update")){
                 Log.d("bugg","received from service")
-                var intent = p1.extras
-                var message: String? = intent?.getString("sms");
-                val sms = Sms(message)
-
+                val intent = p1.extras
+                val message: String? = intent?.getString("sms");
+                //its in json format
+                val sms = Sms.fromJson(message.toString())
                 mListener?.messageRecieved(sms)
             }
         }

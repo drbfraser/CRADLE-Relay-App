@@ -7,16 +7,21 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.cradle_vsa_sms_relay.*
 import com.example.cradle_vsa_sms_relay.broad_castrecivers.ServiceToActivityBroadCastReciever
 
 class MainActivity : AppCompatActivity(),
     MessageListener {
-    var x =5
+    var smsList:ArrayList<Sms> = ArrayList();
+    var smsRecyclerViewAdaper: SmsRecyclerViewAdaper = SmsRecyclerViewAdaper(ArrayList<Sms>());
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -84,5 +89,12 @@ class MainActivity : AppCompatActivity(),
 
     override fun messageRecieved(message: Sms) {
         Toast.makeText(this,"activirtrtfvvvvvvvvvvvvvvvvvvvvvdfsdfm", Toast.LENGTH_SHORT).show()
+        var smsRecyclerView:RecyclerView = findViewById(R.id.messageRecyclerview)
+        smsList.add(0,message)
+        var adapter = SmsRecyclerViewAdaper(smsList)
+        smsRecyclerView.adapter = adapter
+        var layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
+        smsRecyclerView.layoutManager = layout
+        adapter.notifyDataSetChanged()
     }
 }

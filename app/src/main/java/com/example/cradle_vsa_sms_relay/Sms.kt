@@ -24,4 +24,12 @@ class Sms: Serializable {
         jsonObject.put("messageBody",messageBody);
         return jsonObject
     }
+
+    companion object {
+        fun fromJson(jsonString:String):Sms{
+            val jsonObj: JSONObject = JSONObject(jsonString)
+            val messageBody:String = jsonObj.getString("messageBody")
+            return Sms(messageBody)
+        }
+    }
 }
