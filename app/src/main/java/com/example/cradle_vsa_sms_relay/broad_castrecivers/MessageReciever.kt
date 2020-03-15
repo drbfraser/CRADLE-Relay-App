@@ -15,8 +15,12 @@ class MessageReciever : BroadcastReceiver() {
 
     companion object {
         private var meListener: MessageListener? = null;
+
         fun bindListener(messageListener: MessageListener){
             meListener = messageListener
+        }
+        fun unbindListener(){
+            meListener = null
         }
     }
 

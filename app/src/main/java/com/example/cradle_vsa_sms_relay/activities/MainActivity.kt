@@ -20,13 +20,14 @@ import com.example.cradle_vsa_sms_relay.broad_castrecivers.ServiceToActivityBroa
 class MainActivity : AppCompatActivity(),
     MessageListener {
     var smsList:ArrayList<Sms> = ArrayList();
-    var smsRecyclerViewAdaper: SmsRecyclerViewAdaper = SmsRecyclerViewAdaper(ArrayList<Sms>());
+    private var isServiceStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setupStartService()
         setupStopService()
+
         registerReceiver(
             ServiceToActivityBroadCastReciever(
                 this
@@ -37,6 +38,12 @@ class MainActivity : AppCompatActivity(),
 
     private fun setupStopService() {
         findViewById<Button>(R.id.btnStopService).setOnClickListener{
+            if(isServiceStarted) {
+                val intent: Intent = Intent(this, SmsService::class.java)
+                intent.setAction(SmsService.STOP_SERVICE)
+                ContextCompat.startForegroundService(this, intent)
+                isServiceStarted = false
+            }
         }
     }
 
@@ -64,11 +71,18 @@ class MainActivity : AppCompatActivity(),
             }
         } else{
             //permission already granted
-            val serviceIntent = Intent(this,
-                SmsService::class.java)
-            serviceIntent.putExtra("inputExtra","Foreground Service Example in Android")
-            ContextCompat.startForegroundService(this,serviceIntent)
+            if (!isServiceStarted) {
+                startService()
+            }
+
         }
+    }
+    fun startService(){
+        val serviceIntent = Intent(this,
+            SmsService::class.java)
+        serviceIntent.setAction(SmsService.START_SERVICE)
+        ContextCompat.startForegroundService(this,serviceIntent)
+        isServiceStarted = true
     }
 
     override fun onRequestPermissionsResult(
@@ -79,11 +93,10 @@ class MainActivity : AppCompatActivity(),
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if(requestCode==99){
             //do whatever when permissions are granted
+            if (!isServiceStarted) {
+                startService()
 
-            val serviceIntent = Intent(this,
-                SmsService::class.java)
-            serviceIntent.putExtra("inputExtra","Foreground Service Example in Android")
-            ContextCompat.startForegroundService(this,serviceIntent)
+            }
         }
     }
 
