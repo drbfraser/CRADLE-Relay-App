@@ -91,10 +91,7 @@ class SmsService : Service(), MessageListener {
             e.printStackTrace()
         }
         val jsonObjectRequest: JsonObjectRequest = object : JsonObjectRequest(
-            POST,
-            referralsServerUrl,
-            json,
-            Response.Listener { response: JSONObject? ->
+            POST, referralsServerUrl, json, Response.Listener { response: JSONObject? ->
 
                 // letting the activity know if upload was successful
                 val intent = Intent();
@@ -137,7 +134,6 @@ class SmsService : Service(), MessageListener {
     override fun stopService(name: Intent?): Boolean {
         super.stopService(name)
         stopForeground(true)
-
         stopSelf()
         onDestroy()
         return true

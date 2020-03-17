@@ -7,8 +7,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -19,7 +17,7 @@ import com.example.cradle_vsa_sms_relay.broad_castrecivers.ServiceToActivityBroa
 
 class MainActivity : AppCompatActivity(),
     MessageListener {
-    var smsList:ArrayList<Sms> = ArrayList();
+    private var smsList:ArrayList<Sms> = ArrayList();
     private var isServiceStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,12 +98,12 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    override fun messageRecieved(message: Sms) {
-        var smsRecyclerView:RecyclerView = findViewById(R.id.messageRecyclerview)
-        smsList.add(0,message)
-        var adapter = SmsRecyclerViewAdaper(smsList)
+    override fun messageRecieved(Sms: Sms) {
+        val smsRecyclerView:RecyclerView = findViewById(R.id.messageRecyclerview)
+        smsList.add(0,Sms)
+        val adapter = SmsRecyclerViewAdaper(smsList)
         smsRecyclerView.adapter = adapter
-        var layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
+        val layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
         smsRecyclerView.layoutManager = layout
         adapter.notifyDataSetChanged()
     }
