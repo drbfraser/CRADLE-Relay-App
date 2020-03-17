@@ -30,14 +30,11 @@ class Sms: Serializable {
 
     companion object {
         fun fromJson(jsonString:String):Sms{
-            Log.d("bugg","sting: "+jsonString)
             try {
-                val jsonObj: JSONObject = JSONObject(jsonString)
-                Log.d("bugg", jsonObj.toString())
+                val jsonObj = JSONObject(jsonString)
                 val messageBody: String = jsonObj.getString("messageBody")
                 return Sms(messageBody)
             } catch (e:JSONException){
-                Log.d("bugg","exception:" +jsonString)
                 return Sms(jsonString)
             }
         }

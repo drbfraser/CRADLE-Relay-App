@@ -15,7 +15,6 @@ open class ServiceToActivityBroadCastReciever(var mListener: MessageListener? = 
     override fun onReceive(p0: Context?, p1: Intent?) {
         if (p1 != null) {
             if (p1.action.equals("update")){
-                Log.d("bugg","received from service")
                 val intent = p1.extras
                 val message: String? = intent?.getString("sms");
                 val status = intent?.getInt("status")

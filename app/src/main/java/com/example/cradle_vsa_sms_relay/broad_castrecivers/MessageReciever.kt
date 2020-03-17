@@ -30,8 +30,6 @@ class MessageReciever : BroadcastReceiver() {
 
         for (element in pdus){
             val smsMessage = SmsMessage.createFromPdu(element as ByteArray?)
-            Log.d("bugg","message in receiver: "+ smsMessage.messageBody);
-
             meListener?.messageRecieved(
                 Sms(smsMessage)
             );

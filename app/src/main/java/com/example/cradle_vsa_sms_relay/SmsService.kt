@@ -44,7 +44,6 @@ class SmsService : Service(), MessageListener {
         if (intent != null) {
             val action: String? = intent.action
             if (action.equals(STOP_SERVICE)) {
-                Log.d("bugg", "stop service..")
                 stopForeground(true)
                 MessageReciever.unbindListener()
                 unregisterReceiver(smsReciver)
