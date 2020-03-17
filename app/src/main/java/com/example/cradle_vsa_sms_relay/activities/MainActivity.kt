@@ -101,7 +101,6 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun messageRecieved(message: Sms) {
-        Toast.makeText(this,"activirtrtfvvvvvvvvvvvvvvvvvvvvvdfsdfm", Toast.LENGTH_SHORT).show()
         var smsRecyclerView:RecyclerView = findViewById(R.id.messageRecyclerview)
         smsList.add(0,message)
         var adapter = SmsRecyclerViewAdaper(smsList)

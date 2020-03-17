@@ -12,6 +12,8 @@ import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.example.cradle_vsa_sms_relay.R
+import com.example.cradle_vsa_sms_relay.SmsService.Companion.TOKEN
+import com.example.cradle_vsa_sms_relay.SmsService.Companion.USER_ID
 import org.json.JSONObject
 
 class LauncherActivity : AppCompatActivity() {
@@ -35,8 +37,8 @@ class LauncherActivity : AppCompatActivity() {
                 jsonObject,Response.Listener { response ->
                     val sharedpref = this.getSharedPreferences("AUTH", Context.MODE_PRIVATE)
                     val editer = sharedpref.edit()
-                    editer.putString("TOKEN",response.getString("token"))
-                    editer.putString("USER_ID",response.getString("userId"))
+                    editer.putString(TOKEN,response.getString("token"))
+                    editer.putString(USER_ID,response.getString("userId"))
                     editer.apply()
                     startActivity()
                 },

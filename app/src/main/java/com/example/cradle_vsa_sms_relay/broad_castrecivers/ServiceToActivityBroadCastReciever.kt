@@ -18,8 +18,12 @@ open class ServiceToActivityBroadCastReciever(var mListener: MessageListener? = 
                 Log.d("bugg","received from service")
                 val intent = p1.extras
                 val message: String? = intent?.getString("sms");
+                val status = intent?.getInt("status")
                 //its in json format
                 val sms = Sms.fromJson(message.toString())
+                if (status != null) {
+                    sms.status = status
+                }
                 mListener?.messageRecieved(sms)
             }
         }
