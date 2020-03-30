@@ -37,7 +37,6 @@ class MessageReciever : BroadcastReceiver() {
             val smsMessage = SmsMessage.createFromPdu(element as ByteArray?) ?: continue
             //one message has length of 153 chars, 7 other chars for user data header
 
-            Log.d("bugg", smsMessage.messageBody+ " len: "+ smsMessage.messageBody.length);
 
             //We are assuming that no one phone can send multiple long messages at ones.
             // since there is some user delay in either typing or copy/pasting the message
