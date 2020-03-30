@@ -21,6 +21,7 @@ open class ServiceToActivityBroadCastReciever(var mListener: MessageListener? = 
                 if (status != null) {
                     sms.status = status
                 }
+                //sending the sms to json
                 mListener?.singleMessageRecieved(sms)
             }
         }
