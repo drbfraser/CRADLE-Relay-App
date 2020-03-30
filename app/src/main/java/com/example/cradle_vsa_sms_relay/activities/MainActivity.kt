@@ -98,13 +98,16 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    override fun messageRecieved(Sms: Sms) {
+    override fun messageMapRecieved(Sms: HashMap<String?, String?>) {
+        // never the case
+    }
+
+    override fun singleMessageRecieved(sms: Sms) {
         val smsRecyclerView:RecyclerView = findViewById(R.id.messageRecyclerview)
-        smsList.add(0,Sms)
+        smsList.add(0,sms)
         val adapter = SmsRecyclerViewAdaper(smsList)
         smsRecyclerView.adapter = adapter
         val layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
         smsRecyclerView.layoutManager = layout
-        adapter.notifyDataSetChanged()
-    }
+        adapter.notifyDataSetChanged()    }
 }

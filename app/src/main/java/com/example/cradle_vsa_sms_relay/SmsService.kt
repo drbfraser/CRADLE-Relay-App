@@ -23,6 +23,7 @@ import com.example.cradle_vsa_sms_relay.broad_castrecivers.MessageReciever
 import org.json.JSONException
 import org.json.JSONObject
 import java.util.*
+import kotlin.collections.HashMap
 
 class SmsService : Service(), MessageListener {
     val CHANNEL_ID = "ForegroundServiceChannel"
@@ -74,11 +75,9 @@ class SmsService : Service(), MessageListener {
 
     }
 
-    override fun messageRecieved(message: Sms) {
-        sendToServer(message.messageBody)
-    }
 
-    private fun sendToServer(body: String) {
+
+    private fun sendToServer(body: String?) {
         val sharedPref =
             getSharedPreferences(AUTH_PREF, Context.MODE_PRIVATE)
         val token = sharedPref.getString(TOKEN, "")
@@ -161,5 +160,13 @@ class SmsService : Service(), MessageListener {
         val USER_ID = "userId"
         val UPLOAD_SUCCESSFUL = 1;
         val UPLOAD_FAIL =-1
+    }
+
+    override fun messageMapRecieved(sms: HashMap<String?, String?>) {
+        sms.values.forEach { f -> sendToServer(f) }
+    }
+
+    override fun singleMessageRecieved(sms: Sms) {
+        //do not do anything
     }
 }

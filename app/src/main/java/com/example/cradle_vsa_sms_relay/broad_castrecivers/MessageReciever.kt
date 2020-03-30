@@ -6,7 +6,6 @@ import android.content.Intent
 import android.telephony.SmsMessage
 import android.util.Log
 import com.example.cradle_vsa_sms_relay.MessageListener
-import com.example.cradle_vsa_sms_relay.Sms
 
 /**
  * detects messages receives
@@ -27,13 +26,23 @@ class MessageReciever : BroadcastReceiver() {
     override fun onReceive(p0: Context?, p1: Intent?) {
         val data = p1?.extras
         val pdus = data?.get("pdus") as Array<Any>
+        val messages = HashMap<String?, String?>();
 
         for (element in pdus){
             val smsMessage = SmsMessage.createFromPdu(element as ByteArray?)
-            meListener?.messageRecieved(
-                Sms(smsMessage)
-            );
+            Log.d("bugg", smsMessage.messageBody+ " len: "+ smsMessage.messageBody.length);
+
+            if (messages.containsKey(smsMessage.originatingAddress)){
+                val newMsg:String = smsMessage.messageBody;
+                val oldMsg: String? = messages[smsMessage.originatingAddress]
+                messages[smsMessage.originatingAddress] = oldMsg + newMsg
+            } else {
+                messages[smsMessage.originatingAddress] = smsMessage.messageBody
+            }
         }
+        meListener?.messageMapRecieved(
+            messages
+            );
 
     }
 
