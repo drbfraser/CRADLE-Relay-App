@@ -23,7 +23,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import kotlin.collections.HashMap
 
-class SmsService : Service(), MessageListener {
+class SmsService : Service(), MultiMessageListener {
     val CHANNEL_ID = "ForegroundServiceChannel"
     private val readingServerUrl =
         "https://cmpt373.csil.sfu.ca:8048/api/patient/reading"
@@ -163,9 +163,5 @@ class SmsService : Service(), MessageListener {
     override fun messageMapRecieved(Sms: HashMap<String?, String?>) {
 
         Sms.values.forEach { f -> sendToServer(f) }
-    }
-
-    override fun singleMessageRecieved(sms: Sms) {
-        //do not do anything
     }
 }

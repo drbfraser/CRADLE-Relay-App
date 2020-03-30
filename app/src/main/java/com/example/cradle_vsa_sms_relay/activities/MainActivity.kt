@@ -16,7 +16,7 @@ import com.example.cradle_vsa_sms_relay.*
 import com.example.cradle_vsa_sms_relay.broad_castrecivers.ServiceToActivityBroadCastReciever
 
 class MainActivity : AppCompatActivity(),
-    MessageListener {
+    SingleMessageListener {
     private var smsList:ArrayList<Sms> = ArrayList();
     private var isServiceStarted = false
 
@@ -96,10 +96,6 @@ class MainActivity : AppCompatActivity(),
 
             }
         }
-    }
-
-    override fun messageMapRecieved(Sms: HashMap<String?, String?>) {
-        // never the case
     }
 
     override fun singleMessageRecieved(sms: Sms) {

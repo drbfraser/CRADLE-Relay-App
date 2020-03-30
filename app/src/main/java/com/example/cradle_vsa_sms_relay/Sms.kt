@@ -1,7 +1,6 @@
 package com.example.cradle_vsa_sms_relay
 
 import android.telephony.SmsMessage
-import android.util.Log
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.Serializable

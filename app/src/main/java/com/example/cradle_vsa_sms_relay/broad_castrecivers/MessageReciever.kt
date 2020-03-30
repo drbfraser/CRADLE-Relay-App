@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.telephony.SmsMessage
 import android.util.Log
-import com.example.cradle_vsa_sms_relay.MessageListener
+import com.example.cradle_vsa_sms_relay.MultiMessageListener
 
 /**
  * detects messages receives
@@ -13,9 +13,9 @@ import com.example.cradle_vsa_sms_relay.MessageListener
 class MessageReciever : BroadcastReceiver() {
 
     companion object {
-        private var meListener: MessageListener? = null;
+        private var meListener: MultiMessageListener? = null;
 
-        fun bindListener(messageListener: MessageListener){
+        fun bindListener(messageListener: MultiMessageListener){
             meListener = messageListener
         }
         fun unbindListener(){
