@@ -1,7 +1,6 @@
 package com.example.cradle_vsa_sms_relay
 
 import android.telephony.SmsMessage
-import android.util.Log
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.Serializable
@@ -11,11 +10,16 @@ import java.io.Serializable
  */
 class Sms: Serializable {
     public var messageBody:String = ""
+    public var address:String = ""
+
     public var status:Int = 0;
 
-    constructor(messageBody: String?){
+    constructor(messageBody: String?, address:String?){
         if (messageBody != null) {
             this.messageBody = messageBody
+        }
+        if (address!=null){
+            this.address = address
         }
     }
     constructor(message: SmsMessage){
@@ -33,9 +37,10 @@ class Sms: Serializable {
             try {
                 val jsonObj = JSONObject(jsonString)
                 val messageBody: String = jsonObj.getString("messageBody")
-                return Sms(messageBody)
+                val address:String = jsonObj.getString("address")
+                return Sms(messageBody,address)
             } catch (e:JSONException){
-                return Sms(jsonString)
+                return Sms(jsonString, jsonString)
             }
         }
     }

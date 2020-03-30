@@ -16,7 +16,7 @@ import com.example.cradle_vsa_sms_relay.*
 import com.example.cradle_vsa_sms_relay.broad_castrecivers.ServiceToActivityBroadCastReciever
 
 class MainActivity : AppCompatActivity(),
-    MessageListener {
+    SingleMessageListener {
     private var smsList:ArrayList<Sms> = ArrayList();
     private var isServiceStarted = false
 
@@ -98,13 +98,12 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    override fun messageRecieved(Sms: Sms) {
+    override fun singleMessageRecieved(sms: Sms) {
         val smsRecyclerView:RecyclerView = findViewById(R.id.messageRecyclerview)
-        smsList.add(0,Sms)
+        smsList.add(0,sms)
         val adapter = SmsRecyclerViewAdaper(smsList)
         smsRecyclerView.adapter = adapter
         val layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
         smsRecyclerView.layoutManager = layout
-        adapter.notifyDataSetChanged()
-    }
+        adapter.notifyDataSetChanged()    }
 }

@@ -10,7 +10,6 @@ import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.android.volley.AuthFailureError
 import com.android.volley.Request.Method.POST
@@ -22,9 +21,9 @@ import com.example.cradle_vsa_sms_relay.activities.MainActivity
 import com.example.cradle_vsa_sms_relay.broad_castrecivers.MessageReciever
 import org.json.JSONException
 import org.json.JSONObject
-import java.util.*
+import kotlin.collections.HashMap
 
-class SmsService : Service(), MessageListener {
+class SmsService : Service(), MultiMessageListener {
     val CHANNEL_ID = "ForegroundServiceChannel"
     private val readingServerUrl =
         "https://cmpt373.csil.sfu.ca:8048/api/patient/reading"
@@ -74,11 +73,9 @@ class SmsService : Service(), MessageListener {
 
     }
 
-    override fun messageRecieved(message: Sms) {
-        sendToServer(message.messageBody)
-    }
 
-    private fun sendToServer(body: String) {
+
+    private fun sendToServer(body: String?) {
         val sharedPref =
             getSharedPreferences(AUTH_PREF, Context.MODE_PRIVATE)
         val token = sharedPref.getString(TOKEN, "")
@@ -161,5 +158,10 @@ class SmsService : Service(), MessageListener {
         val USER_ID = "userId"
         val UPLOAD_SUCCESSFUL = 1;
         val UPLOAD_FAIL =-1
+    }
+
+    override fun messageMapRecieved(Sms: HashMap<String?, String?>) {
+
+        Sms.values.forEach { f -> sendToServer(f) }
     }
 }
