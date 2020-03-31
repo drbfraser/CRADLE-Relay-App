@@ -120,7 +120,6 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun singleMessageRecieved(sms: SmsReferralEntitiy) {
-
        setuprecyclerview()
     }
 }
