@@ -15,7 +15,7 @@ data class SmsReferralEntitiy(
     val timeRecieved: Long,
     var isUploaded: Boolean,
     val phoneNumber: String?,
-    val numberOfTriesUploaded: Int
+    var numberOfTriesUploaded: Int
 ):Serializable {
 
 
@@ -26,7 +26,7 @@ data class SmsReferralEntitiy(
                 val messageBody: String = jsonObj.getString("messageBody")
                 val address:String = jsonObj.getString("address")
                 val id:String = jsonObj.getString("id");
-                val timeRecieved:Int = jsonObj.getInt("timeReceived");
+                val timeRecieved:Long = jsonObj.getLong("timeReceived");
                 val numTries:Int = jsonObj.getInt("tries")
                 return SmsReferralEntitiy(id,messageBody,timeRecieved,false,address,numTries)
             } catch (e: JSONException){
