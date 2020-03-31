@@ -2,7 +2,6 @@ package com.example.cradle_vsa_sms_relay.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.cradle_vsa_sms_relay.Sms
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.Serializable

@@ -1,9 +1,7 @@
 package com.example.cradle_vsa_sms_relay.dagger
 
 import android.app.Application
-import android.provider.DocumentsContract
 import androidx.room.Room
-import com.example.cradle_vsa_sms_relay.Sms
 import com.example.cradle_vsa_sms_relay.database.MyDatabase
 import dagger.Module
 import dagger.Provides

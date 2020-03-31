@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.example.cradle_vsa_sms_relay.SingleMessageListener
-import com.example.cradle_vsa_sms_relay.Sms
 import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 
 /**
