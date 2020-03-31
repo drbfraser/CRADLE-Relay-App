@@ -120,7 +120,7 @@ class SmsService : Service(), MultiMessageListener {
                 bundle.putInt("status", UPLOAD_FAIL)
                 smsReferralEntitiy.isUploaded=false
                 smsReferralEntitiy.numberOfTriesUploaded+=1
-                bundle.putSerializable("sms",referralSummeriesServerUrl)
+                bundle.putSerializable("sms",smsReferralEntitiy)
                 intent.putExtras(bundle)
                 intent.setAction("update")
                 sendBroadcast(intent)

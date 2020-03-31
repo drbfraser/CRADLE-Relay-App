@@ -14,15 +14,9 @@ open class ServiceToActivityBroadCastReciever(var mListener: SingleMessageListen
         if (p1 != null) {
             if (p1.action.equals("update")){
                 val intent = p1.extras
-                val message: String? = intent?.getString("sms");
-                val status = intent?.getInt("status")
-                //its in json format
-                var sms = SmsReferralEntitiy.fromJson(message.toString())
-                if (status != null) {
-                    sms.isUploaded = status as Boolean
-                }
+                val message:SmsReferralEntitiy = intent?.getSerializable("sms") as SmsReferralEntitiy
                 //sending the sms to json
-                mListener?.singleMessageRecieved(sms)
+                mListener?.singleMessageRecieved(message)
             }
         }
     }

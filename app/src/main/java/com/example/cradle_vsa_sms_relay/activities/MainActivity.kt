@@ -100,6 +100,7 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun singleMessageRecieved(sms: SmsReferralEntitiy) {
+
         val smsRecyclerView:RecyclerView = findViewById(R.id.messageRecyclerview)
         smsList.add(0,sms)
         val adapter = SmsRecyclerViewAdaper(smsList)
