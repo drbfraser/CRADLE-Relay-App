@@ -1,15 +1,17 @@
 package com.example.cradle_vsa_sms_relay.dagger
 
 import android.app.Application
+import com.example.cradle_vsa_sms_relay.Sms
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
 
 @Module
-class AppModule(val application: Application) {
-
+class DataModule  {
     @Provides
     @Singleton
-    fun provideApplication()=application
+    fun getSms(app:Application):Sms{
+        return Sms("d","d")
+    }
 
 }

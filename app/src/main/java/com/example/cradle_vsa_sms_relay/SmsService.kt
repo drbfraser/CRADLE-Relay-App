@@ -10,6 +10,7 @@ import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.android.volley.AuthFailureError
 import com.android.volley.Request.Method.POST
@@ -19,8 +20,10 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.example.cradle_vsa_sms_relay.activities.MainActivity
 import com.example.cradle_vsa_sms_relay.broad_castrecivers.MessageReciever
+import com.example.cradle_vsa_sms_relay.dagger.MyApp
 import org.json.JSONException
 import org.json.JSONObject
+import javax.inject.Inject
 import kotlin.collections.HashMap
 
 class SmsService : Service(), MultiMessageListener {
@@ -30,7 +33,8 @@ class SmsService : Service(), MultiMessageListener {
     private val referralsServerUrl = "https://cmpt373.csil.sfu.ca:8048/api/referral"
     private val referralSummeriesServerUrl =
         "https://cmpt373.csil.sfu.ca:8048/api/mobile/summarized/follow_up"
-
+    @Inject
+    lateinit var sms: Sms
 
     private var smsReciver: MessageReciever? = null
 
@@ -38,8 +42,15 @@ class SmsService : Service(), MultiMessageListener {
         return null
     }
 
+    override fun onCreate() {
+        super.onCreate()
+        (application as MyApp).component.inject(this)
+
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+
         if (intent != null) {
             val action: String? = intent.action
             if (action.equals(STOP_SERVICE)) {
