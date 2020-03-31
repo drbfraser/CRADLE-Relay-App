@@ -8,4 +8,9 @@ class MyApp: Application() {
         DaggerAppComponent.builder()
             .appModule(AppModule(this)).dataModule(DataModule()).build()
     }
+
+    override fun onCreate() {
+        super.onCreate()
+        component.inject(this)
+    }
 }

@@ -21,6 +21,7 @@ import com.android.volley.toolbox.Volley
 import com.example.cradle_vsa_sms_relay.activities.MainActivity
 import com.example.cradle_vsa_sms_relay.broad_castrecivers.MessageReciever
 import com.example.cradle_vsa_sms_relay.dagger.MyApp
+import com.example.cradle_vsa_sms_relay.database.MyDatabase
 import org.json.JSONException
 import org.json.JSONObject
 import javax.inject.Inject
@@ -34,7 +35,7 @@ class SmsService : Service(), MultiMessageListener {
     private val referralSummeriesServerUrl =
         "https://cmpt373.csil.sfu.ca:8048/api/mobile/summarized/follow_up"
     @Inject
-    lateinit var sms: Sms
+    lateinit var sms: MyDatabase
 
     private var smsReciver: MessageReciever? = null
 
@@ -45,7 +46,7 @@ class SmsService : Service(), MultiMessageListener {
     override fun onCreate() {
         super.onCreate()
         (application as MyApp).component.inject(this)
-
+        sms.daoAccess()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
