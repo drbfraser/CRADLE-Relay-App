@@ -70,6 +70,7 @@ class MessageReciever : BroadcastReceiver() {
                 )
             }
             // send it to the service to send to the server
+
             meListener?.messageMapRecieved(
                 smsReferralList
             );

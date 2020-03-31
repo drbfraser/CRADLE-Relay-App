@@ -10,7 +10,6 @@ import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.android.volley.AuthFailureError
 import com.android.volley.Request.Method.POST
@@ -106,7 +105,6 @@ class SmsService : Service(), MultiMessageListener {
                 val bundle = Bundle();
                 bundle.putSerializable("sms",smsReferralEntitiy)
                 bundle.putInt("status",UPLOAD_SUCCESSFUL)
-                intent.putExtras(bundle)
                 intent.setAction("update")
                 smsReferralEntitiy.isUploaded=true
                 smsReferralEntitiy.numberOfTriesUploaded+=1
@@ -117,7 +115,6 @@ class SmsService : Service(), MultiMessageListener {
             Response.ErrorListener { error: VolleyError ->
                 val intent = Intent();
                 val bundle = Bundle();
-                bundle.putInt("status", UPLOAD_FAIL)
                 smsReferralEntitiy.isUploaded=false
                 smsReferralEntitiy.numberOfTriesUploaded+=1
                 bundle.putSerializable("sms",smsReferralEntitiy)
@@ -177,8 +174,9 @@ class SmsService : Service(), MultiMessageListener {
         val UPLOAD_FAIL =-1
     }
 
-    override fun messageMapRecieved(smsReferrals:ArrayList<SmsReferralEntitiy>) {
+    override fun messageMapRecieved(smsReferralList:ArrayList<SmsReferralEntitiy>) {
 
-        smsReferrals.forEach { f -> sendToServer(f) }
+        database.daoAccess().insertAllReferral(smsReferralList)
+        smsReferralList.forEach { f -> sendToServer(f) }
     }
 }

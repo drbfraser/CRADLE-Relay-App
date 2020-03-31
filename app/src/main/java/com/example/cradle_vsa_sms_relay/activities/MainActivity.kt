@@ -6,6 +6,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -14,23 +15,42 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cradle_vsa_sms_relay.*
 import com.example.cradle_vsa_sms_relay.broad_castrecivers.ServiceToActivityBroadCastReciever
+import com.example.cradle_vsa_sms_relay.dagger.MyApp
+import com.example.cradle_vsa_sms_relay.database.MyDatabase
 import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(),
     SingleMessageListener {
-    private var smsList:ArrayList<SmsReferralEntitiy> = ArrayList();
+    private var smsList:MutableList<SmsReferralEntitiy> = ArrayList();
     private var isServiceStarted = false
+    @Inject
+    lateinit var database: MyDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        (application as MyApp).component.inject(this)
         setupStartService()
         setupStopService()
-
+        setuprecyclerview()
+        //register reciever to listen for events from the service
         registerReceiver(
             ServiceToActivityBroadCastReciever(
                 this
             ), IntentFilter("update"))
+
+    }
+
+    private fun setuprecyclerview() {
+
+        val smsRecyclerView:RecyclerView = findViewById(R.id.messageRecyclerview)
+        val adapter = SmsRecyclerViewAdaper(database.daoAccess().getAllReferrals())
+        Log.d("bugg","datavase: "+ database.daoAccess().getAllReferrals().size)
+        smsRecyclerView.adapter = adapter
+        val layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
+        smsRecyclerView.layoutManager = layout
+        adapter.notifyDataSetChanged()
 
     }
 
@@ -101,11 +121,6 @@ class MainActivity : AppCompatActivity(),
 
     override fun singleMessageRecieved(sms: SmsReferralEntitiy) {
 
-        val smsRecyclerView:RecyclerView = findViewById(R.id.messageRecyclerview)
-        smsList.add(0,sms)
-        val adapter = SmsRecyclerViewAdaper(smsList)
-        smsRecyclerView.adapter = adapter
-        val layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
-        smsRecyclerView.layoutManager = layout
-        adapter.notifyDataSetChanged()    }
+       setuprecyclerview()
+    }
 }

@@ -19,4 +19,7 @@ interface DaoAccess {
 
     @Query("SELECT * FROM SmsReferralEntitiy")
     fun getAllReferrals(): List<SmsReferralEntitiy>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertAllReferral(referralList:ArrayList<SmsReferralEntitiy>)
 }
