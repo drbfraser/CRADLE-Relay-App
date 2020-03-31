@@ -7,10 +7,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cradle_vsa_sms_relay.SmsService.Companion.UPLOAD_SUCCESSFUL
+import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 
-class SmsRecyclerViewAdaper(smsList: List<Sms>) :
+class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>) :
     RecyclerView.Adapter<SmsRecyclerViewAdaper.SMSViewHolder>() {
-    private var sms:List<Sms> = smsList
+    private var sms:List<SmsReferralEntitiy> = smsList
 
     class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
@@ -33,10 +34,10 @@ class SmsRecyclerViewAdaper(smsList: List<Sms>) :
     }
 
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
-        holder.smsText.text = sms.get(position).messageBody
-        if (sms.get(position).status == UPLOAD_SUCCESSFUL) {
+        holder.smsText.text = sms.get(position).jsonData
+        if (sms.get(position).isUploaded == true) {
             holder.statusImg.setImageResource(R.drawable.ic_check_black_24dp)
-        } else if (sms.get(position).status == UPLOAD_SUCCESSFUL) {
+        } else if (sms.get(position).isUploaded == false) {
             holder.statusImg.setImageResource(R.drawable.ic_thumb_down_black_24dp)
 
         }

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import com.example.cradle_vsa_sms_relay.SingleMessageListener
 import com.example.cradle_vsa_sms_relay.Sms
+import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 
 /**
  * this broadcast receiver sends message to activity from service whenever service receives a sms
@@ -17,9 +18,9 @@ open class ServiceToActivityBroadCastReciever(var mListener: SingleMessageListen
                 val message: String? = intent?.getString("sms");
                 val status = intent?.getInt("status")
                 //its in json format
-                val sms = Sms.fromJson(message.toString())
+                var sms = SmsReferralEntitiy.fromJson(message.toString())
                 if (status != null) {
-                    sms.status = status
+                    sms.isUploaded = status as Boolean
                 }
                 //sending the sms to json
                 mListener?.singleMessageRecieved(sms)

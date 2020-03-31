@@ -14,10 +14,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cradle_vsa_sms_relay.*
 import com.example.cradle_vsa_sms_relay.broad_castrecivers.ServiceToActivityBroadCastReciever
+import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 
 class MainActivity : AppCompatActivity(),
     SingleMessageListener {
-    private var smsList:ArrayList<Sms> = ArrayList();
+    private var smsList:ArrayList<SmsReferralEntitiy> = ArrayList();
     private var isServiceStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,7 +99,7 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    override fun singleMessageRecieved(sms: Sms) {
+    override fun singleMessageRecieved(sms: SmsReferralEntitiy) {
         val smsRecyclerView:RecyclerView = findViewById(R.id.messageRecyclerview)
         smsList.add(0,sms)
         val adapter = SmsRecyclerViewAdaper(smsList)
