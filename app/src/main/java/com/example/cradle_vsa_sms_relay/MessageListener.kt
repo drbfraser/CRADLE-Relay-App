@@ -7,6 +7,6 @@ interface SingleMessageListener {
 }
 
 interface MultiMessageListener{
-    fun messageMapRecieved(Sms:HashMap<String?,String?>)
+    fun messageMapRecieved(smsReferralList:ArrayList<SmsReferralEntitiy>)
 
 }

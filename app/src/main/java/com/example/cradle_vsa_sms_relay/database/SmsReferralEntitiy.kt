@@ -10,11 +10,11 @@ import java.io.Serializable
 data class SmsReferralEntitiy(
     @PrimaryKey
     val id: String,
-    val jsonData: String,
+    val jsonData: String?,
     //unix stamp
-    val timeRecieved: Int,
+    val timeRecieved: Long,
     var isUploaded: Boolean,
-    val phoneNumber: String,
+    val phoneNumber: String?,
     val numberOfTriesUploaded: Int
 ):Serializable {
 
