@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity
-data class SmsEntitiy(
+data class SmsReferralEntitiy(
     @PrimaryKey
     val id: String,
     val jsonData: String,
