@@ -1,6 +1,8 @@
 package com.example.cradle_vsa_sms_relay.activities
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
@@ -121,7 +123,8 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    override fun singleMessageRecieved(sms: SmsReferralEntitiy) {
+    override fun newMessageReceived() {
        setuprecyclerview()
     }
+
 }

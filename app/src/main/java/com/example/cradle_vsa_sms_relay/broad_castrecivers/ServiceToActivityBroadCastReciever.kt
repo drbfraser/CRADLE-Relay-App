@@ -13,10 +13,8 @@ open class ServiceToActivityBroadCastReciever(var mListener: SingleMessageListen
     override fun onReceive(p0: Context?, p1: Intent?) {
         if (p1 != null) {
             if (p1.action.equals("update")){
-                val intent = p1.extras
-                val message:SmsReferralEntitiy = intent?.getSerializable("sms") as SmsReferralEntitiy
-                //sending the sms to json
-                mListener?.singleMessageRecieved(message)
+               //letting whoever is listening know we have received a new message update
+                mListener?.newMessageReceived()
             }
         }
     }
