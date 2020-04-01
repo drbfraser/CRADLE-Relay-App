@@ -10,7 +10,6 @@ import android.content.IntentFilter
 import android.os.AsyncTask
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.android.volley.AuthFailureError
 import com.android.volley.Request.Method.POST
@@ -19,7 +18,7 @@ import com.android.volley.VolleyError
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.example.cradle_vsa_sms_relay.activities.MainActivity
-import com.example.cradle_vsa_sms_relay.broad_castrecivers.MessageReciever
+import com.example.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
 import com.example.cradle_vsa_sms_relay.dagger.MyApp
 import com.example.cradle_vsa_sms_relay.database.MyDatabase
 import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy

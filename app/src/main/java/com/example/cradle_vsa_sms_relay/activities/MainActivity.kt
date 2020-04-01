@@ -1,14 +1,11 @@
 package com.example.cradle_vsa_sms_relay.activities
 
 import android.Manifest
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -16,7 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cradle_vsa_sms_relay.*
-import com.example.cradle_vsa_sms_relay.broad_castrecivers.ServiceToActivityBroadCastReciever
+import com.example.cradle_vsa_sms_relay.broadcast_receiver.ServiceToActivityBroadCastReciever
 import com.example.cradle_vsa_sms_relay.dagger.MyApp
 import com.example.cradle_vsa_sms_relay.database.MyDatabase
 import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy

@@ -1,4 +1,4 @@
-package com.example.cradle_vsa_sms_relay.broad_castrecivers
+package com.example.cradle_vsa_sms_relay.broadcast_receiver
 
 import android.content.BroadcastReceiver
 import android.content.Context
