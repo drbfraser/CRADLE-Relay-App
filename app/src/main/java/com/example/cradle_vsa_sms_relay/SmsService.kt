@@ -49,8 +49,6 @@ class SmsService : Service(), MultiMessageListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("bugg", "stop to server")
-
         super.onStartCommand(intent, flags, startId)
 
         if (intent != null) {
@@ -174,7 +172,6 @@ class SmsService : Service(), MultiMessageListener {
     }
 
     override fun messageMapRecieved(smsReferralList: ArrayList<SmsReferralEntitiy>) {
-        Log.d("bugg", "addin to db")
 
         smsReferralList.forEach { f -> database.daoAccess().insertSmsReferral(f) }
         smsReferralList.forEach { f -> sendToServer(f) }
