@@ -8,12 +8,14 @@ import dagger.Provides
 import javax.inject.Singleton
 
 @Module
-class DataModule  {
+class DataModule {
 
     @Provides
     @Singleton
-    fun getDatabase(app: Application):MyDatabase{
-        return Room.databaseBuilder(app.applicationContext,MyDatabase::class.java,
-            "referral-DB").allowMainThreadQueries().build()
+    fun getDatabase(app: Application): MyDatabase {
+        return Room.databaseBuilder(
+            app.applicationContext, MyDatabase::class.java,
+            "referral-DB"
+        ).allowMainThreadQueries().build()
     }
 }

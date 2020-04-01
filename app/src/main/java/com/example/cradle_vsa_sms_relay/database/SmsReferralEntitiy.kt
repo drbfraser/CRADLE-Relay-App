@@ -16,26 +16,26 @@ data class SmsReferralEntitiy(
     var isUploaded: Boolean,
     val phoneNumber: String?,
     var numberOfTriesUploaded: Int
-):Serializable, Comparable<SmsReferralEntitiy> {
+) : Serializable, Comparable<SmsReferralEntitiy> {
 
 
     companion object {
-        fun fromJson(jsonString:String): SmsReferralEntitiy {
+        fun fromJson(jsonString: String): SmsReferralEntitiy {
             try {
                 val jsonObj = JSONObject(jsonString)
                 val messageBody: String = jsonObj.getString("messageBody")
-                val address:String = jsonObj.getString("address")
-                val id:String = jsonObj.getString("id");
-                val timeRecieved:Long = jsonObj.getLong("timeReceived");
-                val numTries:Int = jsonObj.getInt("tries")
-                return SmsReferralEntitiy(id,messageBody,timeRecieved,false,address,numTries)
-            } catch (e: JSONException){
-                return SmsReferralEntitiy("null",jsonString,0,false,"null",0)
+                val address: String = jsonObj.getString("address")
+                val id: String = jsonObj.getString("id")
+                val timeRecieved: Long = jsonObj.getLong("timeReceived")
+                val numTries: Int = jsonObj.getInt("tries")
+                return SmsReferralEntitiy(id, messageBody, timeRecieved, false, address, numTries)
+            } catch (e: JSONException) {
+                return SmsReferralEntitiy("null", jsonString, 0, false, "null", 0)
             }
         }
     }
 
     override fun compareTo(other: SmsReferralEntitiy): Int {
-        return (this.timeRecieved-other.timeRecieved).toInt()
+        return (this.timeRecieved - other.timeRecieved).toInt()
     }
 }

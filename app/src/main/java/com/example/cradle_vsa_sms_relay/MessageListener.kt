@@ -6,7 +6,7 @@ interface SingleMessageListener {
     fun newMessageReceived()
 }
 
-interface MultiMessageListener{
-    fun messageMapRecieved(smsReferralList:ArrayList<SmsReferralEntitiy>)
+interface MultiMessageListener {
+    fun messageMapRecieved(smsReferralList: ArrayList<SmsReferralEntitiy>)
 
 }

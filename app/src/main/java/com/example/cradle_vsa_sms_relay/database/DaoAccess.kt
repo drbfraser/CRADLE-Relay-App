@@ -15,11 +15,11 @@ interface DaoAccess {
     fun deleteSmsReferral(smsReferralEntitiy: SmsReferralEntitiy)
 
     @Query("SELECT * FROM SmsReferralEntitiy WHERE isUploaded == 1")
-    fun getUnUploadedReferral():List<SmsReferralEntitiy>
+    fun getUnUploadedReferral(): List<SmsReferralEntitiy>
 
     @Query("SELECT * FROM SmsReferralEntitiy")
     fun getAllReferrals(): List<SmsReferralEntitiy>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insertAllReferral(referralList:ArrayList<SmsReferralEntitiy>)
+    fun insertAllReferral(referralList: ArrayList<SmsReferralEntitiy>)
 }

@@ -25,7 +25,6 @@ import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import org.json.JSONException
 import org.json.JSONObject
 import javax.inject.Inject
-import kotlin.collections.HashMap
 
 class SmsService : Service(), MultiMessageListener {
     val CHANNEL_ID = "ForegroundServiceChannel"
@@ -85,7 +84,6 @@ class SmsService : Service(), MultiMessageListener {
     }
 
 
-
     private fun sendToServer(smsReferralEntitiy: SmsReferralEntitiy) {
         val sharedPref =
             getSharedPreferences(AUTH_PREF, Context.MODE_PRIVATE)
@@ -101,25 +99,25 @@ class SmsService : Service(), MultiMessageListener {
             POST, referralsServerUrl, json, Response.Listener { response: JSONObject? ->
 
                 // letting the activity know if upload was successful
-                val intent = Intent();
-                val bundle = Bundle();
-                bundle.putSerializable("sms",smsReferralEntitiy)
-                intent.setAction("update")
-                smsReferralEntitiy.isUploaded=true
-                smsReferralEntitiy.numberOfTriesUploaded+=1
+                val intent = Intent()
+                val bundle = Bundle()
+                bundle.putSerializable("sms", smsReferralEntitiy)
+                intent.action = "update"
+                smsReferralEntitiy.isUploaded = true
+                smsReferralEntitiy.numberOfTriesUploaded += 1
                 //received by the activity through ServiceTOActivityBroadcast
                 database.daoAccess().updateSmsReferral(smsReferralEntitiy)
                 sendBroadcast(intent)
             },
             Response.ErrorListener { error: VolleyError ->
                 database.daoAccess().updateSmsReferral(smsReferralEntitiy)
-                val intent = Intent();
-                val bundle = Bundle();
-                smsReferralEntitiy.isUploaded=false
-                smsReferralEntitiy.numberOfTriesUploaded+=1
-                bundle.putSerializable("sms",smsReferralEntitiy)
+                val intent = Intent()
+                val bundle = Bundle()
+                smsReferralEntitiy.isUploaded = false
+                smsReferralEntitiy.numberOfTriesUploaded += 1
+                bundle.putSerializable("sms", smsReferralEntitiy)
                 intent.putExtras(bundle)
-                intent.setAction("update")
+                intent.action = "update"
                 sendBroadcast(intent)
             }
         ) {
@@ -172,7 +170,7 @@ class SmsService : Service(), MultiMessageListener {
         val USER_ID = "userId"
     }
 
-    override fun messageMapRecieved(smsReferralList:ArrayList<SmsReferralEntitiy>) {
+    override fun messageMapRecieved(smsReferralList: ArrayList<SmsReferralEntitiy>) {
 
         smsReferralList.forEach { f -> database.daoAccess().insertSmsReferral(f) }
         smsReferralList.forEach { f -> sendToServer(f) }

@@ -16,7 +16,7 @@ import kotlin.collections.HashMap
 class MessageReciever : BroadcastReceiver() {
 
     companion object {
-        private var meListener: MultiMessageListener? = null;
+        private var meListener: MultiMessageListener? = null
 
         fun bindListener(messageListener: MultiMessageListener) {
             meListener = messageListener
@@ -33,7 +33,7 @@ class MessageReciever : BroadcastReceiver() {
 
         // you may recieve multiple messages at the same time from different numbers so
         // we keep track of all the messages from different numbers
-        val messages = HashMap<String?, String?>();
+        val messages = HashMap<String?, String?>()
 
 
         for (element in pdus) {
@@ -47,7 +47,7 @@ class MessageReciever : BroadcastReceiver() {
             //or typing 1 char at  a time
             if (messages.containsKey(smsMessage.originatingAddress)) {
                 //concatenating messages
-                val newMsg: String = smsMessage.messageBody;
+                val newMsg: String = smsMessage.messageBody
                 val oldMsg: String? = messages[smsMessage.originatingAddress]
                 messages[smsMessage.originatingAddress] = oldMsg + newMsg
             } else {
@@ -73,7 +73,7 @@ class MessageReciever : BroadcastReceiver() {
 
             meListener?.messageMapRecieved(
                 smsReferralList
-            );
+            )
 
         }
 

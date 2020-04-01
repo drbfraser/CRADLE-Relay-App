@@ -9,7 +9,7 @@ import javax.inject.Singleton
 @Component(modules = [AppModule::class, DataModule::class])
 interface AppComponent {
 
-    fun inject(app:MyApp)
+    fun inject(app: MyApp)
     fun inject(smsService: SmsService)
     fun inject(activity: MainActivity)
 }

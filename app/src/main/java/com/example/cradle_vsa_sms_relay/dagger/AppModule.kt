@@ -10,6 +10,6 @@ class AppModule(val application: Application) {
 
     @Provides
     @Singleton
-    fun provideApplication()=application
+    fun provideApplication() = application
 
 }

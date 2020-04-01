@@ -12,10 +12,11 @@ import com.example.cradle_vsa_sms_relay.utilities.DateTimeUtil
 class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>) :
     RecyclerView.Adapter<SmsRecyclerViewAdaper.SMSViewHolder>() {
 
-    private var sms:List<SmsReferralEntitiy> = smsList
+    private var sms: List<SmsReferralEntitiy> = smsList
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SMSViewHolder {
-        val v: View = LayoutInflater.from(parent.context).inflate(R.layout.sms_recycler_item,parent, false)
+        val v: View =
+            LayoutInflater.from(parent.context).inflate(R.layout.sms_recycler_item, parent, false)
         return SMSViewHolder(v)
 
     }
@@ -32,13 +33,13 @@ class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>) :
             holder.statusImg.setImageResource(R.drawable.ic_thumb_down_black_24dp)
 
         }
-        holder.receivedTimeTxt.setText(DateTimeUtil.convertUnixToTimeString(sms[position].timeRecieved))
+        holder.receivedTimeTxt.text = DateTimeUtil.convertUnixToTimeString(sms[position].timeRecieved)
     }
 
     class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         var smsText: TextView = itemView.findViewById<TextView>(R.id.txtBody)
-        var statusImg:ImageView = itemView.findViewById(R.id.msgStatus)
-        var receivedTimeTxt:TextView = itemView.findViewById(R.id.timeReceivedTxt)
+        var statusImg: ImageView = itemView.findViewById(R.id.msgStatus)
+        var receivedTimeTxt: TextView = itemView.findViewById(R.id.timeReceivedTxt)
     }
 }
