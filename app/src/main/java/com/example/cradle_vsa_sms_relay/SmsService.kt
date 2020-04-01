@@ -7,9 +7,10 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.AsyncTask
 import android.os.Build
-import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.android.volley.AuthFailureError
 import com.android.volley.Request.Method.POST
@@ -48,6 +49,8 @@ class SmsService : Service(), MultiMessageListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("bugg", "stop to server")
+
         super.onStartCommand(intent, flags, startId)
 
         if (intent != null) {
@@ -100,8 +103,6 @@ class SmsService : Service(), MultiMessageListener {
 
                 // letting the activity know if upload was successful
                 val intent = Intent()
-                val bundle = Bundle()
-                bundle.putSerializable("sms", smsReferralEntitiy)
                 intent.action = "update"
                 smsReferralEntitiy.isUploaded = true
                 smsReferralEntitiy.numberOfTriesUploaded += 1
@@ -110,15 +111,17 @@ class SmsService : Service(), MultiMessageListener {
                 sendBroadcast(intent)
             },
             Response.ErrorListener { error: VolleyError ->
-                database.daoAccess().updateSmsReferral(smsReferralEntitiy)
-                val intent = Intent()
-                val bundle = Bundle()
+
                 smsReferralEntitiy.isUploaded = false
                 smsReferralEntitiy.numberOfTriesUploaded += 1
-                bundle.putSerializable("sms", smsReferralEntitiy)
-                intent.putExtras(bundle)
-                intent.action = "update"
-                sendBroadcast(intent)
+                AsyncTask.execute {
+                    database.daoAccess().updateSmsReferral(smsReferralEntitiy)
+                    val intent = Intent()
+                    intent.action = "update"
+                    sendBroadcast(intent)
+                }
+
+
             }
         ) {
             /**
@@ -171,6 +174,7 @@ class SmsService : Service(), MultiMessageListener {
     }
 
     override fun messageMapRecieved(smsReferralList: ArrayList<SmsReferralEntitiy>) {
+        Log.d("bugg", "addin to db")
 
         smsReferralList.forEach { f -> database.daoAccess().insertSmsReferral(f) }
         smsReferralList.forEach { f -> sendToServer(f) }
