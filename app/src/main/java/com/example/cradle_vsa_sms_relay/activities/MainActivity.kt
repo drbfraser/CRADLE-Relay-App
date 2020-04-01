@@ -45,8 +45,10 @@ class MainActivity : AppCompatActivity(),
     private fun setuprecyclerview() {
 
         val smsRecyclerView:RecyclerView = findViewById(R.id.messageRecyclerview)
-        val adapter = SmsRecyclerViewAdaper(database.daoAccess().getAllReferrals())
+        var referrals = database.daoAccess().getAllReferrals().sortedByDescending { it.timeRecieved }
+        val adapter = SmsRecyclerViewAdaper(referrals)
         Log.d("bugg","datavase: "+ database.daoAccess().getAllReferrals().size)
+
         smsRecyclerView.adapter = adapter
         val layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
         smsRecyclerView.layoutManager = layout

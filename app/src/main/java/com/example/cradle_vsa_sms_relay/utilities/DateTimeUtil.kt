@@ -17,7 +17,8 @@ class DateTimeUtil {
             val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
             sdf.setTimeZone(tz)
             val localTime =
-                sdf.format(Date(unixTime * 1000))
+                //unix time is in seconds, converting to milli
+                sdf.format(Date(unixTime*100))
             return localTime
 
         }

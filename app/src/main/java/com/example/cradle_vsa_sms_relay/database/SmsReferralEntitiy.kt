@@ -16,7 +16,7 @@ data class SmsReferralEntitiy(
     var isUploaded: Boolean,
     val phoneNumber: String?,
     var numberOfTriesUploaded: Int
-):Serializable {
+):Serializable, Comparable<SmsReferralEntitiy> {
 
 
     companion object {
@@ -33,5 +33,9 @@ data class SmsReferralEntitiy(
                 return SmsReferralEntitiy("null",jsonString,0,false,"null",0)
             }
         }
+    }
+
+    override fun compareTo(other: SmsReferralEntitiy): Int {
+        return (this.timeRecieved-other.timeRecieved).toInt()
     }
 }

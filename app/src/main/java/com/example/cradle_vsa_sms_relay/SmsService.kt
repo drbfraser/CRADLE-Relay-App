@@ -104,7 +104,6 @@ class SmsService : Service(), MultiMessageListener {
                 val intent = Intent();
                 val bundle = Bundle();
                 bundle.putSerializable("sms",smsReferralEntitiy)
-                bundle.putInt("status",UPLOAD_SUCCESSFUL)
                 intent.setAction("update")
                 smsReferralEntitiy.isUploaded=true
                 smsReferralEntitiy.numberOfTriesUploaded+=1
@@ -113,6 +112,7 @@ class SmsService : Service(), MultiMessageListener {
                 sendBroadcast(intent)
             },
             Response.ErrorListener { error: VolleyError ->
+                database.daoAccess().updateSmsReferral(smsReferralEntitiy)
                 val intent = Intent();
                 val bundle = Bundle();
                 smsReferralEntitiy.isUploaded=false
@@ -170,13 +170,11 @@ class SmsService : Service(), MultiMessageListener {
         val TOKEN = "token"
         val AUTH = "Authorization"
         val USER_ID = "userId"
-        val UPLOAD_SUCCESSFUL = 1;
-        val UPLOAD_FAIL =-1
     }
 
     override fun messageMapRecieved(smsReferralList:ArrayList<SmsReferralEntitiy>) {
 
-        database.daoAccess().insertAllReferral(smsReferralList)
+        smsReferralList.forEach { f -> database.daoAccess().insertSmsReferral(f) }
         smsReferralList.forEach { f -> sendToServer(f) }
     }
 }
