@@ -1,10 +1,12 @@
 package com.example.cradle_vsa_sms_relay
 
+import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+
 interface SingleMessageListener {
-    fun singleMessageRecieved(sms:Sms)
+    fun newMessageReceived()
 }
 
-interface MultiMessageListener{
-    fun messageMapRecieved(Sms:HashMap<String?,String?>)
+interface MultiMessageListener {
+    fun messageMapRecieved(smsReferralList: ArrayList<SmsReferralEntitiy>)
 
 }

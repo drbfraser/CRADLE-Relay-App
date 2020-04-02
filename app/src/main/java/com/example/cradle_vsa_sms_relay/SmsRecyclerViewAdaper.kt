@@ -6,24 +6,17 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.cradle_vsa_sms_relay.SmsService.Companion.UPLOAD_SUCCESSFUL
+import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.example.cradle_vsa_sms_relay.utilities.DateTimeUtil
 
-class SmsRecyclerViewAdaper(smsList: List<Sms>) :
+class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>) :
     RecyclerView.Adapter<SmsRecyclerViewAdaper.SMSViewHolder>() {
-    private var sms:List<Sms> = smsList
 
-    class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-
-        var smsText: TextView
-        var statusImg:ImageView
-        init {
-           smsText= itemView.findViewById<TextView>(R.id.txtBody)
-            statusImg = itemView.findViewById(R.id.msgStatus)
-        }
-    }
+    private var sms: List<SmsReferralEntitiy> = smsList
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SMSViewHolder {
-        val v: View = LayoutInflater.from(parent.context).inflate(R.layout.sms_recycler_item,parent, false)
+        val v: View =
+            LayoutInflater.from(parent.context).inflate(R.layout.sms_recycler_item, parent, false)
         return SMSViewHolder(v)
 
     }
@@ -33,12 +26,20 @@ class SmsRecyclerViewAdaper(smsList: List<Sms>) :
     }
 
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
-        holder.smsText.text = sms.get(position).messageBody
-        if (sms.get(position).status == UPLOAD_SUCCESSFUL) {
+        holder.smsText.text = sms.get(position).jsonData
+        if (sms.get(position).isUploaded) {
             holder.statusImg.setImageResource(R.drawable.ic_check_black_24dp)
-        } else if (sms.get(position).status == UPLOAD_SUCCESSFUL) {
+        } else {
             holder.statusImg.setImageResource(R.drawable.ic_thumb_down_black_24dp)
 
         }
+        holder.receivedTimeTxt.text = DateTimeUtil.convertUnixToTimeString(sms[position].timeRecieved)
+    }
+
+    class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
+        var smsText: TextView = itemView.findViewById<TextView>(R.id.txtBody)
+        var statusImg: ImageView = itemView.findViewById(R.id.msgStatus)
+        var receivedTimeTxt: TextView = itemView.findViewById(R.id.timeReceivedTxt)
     }
 }
