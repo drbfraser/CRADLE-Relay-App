@@ -18,15 +18,17 @@ import com.example.cradle_vsa_sms_relay.SmsRecyclerViewAdaper
 import com.example.cradle_vsa_sms_relay.SmsService
 import com.example.cradle_vsa_sms_relay.broadcast_receiver.ServiceToActivityBroadCastReciever
 import com.example.cradle_vsa_sms_relay.dagger.MyApp
-import com.example.cradle_vsa_sms_relay.database.MyDatabase
+import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(),
     SingleMessageListener {
+
     private var isServiceStarted = false
     @Inject
-    lateinit var database: MyDatabase
+    lateinit var database: ReferralDatabase
     lateinit var serviceToActivityBroadCastReciever: ServiceToActivityBroadCastReciever
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)

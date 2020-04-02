@@ -2,7 +2,7 @@ package com.example.cradle_vsa_sms_relay.dagger
 
 import android.app.Application
 import androidx.room.Room
-import com.example.cradle_vsa_sms_relay.database.MyDatabase
+import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -12,9 +12,9 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun getDatabase(app: Application): MyDatabase {
+    fun getDatabase(app: Application): ReferralDatabase {
         return Room.databaseBuilder(
-            app.applicationContext, MyDatabase::class.java,
+            app.applicationContext, ReferralDatabase::class.java,
             "referral-DB"
         ).allowMainThreadQueries().build()
     }

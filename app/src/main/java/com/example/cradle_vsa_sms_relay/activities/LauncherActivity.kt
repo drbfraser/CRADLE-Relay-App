@@ -65,6 +65,7 @@ class LauncherActivity : AppCompatActivity() {
                     error.printStackTrace()
                     progressDialog.cancel()
                     findViewById<TextView>(R.id.invalidLoginText).visibility= View.VISIBLE
+                    startActivity()
                 } )
             que.add(jsonObjectRequest)
         }

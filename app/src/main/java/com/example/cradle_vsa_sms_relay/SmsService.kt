@@ -20,7 +20,7 @@ import com.android.volley.toolbox.Volley
 import com.example.cradle_vsa_sms_relay.activities.MainActivity
 import com.example.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
 import com.example.cradle_vsa_sms_relay.dagger.MyApp
-import com.example.cradle_vsa_sms_relay.database.MyDatabase
+import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import org.json.JSONException
 import org.json.JSONObject
@@ -34,7 +34,7 @@ class SmsService : Service(), MultiMessageListener {
     private val referralSummeriesServerUrl =
         "https://cmpt373.csil.sfu.ca:8048/api/mobile/summarized/follow_up"
     @Inject
-    lateinit var database: MyDatabase
+    lateinit var database: ReferralDatabase
 
     private var smsReciver: MessageReciever? = null
 
