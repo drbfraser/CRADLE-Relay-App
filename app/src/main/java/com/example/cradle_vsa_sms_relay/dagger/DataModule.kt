@@ -13,9 +13,11 @@ class DataModule {
     @Provides
     @Singleton
     fun getDatabase(app: Application): ReferralDatabase {
+        //todo dont allow main thread queries
+        //todo create a migration class
         return Room.databaseBuilder(
             app.applicationContext, ReferralDatabase::class.java,
             "referral-DB"
-        ).allowMainThreadQueries().build()
+        ).allowMainThreadQueries().fallbackToDestructiveMigration().build()
     }
 }
