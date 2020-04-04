@@ -54,28 +54,24 @@ class MessageReciever : BroadcastReceiver() {
                 messages[smsMessage.originatingAddress] = smsMessage.messageBody
             }
 
-            val smsReferralList: ArrayList<SmsReferralEntitiy> = ArrayList()
-
-            messages.entries.forEach { entry ->
-                val currTime = System.currentTimeMillis() / 100L
-                smsReferralList.add(
-                    SmsReferralEntitiy(
-                        UUID.randomUUID().toString(),
-                        entry.value,
-                        currTime,
-                        false,
-                        entry.key,
-                        0
-                    )
-                )
-            }
-            // send it to the service to send to the server
-
-            meListener?.messageMapRecieved(
-                smsReferralList
-            )
-
         }
+        val smsReferralList: ArrayList<SmsReferralEntitiy> = ArrayList()
+
+        messages.entries.forEach { entry ->
+            val currTime = System.currentTimeMillis() / 100L
+            smsReferralList.add(
+                SmsReferralEntitiy(
+                    UUID.randomUUID().toString(),
+                    entry.value,
+                    currTime,
+                    false,
+                    entry.key,
+                    0
+                )
+            )
+        }
+        // send it to the service to send to the server
+        meListener?.messageMapRecieved(smsReferralList)
 
     }
 }

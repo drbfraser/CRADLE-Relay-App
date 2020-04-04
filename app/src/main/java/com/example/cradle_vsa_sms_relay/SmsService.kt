@@ -10,11 +10,13 @@ import android.content.IntentFilter
 import android.os.AsyncTask
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.android.volley.AuthFailureError
 import com.android.volley.Request.Method.POST
 import com.android.volley.Response
 import com.android.volley.VolleyError
+import com.android.volley.toolbox.HttpHeaderParser
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.example.cradle_vsa_sms_relay.activities.MainActivity
@@ -24,6 +26,8 @@ import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.UnsupportedEncodingException
+import java.nio.charset.Charset
 import javax.inject.Inject
 
 class SmsService : Service(), MultiMessageListener {
@@ -93,6 +97,7 @@ class SmsService : Service(), MultiMessageListener {
         try {
             json = JSONObject(smsReferralEntitiy.jsonData)
         } catch (e: JSONException) {
+            Log.d("bugg","json cannot be converted")
             e.printStackTrace()
         }
         val jsonObjectRequest: JsonObjectRequest = object : JsonObjectRequest(
@@ -108,6 +113,28 @@ class SmsService : Service(), MultiMessageListener {
                 sendBroadcast(intent)
             },
             Response.ErrorListener { error: VolleyError ->
+                var json: String? = null
+                try {
+                    if (error.networkResponse != null) {
+                        json = String(
+                            error.networkResponse.data,
+                            Charset.forName(HttpHeaderParser.parseCharset(error.networkResponse.headers))
+                        )
+                        Log.d(
+                            "bugg1",
+                            json + "  " + error.networkResponse.statusCode
+                        )
+                    }
+                } catch (e: UnsupportedEncodingException) {
+                    Log.d(
+                        "bugg1",
+                        json + "  " + error.networkResponse.statusCode
+                    )
+                    e.printStackTrace()
+                }
+
+
+
 
                 smsReferralEntitiy.isUploaded = false
                 smsReferralEntitiy.numberOfTriesUploaded += 1
@@ -173,6 +200,9 @@ class SmsService : Service(), MultiMessageListener {
     override fun messageMapRecieved(smsReferralList: ArrayList<SmsReferralEntitiy>) {
 
         smsReferralList.forEach { f -> database.daoAccess().insertSmsReferral(f) }
-        smsReferralList.forEach { f -> sendToServer(f) }
+        smsReferralList.forEach { f ->
+            Log.d("bugg","sending to server"+ f.id + " meesage: "+ f.jsonData+ "size: "+ f.jsonData?.length)
+            sendToServer(f)
+        }
     }
 }
