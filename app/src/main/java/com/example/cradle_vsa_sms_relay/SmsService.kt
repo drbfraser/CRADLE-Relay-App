@@ -128,6 +128,8 @@ class SmsService : Service(), MultiMessageListener {
                     } else if (error.networkResponse.statusCode >= 400) {
                         smsReferralEntitiy.errorMessage += " Invalid request, make sure you have correct credentials"
                     }
+                } else {
+                    smsReferralEntitiy.errorMessage = "Unable to get error message"
                 }
                 updateDatabase(smsReferralEntitiy, false)
 
