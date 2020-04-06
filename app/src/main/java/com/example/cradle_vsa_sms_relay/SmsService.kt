@@ -10,7 +10,6 @@ import android.content.IntentFilter
 import android.os.AsyncTask
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.android.volley.AuthFailureError
 import com.android.volley.Request.Method.POST
@@ -98,14 +97,14 @@ class SmsService : Service(), MultiMessageListener {
             json = JSONObject(smsReferralEntitiy.jsonData)
         } catch (e: JSONException) {
             smsReferralEntitiy.errorMessage = "Not a valid JSON format"
-            updateDatabase(smsReferralEntitiy,false)
+            updateDatabase(smsReferralEntitiy, false)
             e.printStackTrace()
             //no need to send it to the server, we know its not a valid json
             return
         }
         val jsonObjectRequest: JsonObjectRequest = object : JsonObjectRequest(
             POST, referralsServerUrl, json, Response.Listener { response: JSONObject? ->
-                updateDatabase(smsReferralEntitiy,true)
+                updateDatabase(smsReferralEntitiy, true)
             },
             Response.ErrorListener { error: VolleyError ->
                 var json: String? = ""
@@ -115,21 +114,22 @@ class SmsService : Service(), MultiMessageListener {
                             error.networkResponse.data,
                             Charset.forName(HttpHeaderParser.parseCharset(error.networkResponse.headers))
                         )
-                        smsReferralEntitiy.errorMessage= json.toString()
+                        smsReferralEntitiy.errorMessage = json.toString()
                     }
                 } catch (e: UnsupportedEncodingException) {
-                    smsReferralEntitiy.errorMessage= "No clue whats going on, return message is null"
+                    smsReferralEntitiy.errorMessage =
+                        "No clue whats going on, return message is null"
                     e.printStackTrace()
                 }
                 //giving back extra info based on status code
-                if (error.networkResponse!=null) {
+                if (error.networkResponse != null) {
                     if (error.networkResponse.statusCode >= 500) {
                         smsReferralEntitiy.errorMessage += " Please make sure referral has all the fields"
-                    } else   if (error.networkResponse.statusCode >= 400) {
+                    } else if (error.networkResponse.statusCode >= 400) {
                         smsReferralEntitiy.errorMessage += " Invalid request, make sure you have correct credentials"
                     }
                 }
-                updateDatabase(smsReferralEntitiy,false)
+                updateDatabase(smsReferralEntitiy, false)
 
             }
         ) {
@@ -148,7 +148,7 @@ class SmsService : Service(), MultiMessageListener {
         queue.add(jsonObjectRequest)
     }
 
-    fun updateDatabase(smsReferralEntitiy: SmsReferralEntitiy,isUploaded:Boolean){
+    fun updateDatabase(smsReferralEntitiy: SmsReferralEntitiy, isUploaded: Boolean) {
         smsReferralEntitiy.isUploaded = isUploaded
         smsReferralEntitiy.numberOfTriesUploaded += 1
         AsyncTask.execute {

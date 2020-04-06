@@ -28,7 +28,7 @@ class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>) :
     }
 
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
-        val smsReferralEntitiy:SmsReferralEntitiy = sms[position
+        val smsReferralEntitiy: SmsReferralEntitiy = sms[position
         ]
         holder.smsText.text = smsReferralEntitiy.jsonData
         if (smsReferralEntitiy.isUploaded) {
@@ -36,9 +36,10 @@ class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>) :
         } else {
             holder.statusImg.setImageResource(R.drawable.ic_thumb_down_black_24dp)
         }
-        holder.receivedTimeTxt.text = DateTimeUtil.convertUnixToTimeString(smsReferralEntitiy.timeRecieved)
-        if (!smsReferralEntitiy.errorMessage.equals("")){
-            holder.errorTxt.setText(smsReferralEntitiy.errorMessage)
+        holder.receivedTimeTxt.text =
+            DateTimeUtil.convertUnixToTimeString(smsReferralEntitiy.timeRecieved)
+        if (!smsReferralEntitiy.errorMessage.equals("")) {
+            holder.errorTxt.text = smsReferralEntitiy.errorMessage
             holder.errorLayout.visibility = VISIBLE
         }
     }
@@ -48,7 +49,7 @@ class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>) :
         var smsText: TextView = itemView.findViewById<TextView>(R.id.txtBody)
         var statusImg: ImageView = itemView.findViewById(R.id.msgStatus)
         var receivedTimeTxt: TextView = itemView.findViewById(R.id.timeReceivedTxt)
-        var errorLayout:LinearLayout = itemView.findViewById(R.id.errorLayout)
-        var errorTxt:TextView = itemView.findViewById(R.id.errorMsgTxt)
+        var errorLayout: LinearLayout = itemView.findViewById(R.id.errorLayout)
+        var errorTxt: TextView = itemView.findViewById(R.id.errorMsgTxt)
     }
 }
