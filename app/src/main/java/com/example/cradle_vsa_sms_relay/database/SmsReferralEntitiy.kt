@@ -15,22 +15,23 @@ data class SmsReferralEntitiy(
     val timeRecieved: Long,
     var isUploaded: Boolean,
     val phoneNumber: String?,
-    var numberOfTriesUploaded: Int
+    var numberOfTriesUploaded: Int,
+    var errorMessage:String
 ) : Serializable, Comparable<SmsReferralEntitiy> {
 
 
     companion object {
         fun fromJson(jsonString: String): SmsReferralEntitiy {
-            try {
+            return try {
                 val jsonObj = JSONObject(jsonString)
                 val messageBody: String = jsonObj.getString("messageBody")
                 val address: String = jsonObj.getString("address")
                 val id: String = jsonObj.getString("id")
                 val timeRecieved: Long = jsonObj.getLong("timeReceived")
                 val numTries: Int = jsonObj.getInt("tries")
-                return SmsReferralEntitiy(id, messageBody, timeRecieved, false, address, numTries)
+                SmsReferralEntitiy(id, messageBody, timeRecieved, false, address, numTries,"")
             } catch (e: JSONException) {
-                return SmsReferralEntitiy("null", jsonString, 0, false, "null", 0)
+                SmsReferralEntitiy("null", jsonString, 0, false, "null", 0,"")
             }
         }
     }

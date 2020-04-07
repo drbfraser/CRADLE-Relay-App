@@ -15,6 +15,7 @@ import com.android.volley.AuthFailureError
 import com.android.volley.Request.Method.POST
 import com.android.volley.Response
 import com.android.volley.VolleyError
+import com.android.volley.toolbox.HttpHeaderParser
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.example.cradle_vsa_sms_relay.activities.MainActivity
@@ -24,6 +25,8 @@ import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.UnsupportedEncodingException
+import java.nio.charset.Charset
 import javax.inject.Inject
 
 class SmsService : Service(), MultiMessageListener {
@@ -93,31 +96,42 @@ class SmsService : Service(), MultiMessageListener {
         try {
             json = JSONObject(smsReferralEntitiy.jsonData)
         } catch (e: JSONException) {
+            smsReferralEntitiy.errorMessage = "Not a valid JSON format"
+            updateDatabase(smsReferralEntitiy, false)
             e.printStackTrace()
+            //no need to send it to the server, we know its not a valid json
+            return
         }
         val jsonObjectRequest: JsonObjectRequest = object : JsonObjectRequest(
             POST, referralsServerUrl, json, Response.Listener { response: JSONObject? ->
-
-                // letting the activity know if upload was successful
-                val intent = Intent()
-                intent.action = "update"
-                smsReferralEntitiy.isUploaded = true
-                smsReferralEntitiy.numberOfTriesUploaded += 1
-                //received by the activity through ServiceTOActivityBroadcast
-                database.daoAccess().updateSmsReferral(smsReferralEntitiy)
-                sendBroadcast(intent)
+                updateDatabase(smsReferralEntitiy, true)
             },
             Response.ErrorListener { error: VolleyError ->
-
-                smsReferralEntitiy.isUploaded = false
-                smsReferralEntitiy.numberOfTriesUploaded += 1
-                AsyncTask.execute {
-                    database.daoAccess().updateSmsReferral(smsReferralEntitiy)
-                    val intent = Intent()
-                    intent.action = "update"
-                    sendBroadcast(intent)
+                var json: String? = ""
+                try {
+                    if (error.networkResponse != null) {
+                        json = String(
+                            error.networkResponse.data,
+                            Charset.forName(HttpHeaderParser.parseCharset(error.networkResponse.headers))
+                        )
+                        smsReferralEntitiy.errorMessage = json.toString()
+                    }
+                } catch (e: UnsupportedEncodingException) {
+                    smsReferralEntitiy.errorMessage =
+                        "No clue whats going on, return message is null"
+                    e.printStackTrace()
                 }
-
+                //giving back extra info based on status code
+                if (error.networkResponse != null) {
+                    if (error.networkResponse.statusCode >= 500) {
+                        smsReferralEntitiy.errorMessage += " Please make sure referral has all the fields"
+                    } else if (error.networkResponse.statusCode >= 400) {
+                        smsReferralEntitiy.errorMessage += " Invalid request, make sure you have correct credentials"
+                    }
+                } else {
+                    smsReferralEntitiy.errorMessage = "Unable to get error message"
+                }
+                updateDatabase(smsReferralEntitiy, false)
 
             }
         ) {
@@ -132,11 +146,19 @@ class SmsService : Service(), MultiMessageListener {
                 return header
             }
         }
-
         val queue = Volley.newRequestQueue(this)
         queue.add(jsonObjectRequest)
+    }
 
-
+    fun updateDatabase(smsReferralEntitiy: SmsReferralEntitiy, isUploaded: Boolean) {
+        smsReferralEntitiy.isUploaded = isUploaded
+        smsReferralEntitiy.numberOfTriesUploaded += 1
+        AsyncTask.execute {
+            database.daoAccess().updateSmsReferral(smsReferralEntitiy)
+            val intent = Intent()
+            intent.action = "update"
+            sendBroadcast(intent)
+        }
     }
 
     override fun stopService(name: Intent?): Boolean {
@@ -173,6 +195,8 @@ class SmsService : Service(), MultiMessageListener {
     override fun messageMapRecieved(smsReferralList: ArrayList<SmsReferralEntitiy>) {
 
         smsReferralList.forEach { f -> database.daoAccess().insertSmsReferral(f) }
-        smsReferralList.forEach { f -> sendToServer(f) }
+        smsReferralList.forEach { f ->
+            sendToServer(f)
+        }
     }
 }
