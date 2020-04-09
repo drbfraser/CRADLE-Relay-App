@@ -34,6 +34,9 @@ class SmsService : Service(), MultiMessageListener {
     private val readingServerUrl =
         "https://cmpt373.csil.sfu.ca:8048/api/patient/reading"
     private val referralsServerUrl = "https://cmpt373.csil.sfu.ca:8048/api/referral"
+
+    // localhost
+//    private val referralsServerUrl = "http://10.0.2.2:5000/api/referral"
     private val referralSummeriesServerUrl =
         "https://cmpt373.csil.sfu.ca:8048/api/mobile/summarized/follow_up"
     @Inject
