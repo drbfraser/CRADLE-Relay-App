@@ -6,9 +6,7 @@ import android.content.Intent
 import android.telephony.SmsMessage
 import com.example.cradle_vsa_sms_relay.MultiMessageListener
 import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
-import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
+import com.example.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
 
 /**
  * detects messages receives
@@ -61,8 +59,8 @@ class MessageReciever : BroadcastReceiver() {
             val currTime = System.currentTimeMillis() / 100L
             smsReferralList.add(
                 SmsReferralEntitiy(
-                    UUID.randomUUID().toString(),
-                    entry.value,
+                    ReferralMessageUtil.getIdFromMessage(entry.value),
+                    ReferralMessageUtil.getReferralJsonFromMessage(entry.value),
                     currTime,
                     false,
                     entry.key,
@@ -71,6 +69,7 @@ class MessageReciever : BroadcastReceiver() {
                 )
             )
         }
+
         // send it to the service to send to the server
         meListener?.messageMapRecieved(smsReferralList)
 
