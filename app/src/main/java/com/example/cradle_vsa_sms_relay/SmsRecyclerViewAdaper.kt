@@ -8,6 +8,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.cradle_vsa_sms_relay.activities.MainActivity
 import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.example.cradle_vsa_sms_relay.utilities.DateTimeUtil
 
@@ -15,6 +16,7 @@ class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>) :
     RecyclerView.Adapter<SmsRecyclerViewAdaper.SMSViewHolder>() {
 
     private var sms: List<SmsReferralEntitiy> = smsList
+    val onCLickList:ArrayList<MainActivity.AdapterClicker> = ArrayList<MainActivity.AdapterClicker>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SMSViewHolder {
         val v: View =
@@ -22,6 +24,7 @@ class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>) :
         return SMSViewHolder(v)
 
     }
+
 
     override fun getItemCount(): Int {
         return sms.size
@@ -42,6 +45,10 @@ class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>) :
             holder.errorTxt.text = smsReferralEntitiy.errorMessage
             holder.errorLayout.visibility = VISIBLE
         }
+        holder.errorLayout.setOnClickListener(View.OnClickListener {
+            onCLickList.forEach { f -> f.onClick(smsReferralEntitiy) }
+        })
+
     }
 
     class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
