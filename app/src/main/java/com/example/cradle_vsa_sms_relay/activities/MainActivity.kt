@@ -21,6 +21,7 @@ import com.example.cradle_vsa_sms_relay.broadcast_receiver.ServiceToActivityBroa
 import com.example.cradle_vsa_sms_relay.dagger.MyApp
 import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import org.json.JSONException
 import org.json.JSONObject
 import javax.inject.Inject
 
@@ -57,7 +58,18 @@ class MainActivity : AppCompatActivity(),
         adapter.onCLickList.add(object : AdapterClicker {
             override fun onClick(referralEntitiy: SmsReferralEntitiy) {
                 //call new activity
-                AlertDialog.Builder(this@MainActivity).setTitle("preview").setMessage(JSONObject(referralEntitiy.jsonData).toString(4)).create().show()
+                var msg:String;
+                val jsonObject: JSONObject;
+                try {
+                     msg =JSONObject(referralEntitiy.jsonData).toString(4)
+                }catch (e:JSONException){
+                    msg = "Error: "+ e.message
+                }
+
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle(referralEntitiy.id)
+                    .setMessage(msg)
+                    .create().show()
             }
         })
         smsRecyclerView.adapter = adapter
