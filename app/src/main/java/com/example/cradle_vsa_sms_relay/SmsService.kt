@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.work.*
 import com.android.volley.AuthFailureError
 import com.android.volley.Request.Method.POST
 import com.android.volley.Response
@@ -24,17 +25,18 @@ import com.example.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
 import com.example.cradle_vsa_sms_relay.dagger.MyApp
 import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.example.cradle_vsa_sms_relay.utilities.UploadReferralWorker
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
 import java.nio.charset.Charset
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class SmsService : Service(), MultiMessageListener {
     val CHANNEL_ID = "ForegroundServiceChannel"
     private val readingServerUrl =
         "https://cmpt373.csil.sfu.ca:8048/api/patient/reading"
-    private val referralsServerUrl = "https://cmpt373.csil.sfu.ca:8048/api/referral"
 
     // localhost
 //    private val referralsServerUrl = "http://10.0.2.2:5000/api/referral"
@@ -83,10 +85,18 @@ class SmsService : Service(), MultiMessageListener {
                     .setSmallIcon(R.drawable.ic_launcher_background).setContentIntent(pendingIntent)
                     .build()
                 startForeground(1, notification)
+                startReuploadingReferralTask()
             }
         }
         return START_STICKY
 
+
+    }
+
+    private fun startReuploadingReferralTask() {
+        val uploadWorkRequest:PeriodicWorkRequest =
+            PeriodicWorkRequest.Builder(UploadReferralWorker::class.java,5,TimeUnit.SECONDS).build()
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork("work",ExistingPeriodicWorkPolicy.KEEP,uploadWorkRequest)
 
     }
 
@@ -194,6 +204,7 @@ class SmsService : Service(), MultiMessageListener {
         val TOKEN = "token"
         val AUTH = "Authorization"
         val USER_ID = "userId"
+        val referralsServerUrl = "https://cmpt373.csil.sfu.ca:8048/api/referral"
     }
 
     override fun messageMapRecieved(smsReferralList: ArrayList<SmsReferralEntitiy>) {

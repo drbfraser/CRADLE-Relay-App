@@ -26,7 +26,7 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun getSharedPref(context: Context):SharedPreferences{
-        return PreferenceManager.getDefaultSharedPreferences(context)
+    fun getSharedPref(app: Application):SharedPreferences{
+        return PreferenceManager.getDefaultSharedPreferences(app)
     }
 }
