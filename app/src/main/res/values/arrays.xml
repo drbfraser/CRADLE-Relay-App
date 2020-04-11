@@ -1,12 +1,16 @@
 <resources>
     <!-- Reply Preference -->
-    <string-array name="reply_entries">
-        <item>Reply</item>
-        <item>Reply to all</item>
-    </string-array>
+    <string-array name = "syncTimesInMinutes">
+        <item>15 minutes</item>
+        <item>30 minutes</item>
+        <item>1 Hour</item>
+        <item>2 Hours</item>
+    </string-array>Z
 
-    <string-array name="reply_values">
-        <item>reply</item>
-        <item>reply_all</item>
+    <string-array name="syncTimeValue">
+        <item>15</item>
+        <item>30</item>
+        <item>60</item>
+        <item>120</item>
     </string-array>
 </resources>
