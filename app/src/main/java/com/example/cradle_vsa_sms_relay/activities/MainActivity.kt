@@ -3,6 +3,7 @@ package com.example.cradle_vsa_sms_relay.activities
 import android.Manifest
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -34,6 +35,9 @@ class MainActivity : AppCompatActivity(),
     private var isServiceStarted = false
     @Inject
     lateinit var database: ReferralDatabase
+    @Inject
+    lateinit var sharedPreferences: SharedPreferences
+
     lateinit var serviceToActivityBroadCastReciever: ServiceToActivityBroadCastReciever
 
     override fun onCreate(savedInstanceState: Bundle?) {

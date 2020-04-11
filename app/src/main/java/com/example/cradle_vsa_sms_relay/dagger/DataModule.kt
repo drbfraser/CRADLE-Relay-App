@@ -1,6 +1,9 @@
 package com.example.cradle_vsa_sms_relay.dagger
 
 import android.app.Application
+import android.content.Context
+import android.content.SharedPreferences
+import androidx.preference.PreferenceManager
 import androidx.room.Room
 import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
 import dagger.Module
@@ -19,5 +22,11 @@ class DataModule {
             app.applicationContext, ReferralDatabase::class.java,
             "referral-DB"
         ).allowMainThreadQueries().fallbackToDestructiveMigration().build()
+    }
+
+    @Provides
+    @Singleton
+    fun getSharedPref(context: Context):SharedPreferences{
+        return PreferenceManager.getDefaultSharedPreferences(context)
     }
 }
