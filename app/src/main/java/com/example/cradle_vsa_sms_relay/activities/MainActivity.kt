@@ -59,10 +59,9 @@ class MainActivity : AppCompatActivity(),
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.settingMenu -> {
-                //newGame()
+                startActivity(Intent(this,SettingsActivity::class.java))
                 true
             }else -> super.onOptionsItemSelected(item)
-
         }
 
         }
