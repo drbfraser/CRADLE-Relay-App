@@ -3,14 +3,16 @@
     <PreferenceCategory app:title="@string/sync_header">
 
         <SwitchPreferenceCompat
-            app:key="reupload"
+            app:key="@string/reuploadSwitchPrefKey"
+            app:defaultValue="false"
             app:title="@string/sync_title" />
 
         <ListPreference
             app:entries="@array/syncTimesInMinutes"
             app:defaultValue="5"
+            app:enabled="false"
             app:entryValues="@array/syncTimeValue"
-            app:key="reuploadTime"
+            app:key="@string/reuploadListPrefKey"
             app:title="@string/reuploadtime"
             app:useSimpleSummaryProvider="true" />
 
