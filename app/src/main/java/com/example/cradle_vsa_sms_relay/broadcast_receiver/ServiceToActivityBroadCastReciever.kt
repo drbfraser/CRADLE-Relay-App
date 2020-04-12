@@ -12,7 +12,7 @@ open class ServiceToActivityBroadCastReciever(var mListener: SingleMessageListen
     BroadcastReceiver() {
     override fun onReceive(p0: Context?, p1: Intent?) {
         if (p1 != null) {
-            if (p1.action.equals("update")) {
+            if (p1.action.equals("messageUpdate")) {
                 //letting whoever is listening know we have received a new message update
                 mListener?.newMessageReceived()
             }

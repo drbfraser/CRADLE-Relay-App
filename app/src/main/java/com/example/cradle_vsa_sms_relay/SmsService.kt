@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.os.AsyncTask
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -51,8 +52,13 @@ class SmsService : Service(), MultiMessageListener, SharedPreferences.OnSharedPr
 
     private var smsReciver: MessageReciever? = null
 
+    private val mBinder: IBinder = MyBinder()
+
+    // let activity know status of retrying the referral uploads etc.
+    lateinit var retryTimerListener:RetryTimerListener
+
     override fun onBind(p0: Intent?): IBinder? {
-        return null
+        return mBinder
     }
 
     override fun onCreate() {
@@ -115,6 +121,9 @@ class SmsService : Service(), MultiMessageListener, SharedPreferences.OnSharedPr
 
             WorkManager.getInstance(this)
                 .enqueueUniqueWork("work", ExistingWorkPolicy.KEEP, uploadWorkRequest)
+            val intent = Intent()
+            intent.action = "retryTimerUpdate"
+            sendBroadcast(intent)
             Log.d("bugg","task started " + timeInMinutesString)
         } catch (e:NumberFormatException){
             Log.d("bugg","retry time not set "+ timeInMinutesString)
@@ -191,7 +200,7 @@ class SmsService : Service(), MultiMessageListener, SharedPreferences.OnSharedPr
         AsyncTask.execute {
             database.daoAccess().updateSmsReferral(smsReferralEntitiy)
             val intent = Intent()
-            intent.action = "update"
+            intent.action = "messageUpdate"
             sendBroadcast(intent)
         }
     }
@@ -242,7 +251,12 @@ class SmsService : Service(), MultiMessageListener, SharedPreferences.OnSharedPr
     override fun onSharedPreferenceChanged(p0: SharedPreferences?, p1: String?) {
             val switchkey = getString(R.string.reuploadSwitchPrefKey)
         if (p1.equals(switchkey)){
-            startReuploadingReferralTask()
+            retryTimerListener.onRetryTimeChanged(99999999)
         }
+    }
+    inner class MyBinder : Binder() {
+        val service: SmsService
+            get() =// clients can call public methods
+                this@SmsService
     }
 }

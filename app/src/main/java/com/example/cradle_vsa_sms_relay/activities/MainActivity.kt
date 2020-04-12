@@ -1,12 +1,12 @@
 package com.example.cradle_vsa_sms_relay.activities
 
 import android.Manifest
-import android.content.Intent
-import android.content.IntentFilter
-import android.content.SharedPreferences
+import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
+import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -17,10 +17,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.cradle_vsa_sms_relay.R
-import com.example.cradle_vsa_sms_relay.SingleMessageListener
-import com.example.cradle_vsa_sms_relay.SmsRecyclerViewAdaper
-import com.example.cradle_vsa_sms_relay.SmsService
+import com.example.cradle_vsa_sms_relay.*
 import com.example.cradle_vsa_sms_relay.broadcast_receiver.ServiceToActivityBroadCastReciever
 import com.example.cradle_vsa_sms_relay.dagger.MyApp
 import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
@@ -33,6 +30,8 @@ class MainActivity : AppCompatActivity(),
     SingleMessageListener {
 
     private var isServiceStarted = false
+    var mIsBound: Boolean? = null
+    var mService: SmsService? = null
     @Inject
     lateinit var database: ReferralDatabase
     @Inject
@@ -40,17 +39,44 @@ class MainActivity : AppCompatActivity(),
 
     lateinit var serviceToActivityBroadCastReciever: ServiceToActivityBroadCastReciever
 
+
+    private val serviceConnection= object: ServiceConnection{
+        override fun onServiceDisconnected(p0: ComponentName?) {
+            mIsBound = false
+        }
+
+        override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
+            val binder = p1 as SmsService.MyBinder
+            mService = binder.service
+            mService?.retryTimerListener = object : RetryTimerListener {
+                override fun onRetryTimeChanged(long: Long) {
+                    //update ui timer
+                    Log.d("bugg","retry listenermmm"+long)
+                }
+            }
+        }
+
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
+        // bind service in case its running
+        if (mService==null) {
+            val serviceIntent = Intent(
+                this,
+                SmsService::class.java
+            )
+            bindService(serviceIntent,serviceConnection,0)
+        }
         setupStartService()
         setupStopService()
         setuprecyclerview()
         //register reciever to listen for events from the service
         serviceToActivityBroadCastReciever = ServiceToActivityBroadCastReciever(this)
+        val intentfilter =IntentFilter("messageUpdate");
         registerReceiver(
-            serviceToActivityBroadCastReciever, IntentFilter("update")
+            serviceToActivityBroadCastReciever, intentfilter
         )
 
     }
@@ -104,8 +130,10 @@ class MainActivity : AppCompatActivity(),
 
     private fun setupStopService() {
         findViewById<Button>(R.id.btnStopService).setOnClickListener {
-            if (isServiceStarted) {
-                val intent: Intent = Intent(this, SmsService::class.java)
+            if (mService!=null) {
+                val intent: Intent = Intent(this, SmsService::class.java).also { intent ->
+                    unbindService(serviceConnection)
+                }
                 intent.action = SmsService.STOP_SERVICE
                 ContextCompat.startForegroundService(this, intent)
                 isServiceStarted = false
@@ -157,7 +185,7 @@ class MainActivity : AppCompatActivity(),
         val serviceIntent = Intent(
             this,
             SmsService::class.java
-        )
+        ).also { intent -> bindService(intent,serviceConnection, Context.BIND_AUTO_CREATE) }
         serviceIntent.action = SmsService.START_SERVICE
         this.application.startService(serviceIntent)
         ContextCompat.startForegroundService(this, serviceIntent)
@@ -185,6 +213,7 @@ class MainActivity : AppCompatActivity(),
 
     override fun onDestroy() {
         super.onDestroy()
+        unbindService(serviceConnection)
         unregisterReceiver(serviceToActivityBroadCastReciever)
     }
 
