@@ -7,6 +7,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.os.AsyncTask
 import android.os.Build
 import android.os.IBinder
@@ -29,11 +30,12 @@ import com.example.cradle_vsa_sms_relay.utilities.UploadReferralWorker
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
+import java.lang.NumberFormatException
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class SmsService : Service(), MultiMessageListener {
+class SmsService : Service(), MultiMessageListener, SharedPreferences.OnSharedPreferenceChangeListener {
     val CHANNEL_ID = "ForegroundServiceChannel"
     private val readingServerUrl =
         "https://cmpt373.csil.sfu.ca:8048/api/patient/reading"
@@ -44,6 +46,8 @@ class SmsService : Service(), MultiMessageListener {
         "https://cmpt373.csil.sfu.ca:8048/api/mobile/summarized/follow_up"
     @Inject
     lateinit var database: ReferralDatabase
+    @Inject
+    lateinit var sharedPreferences: SharedPreferences
 
     private var smsReciver: MessageReciever? = null
 
@@ -65,6 +69,7 @@ class SmsService : Service(), MultiMessageListener {
                 stopForeground(true)
                 MessageReciever.unbindListener()
                 unregisterReceiver(smsReciver)
+                this.stopService(intent)
                 this.stopSelf()
 
             } else {
@@ -86,6 +91,7 @@ class SmsService : Service(), MultiMessageListener {
                     .build()
                 startForeground(1, notification)
                 startReuploadingReferralTask()
+                sharedPreferences.registerOnSharedPreferenceChangeListener(this)
             }
         }
         return START_STICKY
@@ -93,11 +99,26 @@ class SmsService : Service(), MultiMessageListener {
 
     }
 
-    private fun startReuploadingReferralTask() {
-        val uploadWorkRequest:PeriodicWorkRequest =
-            PeriodicWorkRequest.Builder(UploadReferralWorker::class.java,5,TimeUnit.SECONDS).build()
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork("work",ExistingPeriodicWorkPolicy.KEEP,uploadWorkRequest)
 
+    private fun startReuploadingReferralTask() {
+        if (!sharedPreferences.getBoolean(getString(R.string.reuploadSwitchPrefKey),false)){
+            Log.d("bugg","no retry needed")
+            return;
+        }
+        val timeInMinutesString = sharedPreferences.getString(getString(R.string.reuploadListPrefKey),"")
+        try {
+            val time = timeInMinutesString.toString().toLong()
+
+            val uploadWorkRequest: OneTimeWorkRequest =
+                OneTimeWorkRequest.Builder(UploadReferralWorker::class.java)
+                    .setInitialDelay(time, TimeUnit.MINUTES).build()
+
+            WorkManager.getInstance(this)
+                .enqueueUniqueWork("work", ExistingWorkPolicy.KEEP, uploadWorkRequest)
+            Log.d("bugg","task started " + timeInMinutesString)
+        } catch (e:NumberFormatException){
+            Log.d("bugg","retry time not set "+ timeInMinutesString)
+        }
     }
 
 
@@ -178,6 +199,9 @@ class SmsService : Service(), MultiMessageListener {
     override fun stopService(name: Intent?): Boolean {
         super.stopService(name)
         stopForeground(true)
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
+        //cancel all the calls
+        WorkManager.getInstance(this).cancelAllWork();
         stopSelf()
         onDestroy()
         return true
@@ -212,6 +236,13 @@ class SmsService : Service(), MultiMessageListener {
         smsReferralList.forEach { f -> database.daoAccess().insertSmsReferral(f) }
         smsReferralList.forEach { f ->
             sendToServer(f)
+        }
+    }
+
+    override fun onSharedPreferenceChanged(p0: SharedPreferences?, p1: String?) {
+            val switchkey = getString(R.string.reuploadSwitchPrefKey)
+        if (p1.equals(switchkey)){
+            startReuploadingReferralTask()
         }
     }
 }
