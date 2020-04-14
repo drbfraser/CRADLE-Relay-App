@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -19,6 +20,9 @@ import com.example.cradle_vsa_sms_relay.SmsService
 import com.example.cradle_vsa_sms_relay.broadcast_receiver.ServiceToActivityBroadCastReciever
 import com.example.cradle_vsa_sms_relay.dagger.MyApp
 import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
+import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import org.json.JSONException
+import org.json.JSONObject
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(),
@@ -50,6 +54,24 @@ class MainActivity : AppCompatActivity(),
         var referrals =
             database.daoAccess().getAllReferrals().sortedByDescending { it.timeRecieved }
         val adapter = SmsRecyclerViewAdaper(referrals)
+
+        adapter.onCLickList.add(object : AdapterClicker {
+            override fun onClick(referralEntitiy: SmsReferralEntitiy) {
+                //call new activity
+                var msg:String;
+                val jsonObject: JSONObject;
+                try {
+                     msg =JSONObject(referralEntitiy.jsonData).toString(4)
+                }catch (e:JSONException){
+                    msg = "Error: "+ e.message
+                }
+
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle(referralEntitiy.id)
+                    .setMessage(msg)
+                    .create().show()
+            }
+        })
         smsRecyclerView.adapter = adapter
         val layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
         smsRecyclerView.layoutManager = layout
@@ -142,5 +164,9 @@ class MainActivity : AppCompatActivity(),
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(serviceToActivityBroadCastReciever)
+    }
+
+    interface AdapterClicker{
+        fun onClick(referralEntitiy: SmsReferralEntitiy)
     }
 }

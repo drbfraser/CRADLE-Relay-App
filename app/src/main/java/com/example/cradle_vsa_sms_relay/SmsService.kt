@@ -10,6 +10,7 @@ import android.content.IntentFilter
 import android.os.AsyncTask
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.android.volley.AuthFailureError
 import com.android.volley.Request.Method.POST
