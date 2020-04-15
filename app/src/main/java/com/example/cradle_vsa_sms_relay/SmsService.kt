@@ -59,7 +59,7 @@ class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.O
     private val mBinder: IBinder = MyBinder()
 
     // let activity know status of retrying the referral uploads etc.
-    lateinit var retryTimerListener:RetryTimerListener
+    lateinit var reuploadReferralListener:ReuploadReferralListener
     var singleMessageListener:SingleMessageListener? = null
 
     override fun onBind(intent: Intent): IBinder? {
@@ -122,7 +122,7 @@ class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.O
 
             val uploadWorkRequest: PeriodicWorkRequest =
                 PeriodicWorkRequest.Builder(UploadReferralWorker::class.java,time,TimeUnit.MINUTES )
-                    .setInitialDelay(time, TimeUnit.MINUTES)
+                    //.setInitialDelay(time, TimeUnit.MINUTES)
                     .addTag("reuploadTag")
                     .build()
             WorkManager.getInstance(this)
@@ -133,10 +133,11 @@ class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.O
                        // Log.d("bugg", "id: " + it.id + " status: " + it.state + " "+ it.state.isFinished)
                         //this ia where we notify user but right now dont have a good mechanism
                         if (it.state!=WorkInfo.State.ENQUEUED){
-                            buidlNotificationForReuploading(it)
+                            notificationForReuploading(it,false)
+                        } else{
+                            notificationForReuploading(it,true)
                         }
-                        it.outputData.getBoolean("finished",false);
-                        Log.d("bugg","output: "+ it.toString())
+                        reuploadReferralListener.onReuploadReferral(it)
                     }
                 })
             Log.d("bugg","task started " + timeInMinutesString)
@@ -145,15 +146,20 @@ class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.O
         }
     }
 
-    private fun buidlNotificationForReuploading(it: WorkInfo?) {
-        Log.d("bugg",it.toString())
-        val builder = NotificationCompat.Builder(this,CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_background)
-            .setContentTitle("Uploading task is "+ it?.state)
-            .setContentText(it.toString())
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+    private fun notificationForReuploading(it: WorkInfo?, cancel: Boolean) {
+
         val notificationManager =
             NotificationManagerCompat.from(this)
+        if (cancel){
+            notificationManager.cancel(99)
+            return
+        }
+        val builder = NotificationCompat.Builder(this,CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setContentTitle("Retrying uploading referrals ")
+            .setContentText(""+cancel)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
         notificationManager.notify(99, builder.build())
 
     }

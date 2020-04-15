@@ -6,11 +6,11 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -46,9 +46,11 @@ class MainActivity : AppCompatActivity(),
             val binder = p1 as SmsService.MyBinder
             mService = binder.service
             mService?.singleMessageListener =this@MainActivity
-            mService?.retryTimerListener = object : RetryTimerListener {
-                override fun onRetryTimeChanged(long: WorkInfo) {
-                    //update ui timer
+            mService?.reuploadReferralListener = object : ReuploadReferralListener {
+                override fun onReuploadReferral(long: WorkInfo) {
+                    if(long.state == WorkInfo.State.RUNNING){
+                        Toast.makeText(this@MainActivity,"Reuploading stuff",Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }

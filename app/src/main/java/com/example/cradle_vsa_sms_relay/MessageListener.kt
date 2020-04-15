@@ -6,8 +6,8 @@ import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 interface SingleMessageListener {
     fun newMessageReceived()
 }
-interface RetryTimerListener{
-    fun onRetryTimeChanged(long: WorkInfo);
+interface ReuploadReferralListener{
+    fun onReuploadReferral(workInfo: WorkInfo);
 }
 
 interface MultiMessageListener {
