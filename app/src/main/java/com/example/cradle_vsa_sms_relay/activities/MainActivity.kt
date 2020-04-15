@@ -1,7 +1,6 @@
 package com.example.cradle_vsa_sms_relay.activities
 
 import android.Manifest
-import android.app.ProgressDialog
 import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
@@ -18,8 +17,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.WorkInfo
 import com.example.cradle_vsa_sms_relay.*
-import com.example.cradle_vsa_sms_relay.broadcast_receiver.ServiceToActivityBroadCastReciever
 import com.example.cradle_vsa_sms_relay.dagger.MyApp
 import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
@@ -38,9 +37,6 @@ class MainActivity : AppCompatActivity(),
     @Inject
     lateinit var sharedPreferences: SharedPreferences
 
-    lateinit var serviceToActivityBroadCastReciever: ServiceToActivityBroadCastReciever
-
-
     private val serviceConnection= object: ServiceConnection{
         override fun onServiceDisconnected(p0: ComponentName?) {
             mIsBound = false
@@ -49,10 +45,10 @@ class MainActivity : AppCompatActivity(),
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
             val binder = p1 as SmsService.MyBinder
             mService = binder.service
+            mService?.singleMessageListener =this@MainActivity
             mService?.retryTimerListener = object : RetryTimerListener {
-                override fun onRetryTimeChanged(long: Long) {
+                override fun onRetryTimeChanged(long: WorkInfo) {
                     //update ui timer
-                    Log.d("bugg","retry listenermmm"+long)
                 }
             }
         }
@@ -73,12 +69,6 @@ class MainActivity : AppCompatActivity(),
         setupStartService()
         setupStopService()
         setuprecyclerview()
-        //register reciever to listen for events from the service
-        serviceToActivityBroadCastReciever = ServiceToActivityBroadCastReciever(this)
-        val intentfilter =IntentFilter("messageUpdate");
-        registerReceiver(
-            serviceToActivityBroadCastReciever, intentfilter
-        )
 
     }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -209,13 +199,14 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun newMessageReceived() {
-        setuprecyclerview()
+        runOnUiThread {
+            setuprecyclerview()
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         unbindService(serviceConnection)
-        unregisterReceiver(serviceToActivityBroadCastReciever)
     }
 
     interface AdapterClicker{

@@ -60,7 +60,12 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
         //setProgressAsync(Data.Builder().putInt(Progress, 100).build())
 
         // Indicate whether the task finished successfully with the Result
-        return Result.success()
+        Log.d("bugg","task is finished")
+        val x:HashMap<String,Boolean> = HashMap<String,Boolean>()
+        x.put("finished",true)
+        val ou: Data = Data.Builder().putAll(x as Map<String, Any>).build()
+
+        return Result.success(Data.Builder().putBoolean("finished",true).build())
     }
 
     private fun sendtoServer(smsReferralEntitiy: SmsReferralEntitiy) {

@@ -3,7 +3,6 @@ package com.example.cradle_vsa_sms_relay
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -14,7 +13,13 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.work.*
+import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.Observer
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.android.volley.AuthFailureError
 import com.android.volley.Request.Method.POST
 import com.android.volley.Response
@@ -31,14 +36,11 @@ import com.example.cradle_vsa_sms_relay.utilities.UploadReferralWorker
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
-import java.lang.NumberFormatException
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
-class SmsService : Service(), MultiMessageListener, SharedPreferences.OnSharedPreferenceChangeListener {
+class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.OnSharedPreferenceChangeListener {
     val CHANNEL_ID = "ForegroundServiceChannel"
     private val readingServerUrl =
         "https://cmpt373.csil.sfu.ca:8048/api/patient/reading"
@@ -58,9 +60,11 @@ class SmsService : Service(), MultiMessageListener, SharedPreferences.OnSharedPr
 
     // let activity know status of retrying the referral uploads etc.
     lateinit var retryTimerListener:RetryTimerListener
+    var singleMessageListener:SingleMessageListener? = null
 
-    override fun onBind(p0: Intent?): IBinder? {
-        return mBinder
+    override fun onBind(intent: Intent): IBinder? {
+        super.onBind(intent)
+        return  mBinder
     }
 
     override fun onCreate() {
@@ -117,16 +121,41 @@ class SmsService : Service(), MultiMessageListener, SharedPreferences.OnSharedPr
             val time = timeInMinutesString.toString().toLong()
 
             val uploadWorkRequest: PeriodicWorkRequest =
-                PeriodicWorkRequest.Builder(UploadReferralWorker::class.java,time,TimeUnit.SECONDS )
-                    //.setInitialDelay(time, TimeUnit.MINUTES)
+                PeriodicWorkRequest.Builder(UploadReferralWorker::class.java,time,TimeUnit.MINUTES )
+                    .setInitialDelay(time, TimeUnit.MINUTES)
                     .addTag("reuploadTag")
                     .build()
             WorkManager.getInstance(this)
                 .enqueueUniquePeriodicWork("work",ExistingPeriodicWorkPolicy.KEEP,uploadWorkRequest)
+            WorkManager.getInstance(this).getWorkInfoByIdLiveData(uploadWorkRequest.id).observeForever(
+                Observer {
+                    if (it!=null) {
+                       // Log.d("bugg", "id: " + it.id + " status: " + it.state + " "+ it.state.isFinished)
+                        //this ia where we notify user but right now dont have a good mechanism
+                        if (it.state!=WorkInfo.State.ENQUEUED){
+                            buidlNotificationForReuploading(it)
+                        }
+                        it.outputData.getBoolean("finished",false);
+                        Log.d("bugg","output: "+ it.toString())
+                    }
+                })
             Log.d("bugg","task started " + timeInMinutesString)
         } catch (e:NumberFormatException){
             Log.d("bugg","retry time not set "+ timeInMinutesString)
         }
+    }
+
+    private fun buidlNotificationForReuploading(it: WorkInfo?) {
+        Log.d("bugg",it.toString())
+        val builder = NotificationCompat.Builder(this,CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setContentTitle("Uploading task is "+ it?.state)
+            .setContentText(it.toString())
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        val notificationManager =
+            NotificationManagerCompat.from(this)
+        notificationManager.notify(99, builder.build())
+
     }
 
 
@@ -198,9 +227,9 @@ class SmsService : Service(), MultiMessageListener, SharedPreferences.OnSharedPr
         smsReferralEntitiy.numberOfTriesUploaded += 1
         AsyncTask.execute {
             database.daoAccess().updateSmsReferral(smsReferralEntitiy)
-            val intent = Intent()
-            intent.action = "messageUpdate"
-            sendBroadcast(intent)
+            if (singleMessageListener!=null){
+                singleMessageListener?.newMessageReceived()
+            }
         }
     }
 
