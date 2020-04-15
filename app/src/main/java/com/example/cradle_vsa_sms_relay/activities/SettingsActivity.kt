@@ -22,7 +22,7 @@ class SettingsActivity : AppCompatActivity() {
         return super.onSupportNavigateUp()
     }
 
-    class SettingsFragment : PreferenceFragmentCompat(){
+    class SettingsFragment : PreferenceFragmentCompat() {
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey)
@@ -30,12 +30,14 @@ class SettingsActivity : AppCompatActivity() {
             val reuploadListKey = getString(R.string.reuploadListPrefKey)
             val reuploadSwitchKey = getString(R.string.reuploadSwitchPrefKey)
 
+
             val pref = findPreference<ListPreference>(reuploadListKey)
             pref?.isEnabled =
-                PreferenceManager.getDefaultSharedPreferences(this.context).getBoolean(reuploadSwitchKey,false)
-            findPreference<SwitchPreferenceCompat>(reuploadSwitchKey)?.setOnPreferenceClickListener {preference ->
+                PreferenceManager.getDefaultSharedPreferences(this.context)
+                    .getBoolean(reuploadSwitchKey, false)
+            findPreference<SwitchPreferenceCompat>(reuploadSwitchKey)?.setOnPreferenceClickListener { preference ->
                 pref?.isEnabled =
-                    preference.sharedPreferences.getBoolean(reuploadSwitchKey,false)
+                    preference.sharedPreferences.getBoolean(reuploadSwitchKey, false)
                 true
             }
 

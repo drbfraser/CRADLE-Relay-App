@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity(),
     @Inject
     lateinit var sharedPreferences: SharedPreferences
 
-    private val serviceConnection= object: ServiceConnection{
+    private val serviceConnection = object : ServiceConnection {
         override fun onServiceDisconnected(p0: ComponentName?) {
             mIsBound = false
         }
@@ -46,12 +46,13 @@ class MainActivity : AppCompatActivity(),
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
             val binder = p1 as SmsService.MyBinder
             mService = binder.service
-            mService?.singleMessageListener =this@MainActivity
+            mService?.singleMessageListener = this@MainActivity
 
             mService?.reuploadReferralListener = object : ReuploadReferralListener {
                 override fun onReuploadReferral(long: WorkInfo) {
-                    if(long.state == WorkInfo.State.RUNNING){
-                        Toast.makeText(this@MainActivity,"Reuploading stuff",Toast.LENGTH_SHORT).show()
+                    if (long.state == WorkInfo.State.RUNNING) {
+                        Toast.makeText(this@MainActivity, "Reuploading stuff", Toast.LENGTH_SHORT)
+                            .show()
                         //update recylcer view
                         setuprecyclerview()
                     }
@@ -60,23 +61,25 @@ class MainActivity : AppCompatActivity(),
         }
 
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
         // bind service in case its running
-        if (mService==null) {
+        if (mService == null) {
             val serviceIntent = Intent(
                 this,
                 SmsService::class.java
             )
-            bindService(serviceIntent,serviceConnection,0)
+            bindService(serviceIntent, serviceConnection, 0)
         }
         setupStartService()
         setupStopService()
         setuprecyclerview()
 
     }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater: MenuInflater = menuInflater
         inflater.inflate(R.menu.main_menu, menu)
@@ -86,12 +89,13 @@ class MainActivity : AppCompatActivity(),
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.settingMenu -> {
-                startActivity(Intent(this,SettingsActivity::class.java))
+                startActivity(Intent(this, SettingsActivity::class.java))
                 true
-            }else -> super.onOptionsItemSelected(item)
+            }
+            else -> super.onOptionsItemSelected(item)
         }
 
-        }
+    }
 
     private fun setuprecyclerview() {
 
@@ -103,12 +107,12 @@ class MainActivity : AppCompatActivity(),
         adapter.onCLickList.add(object : AdapterClicker {
             override fun onClick(referralEntitiy: SmsReferralEntitiy) {
                 //call new activity
-                var msg:String;
-                val jsonObject: JSONObject;
+                var msg: String
+                val jsonObject: JSONObject
                 try {
-                     msg =JSONObject(referralEntitiy.jsonData).toString(4)
-                }catch (e:JSONException){
-                    msg = "Error: "+ e.message
+                    msg = JSONObject(referralEntitiy.jsonData).toString(4)
+                } catch (e: JSONException) {
+                    msg = "Error: " + e.message
                 }
 
                 AlertDialog.Builder(this@MainActivity)
@@ -127,7 +131,7 @@ class MainActivity : AppCompatActivity(),
 
     private fun setupStopService() {
         findViewById<Button>(R.id.btnStopService).setOnClickListener {
-            if (mService!=null) {
+            if (mService != null) {
                 val intent: Intent = Intent(this, SmsService::class.java).also { intent ->
                     unbindService(serviceConnection)
                 }
@@ -182,7 +186,7 @@ class MainActivity : AppCompatActivity(),
         val serviceIntent = Intent(
             this,
             SmsService::class.java
-        ).also { intent -> bindService(intent,serviceConnection, Context.BIND_AUTO_CREATE) }
+        ).also { intent -> bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE) }
         serviceIntent.action = SmsService.START_SERVICE
         this.application.startService(serviceIntent)
         ContextCompat.startForegroundService(this, serviceIntent)
@@ -215,7 +219,7 @@ class MainActivity : AppCompatActivity(),
         unbindService(serviceConnection)
     }
 
-    interface AdapterClicker{
+    interface AdapterClicker {
         fun onClick(referralEntitiy: SmsReferralEntitiy)
     }
 }

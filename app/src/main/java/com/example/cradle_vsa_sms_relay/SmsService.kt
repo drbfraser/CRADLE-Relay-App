@@ -40,7 +40,8 @@ import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.OnSharedPreferenceChangeListener {
+class SmsService : LifecycleService(), MultiMessageListener,
+    SharedPreferences.OnSharedPreferenceChangeListener {
     val CHANNEL_ID = "ForegroundServiceChannel"
     private val readingServerUrl =
         "https://cmpt373.csil.sfu.ca:8048/api/patient/reading"
@@ -60,13 +61,13 @@ class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.O
     private val mBinder: IBinder = MyBinder()
 
     // let activity know status of retrying the referral uploads etc.
-    lateinit var reuploadReferralListener:ReuploadReferralListener
+    lateinit var reuploadReferralListener: ReuploadReferralListener
     //interface to let activity know a new message was received
-    var singleMessageListener:SingleMessageListener? = null
+    var singleMessageListener: SingleMessageListener? = null
 
     override fun onBind(intent: Intent): IBinder? {
         super.onBind(intent)
-        return  mBinder
+        return mBinder
     }
 
     override fun onCreate() {
@@ -121,33 +122,42 @@ class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.O
         // cancel previous calls
         WorkManager.getInstance(this).cancelAllWork()
 
-        val timeInMinutesString = sharedPreferences.getString(getString(R.string.reuploadListPrefKey),"")
+        val timeInMinutesString =
+            sharedPreferences.getString(getString(R.string.reuploadListPrefKey), "")
         try {
             val time = timeInMinutesString.toString().toLong()
 
             val uploadWorkRequest: PeriodicWorkRequest =
-                PeriodicWorkRequest.Builder(UploadReferralWorker::class.java,time,TimeUnit.MINUTES )
-                    //.setInitialDelay(time, TimeUnit.MINUTES)
-                    .addTag("reuploadTag")
-                    .build()
+                PeriodicWorkRequest.Builder(
+                    UploadReferralWorker::class.java,
+                    time,
+                    TimeUnit.MINUTES
+                ).addTag("reuploadTag").build()
             WorkManager.getInstance(this)
-                .enqueueUniquePeriodicWork("work",ExistingPeriodicWorkPolicy.KEEP,uploadWorkRequest)
-            WorkManager.getInstance(this).getWorkInfoByIdLiveData(uploadWorkRequest.id).observeForever(
-                Observer {
-                    if (it!=null) {
-                       // Log.d("bugg", "id: " + it.id + " status: " + it.state + " "+ it.state.isFinished)
-                        //this ia where we notify user but right now dont have a good mechanism
-                        if (it.state!=WorkInfo.State.ENQUEUED){
-                            notificationForReuploading(it,false)
-                        } else{
-                            notificationForReuploading(it,true)
+                .enqueueUniquePeriodicWork(
+                    "work",
+                    ExistingPeriodicWorkPolicy.KEEP,
+                    uploadWorkRequest
+                )
+            WorkManager.getInstance(this).getWorkInfoByIdLiveData(uploadWorkRequest.id)
+                .observeForever(
+                    Observer {
+                        if (it != null) {
+                            //this ia where we notify user but right now dont have a good mechanism
+                            //periodice work state is enqued->running->enque
+                            //since there is no success or failure state we cant let user know
+                            //extactly whats going on.
+                            if (it.state != WorkInfo.State.ENQUEUED) {
+                                notificationForReuploading(it, false)
+                            } else {
+                                notificationForReuploading(it, true)
+                            }
+                            reuploadReferralListener.onReuploadReferral(it)
                         }
-                        reuploadReferralListener.onReuploadReferral(it)
-                    }
-                })
-            Log.d("bugg","task started " + timeInMinutesString)
-        } catch (e:NumberFormatException){
-            Log.d("bugg","retry time not set "+ timeInMinutesString)
+                    })
+            Log.d("bugg", "task started " + timeInMinutesString)
+        } catch (e: NumberFormatException) {
+            Log.d("bugg", "retry time not set " + timeInMinutesString)
         }
     }
 
@@ -155,14 +165,14 @@ class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.O
 
         val notificationManager =
             NotificationManagerCompat.from(this)
-        if (cancel){
+        if (cancel) {
             notificationManager.cancel(99)
             return
         }
-        val builder = NotificationCompat.Builder(this,CHANNEL_ID)
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_background)
             .setContentTitle("Retrying uploading referrals ")
-            .setContentText(""+cancel)
+            .setContentText("" + cancel)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
         notificationManager.notify(99, builder.build())
@@ -245,7 +255,7 @@ class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.O
         smsReferralEntitiy.numberOfTriesUploaded += 1
         AsyncTask.execute {
             database.daoAccess().updateSmsReferral(smsReferralEntitiy)
-            if (singleMessageListener!=null){
+            if (singleMessageListener != null) {
                 singleMessageListener?.newMessageReceived()
             }
         }
@@ -256,7 +266,7 @@ class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.O
         stopForeground(true)
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
         //cancel all the calls
-        WorkManager.getInstance(this).cancelAllWork();
+        WorkManager.getInstance(this).cancelAllWork()
         stopSelf()
         onDestroy()
         return true
@@ -298,11 +308,12 @@ class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.O
     }
 
     override fun onSharedPreferenceChanged(p0: SharedPreferences?, p1: String?) {
-            val switchkey = getString(R.string.reuploadSwitchPrefKey)
-        if (p1.equals(switchkey) && sharedPreferences.getBoolean(switchkey,false)){
+        val switchkey = getString(R.string.reuploadSwitchPrefKey)
+        if (p1.equals(switchkey) && sharedPreferences.getBoolean(switchkey, false)) {
             startReuploadingReferralTask()
         }
     }
+
     inner class MyBinder : Binder() {
         val service: SmsService
             get() =// clients can call public methods

@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.work.Data
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import androidx.work.workDataOf
 import com.android.volley.AuthFailureError
 import com.android.volley.Response
 import com.android.volley.VolleyError
@@ -33,39 +32,43 @@ import javax.inject.Inject
  * minimum API 21, Firebase JobDispatcher requires minimum API 14 and Google Play Services."
  * https://stackoverflow.com/questions/50708993/what-is-the-best-practice-to-use-for-background-tasks
  */
-class UploadReferralWorker(val appContext: Context, workerParams: WorkerParameters)
-    : Worker(appContext, workerParams) {
+class UploadReferralWorker(val appContext: Context, workerParams: WorkerParameters) :
+    Worker(appContext, workerParams) {
 
     @Inject
     lateinit var database: ReferralDatabase
 
-     var token: String?
+    var token: String?
+
     init {
         (appContext as MyApp).component.inject(this)
-        token = appContext.getSharedPreferences(AUTH_PREF,Context.MODE_PRIVATE).getString(TOKEN,"")
+        token =
+            appContext.getSharedPreferences(AUTH_PREF, Context.MODE_PRIVATE).getString(TOKEN, "")
     }
+
     companion object {
         const val Progress = "Progress"
     }
 
 
     override fun doWork(): Result {
-        Log.d("bugg","sending the referral agaiiin ")
-        val referralEntities:List<SmsReferralEntitiy>  = database.daoAccess().getUnUploadedReferral();
+        Log.d("bugg", "sending the referral agaiiin ")
+        val referralEntities: List<SmsReferralEntitiy> =
+            database.daoAccess().getUnUploadedReferral()
         //setProgressAsync(Data.Builder().putInt(Progress, 0).build())
         referralEntities.forEach { f ->
-            Log.d("bugg","id: "+ f.id)
+            Log.d("bugg", "id: " + f.id)
             sendtoServer(f)
         }
         //setProgressAsync(Data.Builder().putInt(Progress, 100).build())
 
         // Indicate whether the task finished successfully with the Result
-        Log.d("bugg","task is finished")
-        val x:HashMap<String,Boolean> = HashMap<String,Boolean>()
-        x.put("finished",true)
+        Log.d("bugg", "task is finished")
+        val x: HashMap<String, Boolean> = HashMap<String, Boolean>()
+        x.put("finished", true)
         val ou: Data = Data.Builder().putAll(x as Map<String, Any>).build()
 
-        return Result.success(Data.Builder().putBoolean("finished",true).build())
+        return Result.success(Data.Builder().putBoolean("finished", true).build())
     }
 
     private fun sendtoServer(smsReferralEntitiy: SmsReferralEntitiy) {
@@ -80,7 +83,10 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
             return
         }
         val jsonObjectRequest: JsonObjectRequest = object : JsonObjectRequest(
-            Method.POST, SmsService.referralsServerUrl, json, Response.Listener { response: JSONObject? ->
+            Method.POST,
+            SmsService.referralsServerUrl,
+            json,
+            Response.Listener { response: JSONObject? ->
                 updateDatabase(smsReferralEntitiy, true)
             },
             Response.ErrorListener { error: VolleyError ->
@@ -129,7 +135,7 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
 
     fun updateDatabase(smsReferralEntitiy: SmsReferralEntitiy, isUploaded: Boolean) {
         smsReferralEntitiy.isUploaded = isUploaded
-        smsReferralEntitiy.numberOfTriesUploaded ++
+        smsReferralEntitiy.numberOfTriesUploaded++
         AsyncTask.execute {
             database.daoAccess().updateSmsReferral(smsReferralEntitiy)
         }

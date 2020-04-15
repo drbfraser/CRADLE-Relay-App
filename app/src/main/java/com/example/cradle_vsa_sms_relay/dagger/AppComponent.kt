@@ -13,5 +13,5 @@ interface AppComponent {
     fun inject(app: MyApp)
     fun inject(smsService: SmsService)
     fun inject(activity: MainActivity)
-    fun inject(worker:UploadReferralWorker)
+    fun inject(worker: UploadReferralWorker)
 }

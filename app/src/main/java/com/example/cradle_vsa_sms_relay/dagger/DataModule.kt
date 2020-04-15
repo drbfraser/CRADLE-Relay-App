@@ -1,7 +1,6 @@
 package com.example.cradle_vsa_sms_relay.dagger
 
 import android.app.Application
-import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import androidx.room.Room
@@ -26,7 +25,7 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun getSharedPref(app: Application):SharedPreferences{
+    fun getSharedPref(app: Application): SharedPreferences {
         return PreferenceManager.getDefaultSharedPreferences(app)
     }
 }
