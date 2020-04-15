@@ -35,6 +35,8 @@ import java.lang.NumberFormatException
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 class SmsService : Service(), MultiMessageListener, SharedPreferences.OnSharedPreferenceChangeListener {
     val CHANNEL_ID = "ForegroundServiceChannel"
@@ -107,23 +109,20 @@ class SmsService : Service(), MultiMessageListener, SharedPreferences.OnSharedPr
 
 
     private fun startReuploadingReferralTask() {
-        if (!sharedPreferences.getBoolean(getString(R.string.reuploadSwitchPrefKey),false)){
-            Log.d("bugg","no retry needed")
-            return;
-        }
+        // cancel previous calls
+        WorkManager.getInstance(this).cancelAllWork()
+
         val timeInMinutesString = sharedPreferences.getString(getString(R.string.reuploadListPrefKey),"")
         try {
             val time = timeInMinutesString.toString().toLong()
 
-            val uploadWorkRequest: OneTimeWorkRequest =
-                OneTimeWorkRequest.Builder(UploadReferralWorker::class.java)
-                    .setInitialDelay(time, TimeUnit.MINUTES).build()
-
+            val uploadWorkRequest: PeriodicWorkRequest =
+                PeriodicWorkRequest.Builder(UploadReferralWorker::class.java,time,TimeUnit.SECONDS )
+                    //.setInitialDelay(time, TimeUnit.MINUTES)
+                    .addTag("reuploadTag")
+                    .build()
             WorkManager.getInstance(this)
-                .enqueueUniqueWork("work", ExistingWorkPolicy.KEEP, uploadWorkRequest)
-            val intent = Intent()
-            intent.action = "retryTimerUpdate"
-            sendBroadcast(intent)
+                .enqueueUniquePeriodicWork("work",ExistingPeriodicWorkPolicy.KEEP,uploadWorkRequest)
             Log.d("bugg","task started " + timeInMinutesString)
         } catch (e:NumberFormatException){
             Log.d("bugg","retry time not set "+ timeInMinutesString)
@@ -250,8 +249,8 @@ class SmsService : Service(), MultiMessageListener, SharedPreferences.OnSharedPr
 
     override fun onSharedPreferenceChanged(p0: SharedPreferences?, p1: String?) {
             val switchkey = getString(R.string.reuploadSwitchPrefKey)
-        if (p1.equals(switchkey)){
-            retryTimerListener.onRetryTimeChanged(99999999)
+        if (p1.equals(switchkey) && sharedPreferences.getBoolean(switchkey,false)){
+            startReuploadingReferralTask()
         }
     }
     inner class MyBinder : Binder() {
