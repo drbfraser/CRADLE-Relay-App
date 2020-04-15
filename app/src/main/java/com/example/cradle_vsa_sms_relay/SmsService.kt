@@ -54,12 +54,14 @@ class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.O
     @Inject
     lateinit var sharedPreferences: SharedPreferences
 
+    // maain sms broadcast listner
     private var smsReciver: MessageReciever? = null
-
+    //handles activity to service interactions
     private val mBinder: IBinder = MyBinder()
 
     // let activity know status of retrying the referral uploads etc.
     lateinit var reuploadReferralListener:ReuploadReferralListener
+    //interface to let activity know a new message was received
     var singleMessageListener:SingleMessageListener? = null
 
     override fun onBind(intent: Intent): IBinder? {
@@ -111,7 +113,10 @@ class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.O
 
     }
 
-
+    /**
+     * This function starts the periodic tasks to reupload all the referrals that failed to upload before.
+     * Uses the time selected by user in settings preference.
+     */
     private fun startReuploadingReferralTask() {
         // cancel previous calls
         WorkManager.getInstance(this).cancelAllWork()
@@ -165,6 +170,10 @@ class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.O
     }
 
 
+    /**
+     * uploads [smsReferralEntitiy] to the server
+     * updates the status of the upload to the database.
+     */
     private fun sendToServer(smsReferralEntitiy: SmsReferralEntitiy) {
         val sharedPref =
             getSharedPreferences(AUTH_PREF, Context.MODE_PRIVATE)
@@ -228,6 +237,9 @@ class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.O
         queue.add(jsonObjectRequest)
     }
 
+    /**
+     * updates the room database and notifies [singleMessageListener] of the new message
+     */
     fun updateDatabase(smsReferralEntitiy: SmsReferralEntitiy, isUploaded: Boolean) {
         smsReferralEntitiy.isUploaded = isUploaded
         smsReferralEntitiy.numberOfTriesUploaded += 1
@@ -274,6 +286,9 @@ class SmsService : LifecycleService(), MultiMessageListener, SharedPreferences.O
         val referralsServerUrl = "https://cmpt373.csil.sfu.ca:8048/api/referral"
     }
 
+    /**
+     * inserts the [smsReferralList] into the Database and sends the list to the server
+     */
     override fun messageMapRecieved(smsReferralList: ArrayList<SmsReferralEntitiy>) {
 
         smsReferralList.forEach { f -> database.daoAccess().insertSmsReferral(f) }

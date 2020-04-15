@@ -31,6 +31,7 @@ class MainActivity : AppCompatActivity(),
 
     private var isServiceStarted = false
     var mIsBound: Boolean? = null
+    //our reference to the service
     var mService: SmsService? = null
     @Inject
     lateinit var database: ReferralDatabase
@@ -46,10 +47,13 @@ class MainActivity : AppCompatActivity(),
             val binder = p1 as SmsService.MyBinder
             mService = binder.service
             mService?.singleMessageListener =this@MainActivity
+
             mService?.reuploadReferralListener = object : ReuploadReferralListener {
                 override fun onReuploadReferral(long: WorkInfo) {
                     if(long.state == WorkInfo.State.RUNNING){
                         Toast.makeText(this@MainActivity,"Reuploading stuff",Toast.LENGTH_SHORT).show()
+                        //update recylcer view
+                        setuprecyclerview()
                     }
                 }
             }
