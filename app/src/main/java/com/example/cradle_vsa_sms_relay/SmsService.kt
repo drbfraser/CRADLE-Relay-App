@@ -185,9 +185,8 @@ class SmsService : LifecycleService(), MultiMessageListener,
      * updates the status of the upload to the database.
      */
     private fun sendToServer(smsReferralEntitiy: SmsReferralEntitiy) {
-        val sharedPref =
-            getSharedPreferences(AUTH_PREF, Context.MODE_PRIVATE)
-        val token = sharedPref.getString(TOKEN, "")
+
+        val token = sharedPreferences.getString(TOKEN, "")
 
         var json: JSONObject? = null
         try {

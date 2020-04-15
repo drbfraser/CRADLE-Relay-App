@@ -1,6 +1,7 @@
 package com.example.cradle_vsa_sms_relay.dagger
 
 import com.example.cradle_vsa_sms_relay.SmsService
+import com.example.cradle_vsa_sms_relay.activities.LauncherActivity
 import com.example.cradle_vsa_sms_relay.activities.MainActivity
 import com.example.cradle_vsa_sms_relay.utilities.UploadReferralWorker
 import dagger.Component
@@ -14,4 +15,5 @@ interface AppComponent {
     fun inject(smsService: SmsService)
     fun inject(activity: MainActivity)
     fun inject(worker: UploadReferralWorker)
+    fun inject(launcherActivity: LauncherActivity)
 }

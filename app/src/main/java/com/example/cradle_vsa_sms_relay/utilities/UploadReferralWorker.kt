@@ -1,6 +1,7 @@
 package com.example.cradle_vsa_sms_relay.utilities
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.AsyncTask
 import android.util.Log
 import androidx.work.Data
@@ -37,13 +38,14 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
 
     @Inject
     lateinit var database: ReferralDatabase
+    @Inject
+    lateinit var sharedPreferences: SharedPreferences
 
     var token: String?
 
     init {
         (appContext as MyApp).component.inject(this)
-        token =
-            appContext.getSharedPreferences(AUTH_PREF, Context.MODE_PRIVATE).getString(TOKEN, "")
+        token = sharedPreferences.getString(TOKEN, "")
     }
 
     companion object {
