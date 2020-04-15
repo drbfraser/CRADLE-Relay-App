@@ -49,8 +49,8 @@ class MainActivity : AppCompatActivity(),
             mService?.singleMessageListener = this@MainActivity
 
             mService?.reuploadReferralListener = object : ReuploadReferralListener {
-                override fun onReuploadReferral(long: WorkInfo) {
-                    if (long.state == WorkInfo.State.RUNNING) {
+                override fun onReuploadReferral(workInfo: WorkInfo) {
+                    if (workInfo.state == WorkInfo.State.RUNNING) {
                         Toast.makeText(this@MainActivity, "Reuploading stuff", Toast.LENGTH_SHORT)
                             .show()
                         //update recylcer view
