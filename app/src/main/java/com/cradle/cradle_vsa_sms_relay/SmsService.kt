@@ -101,7 +101,7 @@ class SmsService : LifecycleService(), MultiMessageListener,
                 val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
                 val notification = NotificationCompat.Builder(this, CHANNEL_ID)
                     .setContentTitle("SMS RELAY SERVICE RUNNING").setContentText(input)
-                    .setSmallIcon(R.drawable.ic_launcher_background).setContentIntent(pendingIntent)
+                    .setSmallIcon(R.mipmap.ic_launcher).setContentIntent(pendingIntent)
                     .build()
                 startForeground(1, notification)
                 startReuploadingReferralTask()
@@ -169,7 +169,7 @@ class SmsService : LifecycleService(), MultiMessageListener,
             return
         }
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("Retrying uploading referrals ")
             .setContentText("" + cancel)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
