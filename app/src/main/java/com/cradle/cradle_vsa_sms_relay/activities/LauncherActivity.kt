@@ -1,4 +1,4 @@
-package com.example.cradle_vsa_sms_relay.activities
+package com.cradle.cradle_vsa_sms_relay.activities
 
 import android.app.ProgressDialog
 import android.content.Intent
@@ -12,10 +12,10 @@ import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-import com.example.cradle_vsa_sms_relay.R
-import com.example.cradle_vsa_sms_relay.SmsService.Companion.TOKEN
-import com.example.cradle_vsa_sms_relay.SmsService.Companion.USER_ID
-import com.example.cradle_vsa_sms_relay.dagger.MyApp
+import com.cradle.cradle_vsa_sms_relay.R
+import com.cradle.cradle_vsa_sms_relay.SmsService.Companion.TOKEN
+import com.cradle.cradle_vsa_sms_relay.SmsService.Companion.USER_ID
+import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import org.json.JSONObject
 import javax.inject.Inject
 

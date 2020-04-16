@@ -1,4 +1,4 @@
-package com.example.cradle_vsa_sms_relay.activities
+package com.cradle.cradle_vsa_sms_relay.activities
 
 import android.Manifest
 import android.content.*
@@ -18,10 +18,10 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
-import com.example.cradle_vsa_sms_relay.*
-import com.example.cradle_vsa_sms_relay.dagger.MyApp
-import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
-import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.*
+import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
+import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
+import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import org.json.JSONException
 import org.json.JSONObject
 import javax.inject.Inject

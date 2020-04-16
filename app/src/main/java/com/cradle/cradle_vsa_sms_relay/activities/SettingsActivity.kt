@@ -1,9 +1,9 @@
-package com.example.cradle_vsa_sms_relay.activities
+package com.cradle.cradle_vsa_sms_relay.activities
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.*
-import com.example.cradle_vsa_sms_relay.R
+import com.cradle.cradle_vsa_sms_relay.R
 
 class SettingsActivity : AppCompatActivity() {
 

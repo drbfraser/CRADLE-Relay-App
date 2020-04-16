@@ -1,4 +1,4 @@
-package com.example.cradle_vsa_sms_relay
+package com.cradle.cradle_vsa_sms_relay
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry

@@ -1,9 +1,8 @@
-package com.example.cradle_vsa_sms_relay
+package com.cradle.cradle_vsa_sms_relay
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
@@ -27,12 +26,12 @@ import com.android.volley.VolleyError
 import com.android.volley.toolbox.HttpHeaderParser
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-import com.example.cradle_vsa_sms_relay.activities.MainActivity
-import com.example.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
-import com.example.cradle_vsa_sms_relay.dagger.MyApp
-import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
-import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
-import com.example.cradle_vsa_sms_relay.utilities.UploadReferralWorker
+import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
+import com.cradle.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
+import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
+import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
+import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException

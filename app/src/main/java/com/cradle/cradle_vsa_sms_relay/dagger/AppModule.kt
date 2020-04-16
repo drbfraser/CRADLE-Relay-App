@@ -1,4 +1,4 @@
-package com.example.cradle_vsa_sms_relay.dagger
+package com.cradle.cradle_vsa_sms_relay.dagger
 
 import android.app.Application
 import dagger.Module

@@ -1,10 +1,10 @@
-package com.example.cradle_vsa_sms_relay.dagger
+package com.cradle.cradle_vsa_sms_relay.dagger
 
 import android.app.Application
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import androidx.room.Room
-import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
+import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton

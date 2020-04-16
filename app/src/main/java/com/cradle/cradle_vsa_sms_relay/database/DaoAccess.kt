@@ -1,4 +1,4 @@
-package com.example.cradle_vsa_sms_relay.database
+package com.cradle.cradle_vsa_sms_relay.database
 
 import androidx.room.*
 

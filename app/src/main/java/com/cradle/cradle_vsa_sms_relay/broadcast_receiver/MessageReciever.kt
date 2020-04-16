@@ -1,12 +1,12 @@
-package com.example.cradle_vsa_sms_relay.broadcast_receiver
+package com.cradle.cradle_vsa_sms_relay.broadcast_receiver
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.telephony.SmsMessage
-import com.example.cradle_vsa_sms_relay.MultiMessageListener
-import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
-import com.example.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
+import com.cradle.cradle_vsa_sms_relay.MultiMessageListener
+import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
 
 /**
  * detects messages receives

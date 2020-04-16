@@ -1,4 +1,4 @@
-package com.example.cradle_vsa_sms_relay.utilities
+package com.cradle.cradle_vsa_sms_relay.utilities
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -13,12 +13,11 @@ import com.android.volley.VolleyError
 import com.android.volley.toolbox.HttpHeaderParser
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-import com.example.cradle_vsa_sms_relay.SmsService
-import com.example.cradle_vsa_sms_relay.SmsService.Companion.AUTH_PREF
-import com.example.cradle_vsa_sms_relay.SmsService.Companion.TOKEN
-import com.example.cradle_vsa_sms_relay.dagger.MyApp
-import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
-import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.SmsService
+import com.cradle.cradle_vsa_sms_relay.SmsService.Companion.TOKEN
+import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
+import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
+import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException

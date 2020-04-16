@@ -1,6 +1,5 @@
-package com.example.cradle_vsa_sms_relay.utilities
+package com.cradle.cradle_vsa_sms_relay.utilities
 
-import android.util.Log
 import java.text.SimpleDateFormat
 import java.util.*
 
