@@ -1,8 +1,7 @@
 package com.cradle.cradle_vsa_sms_relay.dagger
+import androidx.multidex.MultiDexApplication
 
-import android.app.Application
-
-class MyApp : Application() {
+class MyApp : MultiDexApplication() {
 
     val component: AppComponent by lazy {
         DaggerAppComponent.builder()

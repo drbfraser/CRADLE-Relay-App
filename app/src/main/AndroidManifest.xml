@@ -18,7 +18,7 @@
         android:usesCleartextTraffic="true">
         <activity
             android:name="com.cradle.cradle_vsa_sms_relay.activities.SettingsActivity"
-            android:label="@string/title_activity_settings"></activity>
+            android:label="@string/title_activity_settings" />
         <activity android:name="com.cradle.cradle_vsa_sms_relay.activities.LauncherActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,13 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.cradle.cradle_vsa_sms_relay.activities.MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <activity android:name="com.cradle.cradle_vsa_sms_relay.activities.MainActivity"/>
 
         <service android:name="com.cradle.cradle_vsa_sms_relay.SmsService" />
     </application>

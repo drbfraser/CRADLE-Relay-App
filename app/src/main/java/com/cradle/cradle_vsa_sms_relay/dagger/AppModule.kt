@@ -1,12 +1,12 @@
 package com.cradle.cradle_vsa_sms_relay.dagger
 
-import android.app.Application
+import androidx.multidex.MultiDexApplication
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
 
 @Module
-class AppModule(val application: Application) {
+class AppModule(val application: MultiDexApplication) {
 
     @Provides
     @Singleton
