@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">CRADLE-VSA-SMS-Relay</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Preference Titles -->
+    <string name="sync_header">Sync</string>
+    <string name="reuploadSwitchPrefKey">reuploadSwitchPrefKey</string>
+    <string name="reuploadListPrefKey">reuploadListPrefKey</string>
+    <!-- Sync Preferences -->
+    <string name="sync_title">Retry uploading failed referral periodically</string>
+    <string name="reuploadtime">retry every</string>
 </resources>

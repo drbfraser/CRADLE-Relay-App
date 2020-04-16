@@ -14,7 +14,7 @@ interface DaoAccess {
     @Delete
     fun deleteSmsReferral(smsReferralEntitiy: SmsReferralEntitiy)
 
-    @Query("SELECT * FROM SmsReferralEntitiy WHERE isUploaded == 1")
+    @Query("SELECT * FROM SmsReferralEntitiy WHERE isUploaded == 0")
     fun getUnUploadedReferral(): List<SmsReferralEntitiy>
 
     @Query("SELECT * FROM SmsReferralEntitiy")

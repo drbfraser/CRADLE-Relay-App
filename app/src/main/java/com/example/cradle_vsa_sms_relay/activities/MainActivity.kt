@@ -1,23 +1,24 @@
 package com.example.cradle_vsa_sms_relay.activities
 
 import android.Manifest
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.cradle_vsa_sms_relay.R
-import com.example.cradle_vsa_sms_relay.SingleMessageListener
-import com.example.cradle_vsa_sms_relay.SmsRecyclerViewAdaper
-import com.example.cradle_vsa_sms_relay.SmsService
-import com.example.cradle_vsa_sms_relay.broadcast_receiver.ServiceToActivityBroadCastReciever
+import androidx.work.WorkInfo
+import com.example.cradle_vsa_sms_relay.*
 import com.example.cradle_vsa_sms_relay.dagger.MyApp
 import com.example.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.example.cradle_vsa_sms_relay.database.SmsReferralEntitiy
@@ -29,22 +30,70 @@ class MainActivity : AppCompatActivity(),
     SingleMessageListener {
 
     private var isServiceStarted = false
+    var mIsBound: Boolean? = null
+    //our reference to the service
+    var mService: SmsService? = null
     @Inject
     lateinit var database: ReferralDatabase
-    lateinit var serviceToActivityBroadCastReciever: ServiceToActivityBroadCastReciever
+    @Inject
+    lateinit var sharedPreferences: SharedPreferences
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceDisconnected(p0: ComponentName?) {
+            mIsBound = false
+        }
+
+        override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
+            val binder = p1 as SmsService.MyBinder
+            mService = binder.service
+            mService?.singleMessageListener = this@MainActivity
+
+            mService?.reuploadReferralListener = object : ReuploadReferralListener {
+                override fun onReuploadReferral(workInfo: WorkInfo) {
+                    if (workInfo.state == WorkInfo.State.RUNNING) {
+                        Toast.makeText(this@MainActivity, "Reuploading stuff", Toast.LENGTH_SHORT)
+                            .show()
+                        //update recylcer view
+                        setuprecyclerview()
+                    }
+                }
+            }
+        }
+
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
+        // bind service in case its running
+        if (mService == null) {
+            val serviceIntent = Intent(
+                this,
+                SmsService::class.java
+            )
+            bindService(serviceIntent, serviceConnection, 0)
+        }
         setupStartService()
         setupStopService()
         setuprecyclerview()
-        //register reciever to listen for events from the service
-        serviceToActivityBroadCastReciever = ServiceToActivityBroadCastReciever(this)
-        registerReceiver(
-            serviceToActivityBroadCastReciever, IntentFilter("update")
-        )
+
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.settingMenu -> {
+                startActivity(Intent(this, SettingsActivity::class.java))
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
 
     }
 
@@ -58,12 +107,12 @@ class MainActivity : AppCompatActivity(),
         adapter.onCLickList.add(object : AdapterClicker {
             override fun onClick(referralEntitiy: SmsReferralEntitiy) {
                 //call new activity
-                var msg:String;
-                val jsonObject: JSONObject;
+                var msg: String
+                val jsonObject: JSONObject
                 try {
-                     msg =JSONObject(referralEntitiy.jsonData).toString(4)
-                }catch (e:JSONException){
-                    msg = "Error: "+ e.message
+                    msg = JSONObject(referralEntitiy.jsonData).toString(4)
+                } catch (e: JSONException) {
+                    msg = "Error: " + e.message
                 }
 
                 AlertDialog.Builder(this@MainActivity)
@@ -82,8 +131,10 @@ class MainActivity : AppCompatActivity(),
 
     private fun setupStopService() {
         findViewById<Button>(R.id.btnStopService).setOnClickListener {
-            if (isServiceStarted) {
-                val intent: Intent = Intent(this, SmsService::class.java)
+            if (mService != null) {
+                val intent: Intent = Intent(this, SmsService::class.java).also { intent ->
+                    unbindService(serviceConnection)
+                }
                 intent.action = SmsService.STOP_SERVICE
                 ContextCompat.startForegroundService(this, intent)
                 isServiceStarted = false
@@ -135,7 +186,7 @@ class MainActivity : AppCompatActivity(),
         val serviceIntent = Intent(
             this,
             SmsService::class.java
-        )
+        ).also { intent -> bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE) }
         serviceIntent.action = SmsService.START_SERVICE
         this.application.startService(serviceIntent)
         ContextCompat.startForegroundService(this, serviceIntent)
@@ -158,15 +209,17 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun newMessageReceived() {
-        setuprecyclerview()
+        runOnUiThread {
+            setuprecyclerview()
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(serviceToActivityBroadCastReciever)
+        unbindService(serviceConnection)
     }
 
-    interface AdapterClicker{
+    interface AdapterClicker {
         fun onClick(referralEntitiy: SmsReferralEntitiy)
     }
 }
