@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity(),
     SingleMessageListener {
 
     private var isServiceStarted = false
-    var mIsBound: Boolean? = null
+    var mIsBound: Boolean = false
     //our reference to the service
     var mService: SmsService? = null
     @Inject
@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity(),
 
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
             val binder = p1 as SmsService.MyBinder
+            mIsBound=true
             mService = binder.service
             mService?.singleMessageListener = this@MainActivity
 
@@ -216,7 +217,9 @@ class MainActivity : AppCompatActivity(),
 
     override fun onDestroy() {
         super.onDestroy()
-        unbindService(serviceConnection)
+        if(mIsBound!!) {
+            unbindService(serviceConnection)
+        }
     }
 
     interface AdapterClicker {
