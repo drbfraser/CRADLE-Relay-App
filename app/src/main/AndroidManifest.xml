@@ -19,7 +19,8 @@
         <activity
             android:name="com.cradle.cradle_vsa_sms_relay.activities.SettingsActivity"
             android:label="@string/title_activity_settings" />
-        <activity android:name="com.cradle.cradle_vsa_sms_relay.activities.LauncherActivity">
+        <activity android:name="com.cradle.cradle_vsa_sms_relay.activities.LauncherActivity"
+            android:theme="@style/NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
