@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity(),
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceDisconnected(p0: ComponentName?) {
             mIsBound = false
+            mService = null
         }
 
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
@@ -52,7 +53,7 @@ class MainActivity : AppCompatActivity(),
             mService?.reuploadReferralListener = object : ReuploadReferralListener {
                 override fun onReuploadReferral(workInfo: WorkInfo) {
                     if (workInfo.state == WorkInfo.State.RUNNING) {
-                        Toast.makeText(this@MainActivity, "Reuploading stuff", Toast.LENGTH_SHORT)
+                        Toast.makeText(this@MainActivity, "Uploading failed referrals", Toast.LENGTH_SHORT)
                             .show()
                         //update recylcer view
                         setuprecyclerview()
