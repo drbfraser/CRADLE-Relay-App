@@ -56,6 +56,8 @@ class SmsService : LifecycleService(), MultiMessageListener,
 
     // maain sms broadcast listner
     private var smsReciver: MessageReciever? = null
+    //to make sure we dont keep registering listerners
+    private var isMessageRecieverRegistered=false
     //handles activity to service interactions
     private val mBinder: IBinder = MyBinder()
 
@@ -83,15 +85,19 @@ class SmsService : LifecycleService(), MultiMessageListener,
                 stopForeground(true)
                 MessageReciever.unbindListener()
                 unregisterReceiver(smsReciver)
+                smsReciver = null
                 this.stopService(intent)
                 this.stopSelf()
 
             } else {
-                smsReciver = MessageReciever()
-                val intentFilter = IntentFilter()
-                intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
-                registerReceiver(smsReciver, intentFilter)
-                MessageReciever.bindListener(this)
+                if (!isMessageRecieverRegistered) {
+                    smsReciver = MessageReciever()
+                    val intentFilter = IntentFilter()
+                    intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
+                    registerReceiver(smsReciver, intentFilter)
+                    MessageReciever.bindListener(this)
+                    isMessageRecieverRegistered=true
+                }
                 val input = intent.getStringExtra("inputExtra")
                 createNotificationChannel()
                 val notificationIntent = Intent(
@@ -261,7 +267,6 @@ class SmsService : LifecycleService(), MultiMessageListener,
 
     override fun stopService(name: Intent?): Boolean {
         super.stopService(name)
-        stopForeground(true)
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
         //cancel all the calls
         WorkManager.getInstance(this).cancelAllWork()

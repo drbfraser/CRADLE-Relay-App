@@ -190,7 +190,6 @@ class MainActivity : AppCompatActivity(),
             SmsService::class.java
         ).also { intent -> bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE) }
         serviceIntent.action = SmsService.START_SERVICE
-        this.application.startService(serviceIntent)
         ContextCompat.startForegroundService(this, serviceIntent)
         isServiceStarted = true
     }
@@ -218,7 +217,7 @@ class MainActivity : AppCompatActivity(),
 
     override fun onDestroy() {
         super.onDestroy()
-        if(mIsBound!!) {
+        if(mIsBound) {
             unbindService(serviceConnection)
         }
     }
