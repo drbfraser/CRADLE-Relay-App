@@ -18,4 +18,9 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="@string/accountSetting">
+        <Preference app:title="@string/signout"
+            app:key="@string/signout"
+            />
+    </PreferenceCategory>
 </PreferenceScreen>

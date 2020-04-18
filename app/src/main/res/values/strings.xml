@@ -9,4 +9,6 @@
     <!-- Sync Preferences -->
     <string name="sync_title">Retry uploading failed referral periodically</string>
     <string name="reuploadtime">retry every</string>
+    <string name="accountSetting">Account Settings</string>
+    <string name="signout">Sign out</string>
 </resources>
