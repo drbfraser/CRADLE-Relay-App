@@ -15,7 +15,7 @@ import org.json.JSONObject
 class ReferralAlertDialog : AlertDialog {
 
     var  smsReferralEntitiy:SmsReferralEntitiy
-    lateinit var sendToServiceButtonClickListener: View.OnClickListener
+    private lateinit var sendToServiceButtonClickListener: View.OnClickListener
 
     constructor(context: Context, smsReferralEntitiy: SmsReferralEntitiy) : super(context) {
         this.smsReferralEntitiy = smsReferralEntitiy
@@ -24,7 +24,7 @@ class ReferralAlertDialog : AlertDialog {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.referral_alert_dialog);
-        findViewById<TextView>(R.id.titleAD).setText("ID: "+smsReferralEntitiy.id)
+        findViewById<TextView>(R.id.titleAD).setText("Referral Id: "+smsReferralEntitiy.id)
         var msg:String
         try {
             msg = JSONObject(smsReferralEntitiy.jsonData).toString(4)
@@ -32,13 +32,16 @@ class ReferralAlertDialog : AlertDialog {
             msg = smsReferralEntitiy.jsonData.toString()
         }
         findViewById<TextView>(R.id.jsonDataAd).setText(msg)
-
-        findViewById<TextView>(R.id.errorDataAd).setText(smsReferralEntitiy.errorMessage)
-        findViewById<Button>(R.id.sendToServerAdButton).setOnClickListener(sendToServiceButtonClickListener)
-
         findViewById<TextView>(R.id.timeRecievedAd).setText(DateTimeUtil.convertUnixToTimeString(smsReferralEntitiy.timeRecieved))
         findViewById<TextView>(R.id.numAttemptAd).setText(smsReferralEntitiy.numberOfTriesUploaded.toString())
         findViewById<TextView>(R.id.refUploadedAd).setText(smsReferralEntitiy.isUploaded.toString())
+        findViewById<TextView>(R.id.errorDataAd).setText(smsReferralEntitiy.errorMessage)
 
+        findViewById<Button>(R.id.sendToServerAdButton).setOnClickListener(sendToServiceButtonClickListener)
+        findViewById<Button>(R.id.cancelAdButton).setOnClickListener { this.cancel() }
+
+    }
+    fun setOnSendToServerListener(onClickListener: View.OnClickListener){
+        this.sendToServiceButtonClickListener = onClickListener
     }
 }

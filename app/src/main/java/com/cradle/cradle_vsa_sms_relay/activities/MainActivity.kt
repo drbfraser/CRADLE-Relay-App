@@ -47,6 +47,7 @@ class MainActivity : AppCompatActivity(),
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
             val binder = p1 as SmsService.MyBinder
             mIsBound=true
+            isServiceStarted= true
             mService = binder.service
             mService?.singleMessageListener = this@MainActivity
 
@@ -110,15 +111,26 @@ class MainActivity : AppCompatActivity(),
             override fun onClick(referralEntitiy: SmsReferralEntitiy) {
                 val referralAlertDialog =ReferralAlertDialog(this@MainActivity,referralEntitiy)
 
-                referralAlertDialog.sendToServiceButtonClickListener =View.OnClickListener {
+                referralAlertDialog.setOnSendToServerListener(View.OnClickListener {
                     if (isServiceStarted && mIsBound){
-                        mService?.sendToServer(referralEntitiy)
-                        Toast.makeText(this@MainActivity,"Sending the referral to server",Toast.LENGTH_SHORT).show()
+                        if (!referralEntitiy.isUploaded) {
+                            mService?.sendToServer(referralEntitiy)
+                            Toast.makeText(
+                                this@MainActivity, "Uploading the referral to the server",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else{
+                            Toast.makeText(
+                                this@MainActivity, "Referral is already uploaded to the server ",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                         referralAlertDialog.cancel()
                     } else {
-                        Toast.makeText(this@MainActivity,"Unable to send to the server, Make sure service is running.",Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MainActivity,"Unable to send to the server, " +
+                                "Make sure service is running.",Toast.LENGTH_SHORT).show()
                     }
-                }
+                })
                 referralAlertDialog.show()
             }
         })

@@ -10,13 +10,11 @@
         android:id="@+id/jsonDataAd"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:textColor="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/titleAD" />
+        app:layout_constraintStart_toEndOf="@+id/textView9"
+        app:layout_constraintTop_toTopOf="@+id/textView9" />
 
     <TextView
         android:id="@+id/errorDataAd"
@@ -24,8 +22,8 @@
         android:layout_height="wrap_content"
         android:textColor="@android:color/holo_red_dark"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/jsonDataAd"
-        app:layout_constraintTop_toBottomOf="@+id/jsonDataAd" />
+        app:layout_constraintStart_toEndOf="@+id/textView10"
+        app:layout_constraintTop_toTopOf="@+id/textView10" />
 
     <TextView
         android:id="@+id/titleAD"
@@ -35,6 +33,7 @@
         android:layout_marginEnd="16dp"
         android:textAlignment="center"
         android:textColor="@color/black"
+        android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -44,10 +43,12 @@
         android:id="@+id/sendToServerAdButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="16dp"
         android:background="@color/colorAccent"
-        android:text="Send to server"
+        android:text="Upload"
+        android:textAlignment="center"
         android:textColor="@color/colorOffWhite"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/errorDataAd"
@@ -60,7 +61,8 @@
         android:layout_marginTop="8dp"
         android:text="Referral uploaded to the server? "
         android:textColor="@color/black"
-        app:layout_constraintStart_toStartOf="@+id/errorDataAd"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="@+id/textView10"
         app:layout_constraintTop_toBottomOf="@+id/errorDataAd" />
 
     <TextView
@@ -76,6 +78,7 @@
         android:layout_height="wrap_content"
         android:text="Number of Attempts: "
         android:textColor="@color/black"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="@+id/textView5"
         app:layout_constraintTop_toBottomOf="@+id/textView5" />
 
@@ -92,6 +95,7 @@
         android:layout_height="wrap_content"
         android:text="Time Recieved: "
         android:textColor="@color/black"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="@+id/textView4"
         app:layout_constraintTop_toBottomOf="@+id/textView4" />
 
@@ -101,4 +105,36 @@
         android:layout_height="wrap_content"
         app:layout_constraintStart_toEndOf="@+id/textView7"
         app:layout_constraintTop_toTopOf="@+id/textView7" />
+
+    <Button
+        android:id="@+id/cancelAdButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:background="@color/colorPrimaryLight"
+        android:text="Cancel"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toStartOf="@+id/sendToServerAdButton"
+        app:layout_constraintTop_toTopOf="@+id/sendToServerAdButton" />
+
+    <TextView
+        android:id="@+id/textView9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Data: "
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="@+id/titleAD"
+        app:layout_constraintTop_toBottomOf="@+id/titleAD" />
+
+    <TextView
+        android:id="@+id/textView10"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Error: "
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="@+id/textView9"
+        app:layout_constraintTop_toBottomOf="@+id/textView9" />
 </androidx.constraintlayout.widget.ConstraintLayout>
