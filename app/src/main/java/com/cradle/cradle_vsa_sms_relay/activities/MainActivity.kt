@@ -9,6 +9,7 @@ import android.os.IBinder
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -22,8 +23,7 @@ import com.cradle.cradle_vsa_sms_relay.*
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
-import org.json.JSONException
-import org.json.JSONObject
+import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(),
@@ -47,6 +47,7 @@ class MainActivity : AppCompatActivity(),
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
             val binder = p1 as SmsService.MyBinder
             mIsBound=true
+            isServiceStarted= true
             mService = binder.service
             mService?.singleMessageListener = this@MainActivity
 
@@ -108,19 +109,29 @@ class MainActivity : AppCompatActivity(),
 
         adapter.onCLickList.add(object : AdapterClicker {
             override fun onClick(referralEntitiy: SmsReferralEntitiy) {
-                //call new activity
-                var msg: String
-                val jsonObject: JSONObject
-                try {
-                    msg = JSONObject(referralEntitiy.jsonData).toString(4)
-                } catch (e: JSONException) {
-                    msg = "Error: " + e.message
-                }
+                val referralAlertDialog =ReferralAlertDialog(this@MainActivity,referralEntitiy)
 
-                AlertDialog.Builder(this@MainActivity)
-                    .setTitle(referralEntitiy.id)
-                    .setMessage(msg)
-                    .create().show()
+                referralAlertDialog.setOnSendToServerListener(View.OnClickListener {
+                    if (isServiceStarted && mIsBound){
+                        if (!referralEntitiy.isUploaded) {
+                            mService?.sendToServer(referralEntitiy)
+                            Toast.makeText(
+                                this@MainActivity, "Uploading the referral to the server",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else{
+                            Toast.makeText(
+                                this@MainActivity, "Referral is already uploaded to the server ",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        referralAlertDialog.cancel()
+                    } else {
+                        Toast.makeText(this@MainActivity,"Unable to send to the server, " +
+                                "Make sure service is running.",Toast.LENGTH_SHORT).show()
+                    }
+                })
+                referralAlertDialog.show()
             }
         })
         smsRecyclerView.adapter = adapter

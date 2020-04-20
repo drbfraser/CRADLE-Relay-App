@@ -189,7 +189,7 @@ class SmsService : LifecycleService(), MultiMessageListener,
      * uploads [smsReferralEntitiy] to the server
      * updates the status of the upload to the database.
      */
-    private fun sendToServer(smsReferralEntitiy: SmsReferralEntitiy) {
+    public fun sendToServer(smsReferralEntitiy: SmsReferralEntitiy) {
 
         val token = sharedPreferences.getString(TOKEN, "")
 
@@ -256,6 +256,10 @@ class SmsService : LifecycleService(), MultiMessageListener,
      */
     fun updateDatabase(smsReferralEntitiy: SmsReferralEntitiy, isUploaded: Boolean) {
         smsReferralEntitiy.isUploaded = isUploaded
+        if (isUploaded){
+            // we do not need to show anymore errors for this referral.
+            smsReferralEntitiy.errorMessage = ""
+        }
         smsReferralEntitiy.numberOfTriesUploaded += 1
         AsyncTask.execute {
             database.daoAccess().updateSmsReferral(smsReferralEntitiy)
