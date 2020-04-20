@@ -189,7 +189,7 @@ class SmsService : LifecycleService(), MultiMessageListener,
      * uploads [smsReferralEntitiy] to the server
      * updates the status of the upload to the database.
      */
-    private fun sendToServer(smsReferralEntitiy: SmsReferralEntitiy) {
+    public fun sendToServer(smsReferralEntitiy: SmsReferralEntitiy) {
 
         val token = sharedPreferences.getString(TOKEN, "")
 

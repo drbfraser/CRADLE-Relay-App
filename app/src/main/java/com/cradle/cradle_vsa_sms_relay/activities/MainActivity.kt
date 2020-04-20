@@ -9,6 +9,7 @@ import android.os.IBinder
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -23,8 +24,6 @@ import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
-import org.json.JSONException
-import org.json.JSONObject
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(),
@@ -109,7 +108,18 @@ class MainActivity : AppCompatActivity(),
 
         adapter.onCLickList.add(object : AdapterClicker {
             override fun onClick(referralEntitiy: SmsReferralEntitiy) {
-                ReferralAlertDialog(this@MainActivity,referralEntitiy).show()
+                val referralAlertDialog =ReferralAlertDialog(this@MainActivity,referralEntitiy)
+
+                referralAlertDialog.sendToServiceButtonClickListener =View.OnClickListener {
+                    if (isServiceStarted && mIsBound){
+                        mService?.sendToServer(referralEntitiy)
+                        Toast.makeText(this@MainActivity,"Sending the referral to server",Toast.LENGTH_SHORT).show()
+                        referralAlertDialog.cancel()
+                    } else {
+                        Toast.makeText(this@MainActivity,"Unable to send to the server, Make sure service is running.",Toast.LENGTH_SHORT).show()
+                    }
+                }
+                referralAlertDialog.show()
             }
         })
         smsRecyclerView.adapter = adapter
