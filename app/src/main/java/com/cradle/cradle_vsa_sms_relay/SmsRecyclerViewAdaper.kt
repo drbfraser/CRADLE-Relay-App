@@ -36,7 +36,7 @@ class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>) :
         ]
         holder.smsText.text = smsReferralEntitiy.jsonData
         if (smsReferralEntitiy.isUploaded) {
-            holder.statusImg.setImageResource(R.drawable.ic_check_black_24dp)
+            holder.statusImg.setImageResource(R.drawable.ic_thumb_up_green_24dp)
         } else {
             holder.statusImg.setImageResource(R.drawable.ic_thumb_down_black_24dp)
         }
