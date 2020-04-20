@@ -256,6 +256,10 @@ class SmsService : LifecycleService(), MultiMessageListener,
      */
     fun updateDatabase(smsReferralEntitiy: SmsReferralEntitiy, isUploaded: Boolean) {
         smsReferralEntitiy.isUploaded = isUploaded
+        if (isUploaded){
+            // we do not need to show anymore errors for this referral.
+            smsReferralEntitiy.errorMessage = ""
+        }
         smsReferralEntitiy.numberOfTriesUploaded += 1
         AsyncTask.execute {
             database.daoAccess().updateSmsReferral(smsReferralEntitiy)
