@@ -109,19 +109,6 @@ class MainActivity : AppCompatActivity(),
 
         adapter.onCLickList.add(object : AdapterClicker {
             override fun onClick(referralEntitiy: SmsReferralEntitiy) {
-                //call new activity
-                var msg: String
-                val jsonObject: JSONObject
-                try {
-                    msg = JSONObject(referralEntitiy.jsonData).toString(4)
-                } catch (e: JSONException) {
-                    msg = "Error: " + e.message
-                }
-
-//                AlertDialog.Builder(this@MainActivity)
-//                    .setTitle(referralEntitiy.id)
-//                    .setMessage(msg)
-//                    .create().show()
                 ReferralAlertDialog(this@MainActivity,referralEntitiy).show()
             }
         })
