@@ -22,6 +22,7 @@ import com.cradle.cradle_vsa_sms_relay.*
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import org.json.JSONException
 import org.json.JSONObject
 import javax.inject.Inject
@@ -117,10 +118,11 @@ class MainActivity : AppCompatActivity(),
                     msg = "Error: " + e.message
                 }
 
-                AlertDialog.Builder(this@MainActivity)
-                    .setTitle(referralEntitiy.id)
-                    .setMessage(msg)
-                    .create().show()
+//                AlertDialog.Builder(this@MainActivity)
+//                    .setTitle(referralEntitiy.id)
+//                    .setMessage(msg)
+//                    .create().show()
+                ReferralAlertDialog(this@MainActivity,referralEntitiy).show()
             }
         })
         smsRecyclerView.adapter = adapter
