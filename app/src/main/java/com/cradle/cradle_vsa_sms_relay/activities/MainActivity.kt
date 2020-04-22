@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -42,6 +43,7 @@ class MainActivity : AppCompatActivity(),
         override fun onServiceDisconnected(p0: ComponentName?) {
             mIsBound = false
             mService = null
+            isServiceStarted = false
         }
 
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
@@ -144,7 +146,7 @@ class MainActivity : AppCompatActivity(),
 
     private fun setupStopService() {
         findViewById<Button>(R.id.btnStopService).setOnClickListener {
-            if (mService != null) {
+            if (mService != null && isServiceStarted) {
                 val intent: Intent = Intent(this, SmsService::class.java).also { intent ->
                     unbindService(serviceConnection)
                 }
@@ -215,7 +217,6 @@ class MainActivity : AppCompatActivity(),
             //do whatever when permissions are granted
             if (!isServiceStarted) {
                 startService()
-
             }
         }
     }
