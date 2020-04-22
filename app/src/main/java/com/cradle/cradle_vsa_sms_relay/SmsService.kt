@@ -148,7 +148,7 @@ class SmsService : LifecycleService(), MultiMessageListener,
                 .observeForever(
                     Observer {
                         if (it != null) {
-                            //this ia where we notify user but right now dont have a good mechanism
+                            //this is where we notify user but right now dont have a good mechanism
                             //periodice work state is enqued->running->enque
                             //since there is no success or failure state we cant let user know
                             //extactly whats going on.
@@ -160,9 +160,7 @@ class SmsService : LifecycleService(), MultiMessageListener,
                             reuploadReferralListener.onReuploadReferral(it)
                         }
                     })
-            Log.d("bugg", "task started " + timeInMinutesString)
         } catch (e: NumberFormatException) {
-            Log.d("bugg", "retry time not set " + timeInMinutesString)
         }
     }
 
@@ -296,7 +294,6 @@ class SmsService : LifecycleService(), MultiMessageListener,
     companion object {
         val STOP_SERVICE = "STOP SERVICE"
         val START_SERVICE = "START SERVICE"
-        val AUTH_PREF = "authSharefPref"
         val TOKEN = "token"
         val AUTH = "Authorization"
         val USER_ID = "userId"
