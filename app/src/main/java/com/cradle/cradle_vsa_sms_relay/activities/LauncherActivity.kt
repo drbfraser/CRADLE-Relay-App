@@ -20,7 +20,7 @@ import org.json.JSONObject
 import javax.inject.Inject
 
 class LauncherActivity : AppCompatActivity() {
-    var authServer = "https://cmpt373.csil.sfu.ca:8048/api/user/auth";
+    var authServer = "https://cradle.eastus.cloudapp.azure.com/api/user/auth";
     @Inject
     lateinit var sharedPreferences: SharedPreferences
 
