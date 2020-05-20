@@ -33,14 +33,15 @@
                 android:layout_width="match_parent"
 
                 android:layout_height="wrap_content"
-                android:background="@color/colorOffWhite"
+                android:background="@drawable/background_radious"
                 android:gravity="center"
                 android:padding="8dp"
                 android:text="SIGN IN"
-                android:textColor="@color/black"
+                android:textColor="@color/dark_grey"
                 android:textSize="24sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -140,7 +141,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="64dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/cradle_icon" />
