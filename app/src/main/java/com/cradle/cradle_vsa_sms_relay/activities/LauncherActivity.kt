@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.android.volley.Request
@@ -43,7 +44,7 @@ class LauncherActivity : AppCompatActivity() {
 
         val emailEditText = findViewById<TextView>(R.id.emailEditText)
         val passwordEdittext = findViewById<TextView>(R.id.passwordEditText)
-        findViewById<Button>(R.id.loginButton).setOnClickListener {
+        findViewById<ImageButton>(R.id.loginButton).setOnClickListener {
             val jsonObject = JSONObject();
             jsonObject.put("email",emailEditText.text)
             jsonObject.put("password",passwordEdittext.text)
