@@ -6,14 +6,13 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -145,7 +144,7 @@ class MainActivity : AppCompatActivity(),
 
 
     private fun setupStopService() {
-        findViewById<Button>(R.id.btnStopService).setOnClickListener {
+        findViewById<ImageButton>(R.id.btnStopService).setOnClickListener {
             if (mService != null && isServiceStarted) {
                 val intent: Intent = Intent(this, SmsService::class.java).also { intent ->
                     unbindService(serviceConnection)
@@ -158,7 +157,7 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun setupStartService() {
-        findViewById<Button>(R.id.btnStartService).setOnClickListener {
+        findViewById<ImageButton>(R.id.btnStartService).setOnClickListener {
             checkpermissions()
         }
     }
