@@ -13,4 +13,5 @@
     <string name="signout">Sign out</string>
     <string name="stop_service">STOP SERVICE</string>
     <string name="start_service">START SERVICE</string>
+    <string name="vsa_sms_relay">VSA-SMS-Relay</string>
 </resources>
