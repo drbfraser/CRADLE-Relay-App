@@ -12,6 +12,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -77,10 +78,16 @@ class MainActivity : AppCompatActivity(),
             )
             bindService(serviceIntent, serviceConnection, 0)
         }
+        setupToolBar()
         setupStartService()
         setupStopService()
         setuprecyclerview()
 
+    }
+
+    private fun setupToolBar() {
+        val toolbar: Toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
