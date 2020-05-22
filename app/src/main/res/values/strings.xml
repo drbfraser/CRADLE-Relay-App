@@ -11,4 +11,6 @@
     <string name="reuploadtime">Try uploading every</string>
     <string name="accountSetting">Account Settings</string>
     <string name="signout">Sign out</string>
+    <string name="stop_service">STOP SERVICE</string>
+    <string name="start_service">START SERVICE</string>
 </resources>

@@ -6,22 +6,38 @@
     android:layout_height="match_parent"
     tools:context=".activities.MainActivity">
 
-    <ImageButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnStartService"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:background="@drawable/start_service_button"
+        android:layout_marginEnd="8dp"
+        android:textColorHighlight="@color/green"
+        app:backgroundTint="@color/green_faded"
+        android:text="@string/start_service"
+        app:cornerRadius="12dp"
+        app:strokeColor="@color/green"
+        android:textColor="@color/green"
+        app:strokeWidth="2dp"
         app:layout_constraintEnd_toStartOf="@+id/btnStopService"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+         />
 
-    <ImageButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnStopService"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/stop_active_button"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="16dp"
+        app:backgroundTint="@color/red_faded"
+        app:strokeWidth="2dp"
+        app:strokeColor="@color/redDown"
+        android:text="@string/stop_service"
+        android:textColor="@color/redDown"
+        app:cornerRadius="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/btnStartService"

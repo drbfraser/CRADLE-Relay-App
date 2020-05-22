@@ -10,8 +10,6 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
-import android.widget.Button
-import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -24,6 +22,7 @@ import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
+import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(),
@@ -144,7 +143,7 @@ class MainActivity : AppCompatActivity(),
 
 
     private fun setupStopService() {
-        findViewById<ImageButton>(R.id.btnStopService).setOnClickListener {
+        findViewById<MaterialButton>(R.id.btnStopService).setOnClickListener {
             if (mService != null && isServiceStarted) {
                 val intent: Intent = Intent(this, SmsService::class.java).also { intent ->
                     unbindService(serviceConnection)
@@ -157,7 +156,7 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun setupStartService() {
-        findViewById<ImageButton>(R.id.btnStartService).setOnClickListener {
+        findViewById<MaterialButton>(R.id.btnStartService).setOnClickListener {
             checkpermissions()
         }
     }
