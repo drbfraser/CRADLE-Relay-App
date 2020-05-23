@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -23,6 +24,7 @@ import com.cradle.cradle_vsa_sms_relay.*
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.fragments.SettingBottomSheetDiaglogFragment
 import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
@@ -92,7 +94,9 @@ class MainActivity : AppCompatActivity(),
         supportActionBar?.title="";
         val settingButton:ImageButton = findViewById(R.id.settingIcon)
         settingButton.setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
+            var settingBottomSheetDiaglogFragment =
+                SettingBottomSheetDiaglogFragment(this)
+            settingBottomSheetDiaglogFragment.show(supportFragmentManager,"Settings")
         }
     }
 
