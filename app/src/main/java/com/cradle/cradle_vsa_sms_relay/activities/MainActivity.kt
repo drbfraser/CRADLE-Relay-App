@@ -6,11 +6,11 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -24,8 +24,6 @@ import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
-import com.google.android.material.appbar.CollapsingToolbarLayout
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
 
@@ -99,10 +97,16 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun setuprecyclerview() {
-
+        val emptyImageView:ImageView = findViewById(R.id.emptyRecyclerView)
         val smsRecyclerView: RecyclerView = findViewById(R.id.messageRecyclerview)
-        var referrals =
+        val referrals =
             database.daoAccess().getAllReferrals().sortedByDescending { it.timeRecieved }
+
+        if (referrals.isNotEmpty()){
+            emptyImageView.visibility =GONE
+        } else {
+            emptyImageView.visibility = VISIBLE
+        }
         val adapter = SmsRecyclerViewAdaper(referrals)
 
         adapter.onCLickList.add(object : AdapterClicker {
