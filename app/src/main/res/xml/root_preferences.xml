@@ -25,7 +25,8 @@
         app:iconSpaceReserved="false">
         <Preference
             app:key="@string/signout"
-            app:title="@string/signout"
+            app:layout="@layout/sign_out_button"
+            app:widgetLayout="@layout/sign_out_button"
             app:iconSpaceReserved="false" />
     </PreferenceCategory>
 </PreferenceScreen>

@@ -21,6 +21,7 @@
 
     <style name="settingPreference" parent="AppTheme">
         <item name="android:textColor">@color/white</item>
+        <item name="fontFamily">@font/lato_bold</item>
 
     </style>
 

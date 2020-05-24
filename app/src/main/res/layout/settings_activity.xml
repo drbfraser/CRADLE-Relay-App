@@ -11,6 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
+        android:fontFamily="@font/lato_bold"
         android:text="Settings"
         android:textColor="@color/white"
         android:textSize="24sp"
@@ -22,7 +23,44 @@
     <FrameLayout
         android:id="@+id/settings"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/materialTextView11"
         app:layout_constraintStart_toStartOf="@+id/materialTextView3"
         app:layout_constraintTop_toBottomOf="@+id/materialTextView3" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/materialTextView11"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CRADLE"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/materialTextView22"
+        app:layout_constraintStart_toStartOf="@+id/materialTextView22" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/materialTextView22"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="24dp"
+        android:paddingBottom="8dp"
+        android:text="@string/vsa_sms_relay"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/settingIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        android:src="@drawable/up_icon"
+        app:backgroundTint="@color/colorPrimary"
+        app:layout_constraintBottom_toBottomOf="@+id/materialTextView22"
+        app:layout_constraintEnd_toEndOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
