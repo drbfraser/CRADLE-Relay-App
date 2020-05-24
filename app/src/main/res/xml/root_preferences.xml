@@ -11,7 +11,7 @@
 
         <ListPreference
             app:defaultValue="5"
-            app:enabled="false"
+            app:isPreferenceVisible="false"
             app:entries="@array/syncTimesInMinutes"
             app:entryValues="@array/syncTimeValue"
             app:key="@string/reuploadListPrefKey"

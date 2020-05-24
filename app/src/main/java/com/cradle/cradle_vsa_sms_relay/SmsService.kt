@@ -10,7 +10,6 @@ import android.os.AsyncTask
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleService
@@ -311,9 +310,12 @@ class SmsService : LifecycleService(), MultiMessageListener,
         }
     }
 
-    override fun onSharedPreferenceChanged(p0: SharedPreferences?, p1: String?) {
+    override fun onSharedPreferenceChanged(p0: SharedPreferences?, key: String?) {
         val switchkey = getString(R.string.reuploadSwitchPrefKey)
-        if (p1.equals(switchkey) && sharedPreferences.getBoolean(switchkey, false)) {
+        val listKey = getString(R.string.reuploadListPrefKey)
+        // restart sending service if time to send changes or the decision to send changes.
+        if (key.equals(listKey) ||
+            (key.equals(switchkey) && sharedPreferences.getBoolean(switchkey, false))) {
             startReuploadingReferralTask()
         }
     }

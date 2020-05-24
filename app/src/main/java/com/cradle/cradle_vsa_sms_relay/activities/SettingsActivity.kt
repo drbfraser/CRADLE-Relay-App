@@ -39,11 +39,11 @@ class SettingsActivity : AppCompatActivity() {
             val signoutKey = getString(R.string.signout)
 
             val pref = findPreference<ListPreference>(reuploadListKey)
-            pref?.isEnabled =
+            pref?.isVisible =
                 PreferenceManager.getDefaultSharedPreferences(this.context)
                     .getBoolean(reuploadSwitchKey, false)
             findPreference<SwitchPreferenceCompat>(reuploadSwitchKey)?.setOnPreferenceClickListener { preference ->
-                pref?.isEnabled =
+                pref?.isVisible =
                     preference.sharedPreferences.getBoolean(reuploadSwitchKey, false)
                 true
             }
