@@ -18,6 +18,7 @@
         android:usesCleartextTraffic="true">
         <activity
             android:name="com.cradle.cradle_vsa_sms_relay.activities.SettingsActivity"
+            android:theme="@style/settingPreference"
             android:label="@string/title_activity_settings" />
         <activity android:name="com.cradle.cradle_vsa_sms_relay.activities.LauncherActivity"
             android:theme="@style/NoActionBar">
@@ -36,6 +37,9 @@
         </activity>
 
         <service android:name="com.cradle.cradle_vsa_sms_relay.SmsService" />
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
     </application>
 
 </manifest>
