@@ -1,6 +1,7 @@
 package com.cradle.cradle_vsa_sms_relay.activities
 
 import android.Manifest
+import android.app.ActivityOptions
 import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
@@ -24,7 +25,6 @@ import com.cradle.cradle_vsa_sms_relay.*
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
-import com.cradle.cradle_vsa_sms_relay.fragments.SettingBottomSheetDiaglogFragment
 import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
@@ -94,9 +94,8 @@ class MainActivity : AppCompatActivity(),
         supportActionBar?.title="";
         val settingButton:ImageButton = findViewById(R.id.settingIcon)
         settingButton.setOnClickListener {
-            var settingBottomSheetDiaglogFragment =
-                SettingBottomSheetDiaglogFragment(this)
-            settingBottomSheetDiaglogFragment.show(supportFragmentManager,"Settings")
+            startActivity(Intent(this,SettingsActivity::class.java),
+                ActivityOptions.makeCustomAnimation(this,R.anim.slide_down,R.anim.nothing).toBundle())
         }
     }
 
