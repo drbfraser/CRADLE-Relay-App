@@ -2,6 +2,7 @@ package com.cradle.cradle_vsa_sms_relay.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageButton
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.*
@@ -17,6 +18,9 @@ class SettingsActivity : AppCompatActivity() {
             .replace(R.id.settings, SettingsFragment())
             .commit()
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        findViewById<ImageButton>(R.id.back_button).setOnClickListener {
+            onBackPressed()
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -48,7 +52,7 @@ class SettingsActivity : AppCompatActivity() {
                 true
             }
             findPreference<Preference>(signoutKey)?.setOnPreferenceClickListener {
-                AlertDialog.Builder(this.context!!).setTitle(signoutKey).setMessage("You will be required to sign in again")
+                AlertDialog.Builder(this.context!!).setTitle("Sign out?").setMessage("You will be required to sign in again")
                     .setPositiveButton("YES") { _, _ -> signout() }
                     .setNegativeButton("NO") { _, _ ->  }.show()
                 true
