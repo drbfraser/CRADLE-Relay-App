@@ -16,4 +16,5 @@
     <string name="vsa_sms_relay">VSA-SMS-Relay</string>
     <string name="upload">Upload</string>
     <string name="referral_id">Referral ID: </string>
+    <string name="cradle">CRADLE</string>
 </resources>
