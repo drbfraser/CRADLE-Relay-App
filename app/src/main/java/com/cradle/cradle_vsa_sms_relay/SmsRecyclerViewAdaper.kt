@@ -1,11 +1,12 @@
 package com.cradle.cradle_vsa_sms_relay
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
@@ -13,15 +14,16 @@ import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.utilities.DateTimeUtil
 
-class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>) :
+class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>, context:Context) :
     RecyclerView.Adapter<SmsRecyclerViewAdaper.SMSViewHolder>() {
 
-    private var sms: List<SmsReferralEntitiy> = smsList
+    private val sms: List<SmsReferralEntitiy> = smsList
+    private val context:Context = context
     val onCLickList:ArrayList<MainActivity.AdapterClicker> = ArrayList<MainActivity.AdapterClicker>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SMSViewHolder {
         val v: View =
-            LayoutInflater.from(parent.context).inflate(R.layout.sms_recycler_item, parent, false)
+            LayoutInflater.from(parent.context).inflate(R.layout.sms_recycler_item_layout, parent, false)
         return SMSViewHolder(v)
 
     }
@@ -36,16 +38,19 @@ class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>) :
         ]
         holder.smsText.text = smsReferralEntitiy.jsonData
         if (smsReferralEntitiy.isUploaded) {
-            holder.statusImg.setImageResource(R.drawable.ic_thumb_up_green_24dp)
+            holder.statusImg.setBackgroundResource(R.drawable.ic_check_circle_24dp)
+            holder.statusTxt.text = context.getString(R.string.sucess)
+            holder.statusTxt.setTextColor(context.resources.getColor(R.color.green))
+            holder.errorTxt.visibility = GONE
         } else {
-            holder.statusImg.setImageResource(R.drawable.ic_thumb_down_black_24dp)
+            holder.statusImg.setBackgroundResource(R.drawable.ic_error_24dp)
+            holder.statusTxt.text = context.getString(R.string.error)
+            holder.statusTxt.setTextColor(context.resources.getColor(R.color.redDown))
+            holder.errorTxt.visibility = VISIBLE
+            holder.errorTxt.text = smsReferralEntitiy.errorMessage
         }
         holder.receivedTimeTxt.text =
             DateTimeUtil.convertUnixToTimeString(smsReferralEntitiy.timeRecieved)
-        if (!smsReferralEntitiy.errorMessage.equals("")) {
-            holder.errorTxt.text = smsReferralEntitiy.errorMessage
-            holder.errorLayout.visibility = VISIBLE
-        }
         holder.layout.setOnClickListener {
             onCLickList.forEach { f -> f.onClick(smsReferralEntitiy) }
         }
@@ -56,8 +61,8 @@ class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>) :
         var smsText: TextView = itemView.findViewById<TextView>(R.id.txtBody)
         var statusImg: ImageView = itemView.findViewById(R.id.msgStatus)
         var receivedTimeTxt: TextView = itemView.findViewById(R.id.timeReceivedTxt)
-        var errorLayout: LinearLayout = itemView.findViewById(R.id.errorLayout)
         var errorTxt: TextView = itemView.findViewById(R.id.errorMsgTxt)
         var layout:ConstraintLayout = itemView.findViewById(R.id.referralLayout)
+        var statusTxt:TextView = itemView.findViewById(R.id.statusTxt)
     }
 }

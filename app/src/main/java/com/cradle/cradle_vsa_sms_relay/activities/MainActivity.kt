@@ -1,20 +1,20 @@
 package com.cradle.cradle_vsa_sms_relay.activities
 
 import android.Manifest
+import android.app.ActivityOptions
 import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
-import android.widget.Button
+import android.view.View.GONE
+import android.view.View.VISIBLE
+import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -25,7 +25,9 @@ import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
+import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
+
 
 class MainActivity : AppCompatActivity(),
     SingleMessageListener {
@@ -56,8 +58,6 @@ class MainActivity : AppCompatActivity(),
             mService?.reuploadReferralListener = object : ReuploadReferralListener {
                 override fun onReuploadReferral(workInfo: WorkInfo) {
                     if (workInfo.state == WorkInfo.State.RUNNING) {
-                        Toast.makeText(this@MainActivity, "Uploading failed referrals", Toast.LENGTH_SHORT)
-                            .show()
                         //update recylcer view
                         setuprecyclerview()
                     }
@@ -72,43 +72,43 @@ class MainActivity : AppCompatActivity(),
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
         // bind service in case its running
-        if (mService == null) {
+        if (SmsService.isServiceRunningInForeground(this,SmsService.javaClass)){
             val serviceIntent = Intent(
                 this,
                 SmsService::class.java
             )
             bindService(serviceIntent, serviceConnection, 0)
         }
+        setupToolBar()
         setupStartService()
         setupStopService()
         setuprecyclerview()
 
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater: MenuInflater = menuInflater
-        inflater.inflate(R.menu.main_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.settingMenu -> {
-                startActivity(Intent(this, SettingsActivity::class.java))
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
+    private fun setupToolBar() {
+        val toolbar: Toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.title="";
+        val settingButton:ImageButton = findViewById(R.id.settingIcon)
+        settingButton.setOnClickListener {
+            startActivity(Intent(this,SettingsActivity::class.java),
+                ActivityOptions.makeCustomAnimation(this,R.anim.slide_down,R.anim.nothing).toBundle())
         }
-
     }
 
     private fun setuprecyclerview() {
-
+        val emptyImageView:ImageView = findViewById(R.id.emptyRecyclerView)
         val smsRecyclerView: RecyclerView = findViewById(R.id.messageRecyclerview)
-        var referrals =
+        val referrals =
             database.daoAccess().getAllReferrals().sortedByDescending { it.timeRecieved }
-        val adapter = SmsRecyclerViewAdaper(referrals)
 
+        if (referrals.isNotEmpty()){
+            emptyImageView.visibility =GONE
+        } else {
+            emptyImageView.visibility = VISIBLE
+        }
+        val adapter = SmsRecyclerViewAdaper(referrals,this)
         adapter.onCLickList.add(object : AdapterClicker {
             override fun onClick(referralEntitiy: SmsReferralEntitiy) {
                 val referralAlertDialog =ReferralAlertDialog(this@MainActivity,referralEntitiy)
@@ -145,7 +145,7 @@ class MainActivity : AppCompatActivity(),
 
 
     private fun setupStopService() {
-        findViewById<Button>(R.id.btnStopService).setOnClickListener {
+        findViewById<MaterialButton>(R.id.btnStopService).setOnClickListener {
             if (mService != null && isServiceStarted) {
                 val intent: Intent = Intent(this, SmsService::class.java).also { intent ->
                     unbindService(serviceConnection)
@@ -153,12 +153,13 @@ class MainActivity : AppCompatActivity(),
                 intent.action = SmsService.STOP_SERVICE
                 ContextCompat.startForegroundService(this, intent)
                 isServiceStarted = false
+                mIsBound = false
             }
         }
     }
 
     private fun setupStartService() {
-        findViewById<Button>(R.id.btnStartService).setOnClickListener {
+        findViewById<MaterialButton>(R.id.btnStartService).setOnClickListener {
             checkpermissions()
         }
     }
@@ -229,7 +230,7 @@ class MainActivity : AppCompatActivity(),
 
     override fun onDestroy() {
         super.onDestroy()
-        if(mIsBound) {
+        if(mIsBound || SmsService.isServiceRunningInForeground(this,SmsService::class.java)) {
             unbindService(serviceConnection)
         }
     }

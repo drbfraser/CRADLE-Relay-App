@@ -53,18 +53,15 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
 
 
     override fun doWork(): Result {
-        Log.d("bugg", "sending the referral agaiiin ")
         val referralEntities: List<SmsReferralEntitiy> =
             database.daoAccess().getUnUploadedReferral()
         //setProgressAsync(Data.Builder().putInt(Progress, 0).build())
         referralEntities.forEach { f ->
-            Log.d("bugg", "id: " + f.id)
             sendtoServer(f)
         }
         //setProgressAsync(Data.Builder().putInt(Progress, 100).build())
 
         // Indicate whether the task finished successfully with the Result
-        Log.d("bugg", "task is finished")
         val x: HashMap<String, Boolean> = HashMap<String, Boolean>()
         x.put("finished", true)
         val ou: Data = Data.Builder().putAll(x as Map<String, Any>).build()

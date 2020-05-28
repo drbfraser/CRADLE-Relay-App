@@ -24,7 +24,7 @@ class ReferralAlertDialog : AlertDialog {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.referral_alert_dialog);
-        findViewById<TextView>(R.id.titleAD).setText("Referral Id: "+smsReferralEntitiy.id)
+        findViewById<TextView>(R.id.titleAD).setText(smsReferralEntitiy.id)
         var msg:String
         try {
             msg = JSONObject(smsReferralEntitiy.jsonData).toString(4)
@@ -39,8 +39,10 @@ class ReferralAlertDialog : AlertDialog {
 
         findViewById<Button>(R.id.sendToServerAdButton).setOnClickListener(sendToServiceButtonClickListener)
         findViewById<Button>(R.id.cancelAdButton).setOnClickListener { this.cancel() }
-
+        //need to show cardview corners
+        window?.setBackgroundDrawableResource(android.R.color.transparent)
     }
+
     fun setOnSendToServerListener(onClickListener: View.OnClickListener){
         this.sendToServiceButtonClickListener = onClickListener
     }
