@@ -17,4 +17,6 @@
     <string name="upload">Upload</string>
     <string name="referral_id">Referral ID: </string>
     <string name="cradle">CRADLE</string>
+    <string name="data">Data</string>
+    <string name="error">Error</string>
 </resources>

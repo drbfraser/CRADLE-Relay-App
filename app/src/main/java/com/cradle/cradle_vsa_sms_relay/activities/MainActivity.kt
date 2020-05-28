@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -18,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
@@ -28,6 +28,7 @@ import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
+
 
 class MainActivity : AppCompatActivity(),
     SingleMessageListener {
@@ -110,8 +111,7 @@ class MainActivity : AppCompatActivity(),
         } else {
             emptyImageView.visibility = VISIBLE
         }
-        val adapter = SmsRecyclerViewAdaper(referrals)
-
+        val adapter = SmsRecyclerViewAdaper(referrals,this)
         adapter.onCLickList.add(object : AdapterClicker {
             override fun onClick(referralEntitiy: SmsReferralEntitiy) {
                 val referralAlertDialog =ReferralAlertDialog(this@MainActivity,referralEntitiy)
