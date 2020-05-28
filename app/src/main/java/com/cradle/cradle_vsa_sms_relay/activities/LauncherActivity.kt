@@ -22,7 +22,8 @@ import org.json.JSONObject
 import javax.inject.Inject
 
 class LauncherActivity : AppCompatActivity() {
-    var authServer = "https://cradle.eastus.cloudapp.azure.com/api/user/auth";
+    var authServer = "https://cradle.eastus.cloudapp.azure.com/api/user/auth"
+
     @Inject
     lateinit var sharedPreferences: SharedPreferences
 
@@ -31,7 +32,7 @@ class LauncherActivity : AppCompatActivity() {
         setContentView(R.layout.activity_launcher)
         (application as MyApp).component.inject(this)
 
-        checkForAuthentication();
+        checkForAuthentication()
         setupVolley()
     }
 
@@ -46,10 +47,10 @@ class LauncherActivity : AppCompatActivity() {
         val emailEditText = findViewById<TextView>(R.id.emailEditText)
         val passwordEdittext = findViewById<TextView>(R.id.passwordEditText)
         findViewById<MaterialButton>(R.id.loginButton).setOnClickListener {
-            val jsonObject = JSONObject();
+            val jsonObject = JSONObject()
             jsonObject.put("email",emailEditText.text)
             jsonObject.put("password",passwordEdittext.text)
-            val que= Volley.newRequestQueue(this);
+            val que= Volley.newRequestQueue(this)
 
             val progressDialog = ProgressDialog(this)
             progressDialog.setTitle("Logging In")
@@ -77,6 +78,8 @@ class LauncherActivity : AppCompatActivity() {
 
     private fun startActivity() {
         val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         startActivity(intent)
     }
 }
