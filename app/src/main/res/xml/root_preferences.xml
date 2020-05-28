@@ -7,7 +7,7 @@
             app:defaultValue="false"
             app:iconSpaceReserved="false"
             app:key="@string/reuploadSwitchPrefKey"
-            app:title="@string/sync_title" />
+            app:summary="@string/sync_title" />
 
         <ListPreference
             app:defaultValue="5"

@@ -17,7 +17,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
@@ -59,8 +58,6 @@ class MainActivity : AppCompatActivity(),
             mService?.reuploadReferralListener = object : ReuploadReferralListener {
                 override fun onReuploadReferral(workInfo: WorkInfo) {
                     if (workInfo.state == WorkInfo.State.RUNNING) {
-                        Toast.makeText(this@MainActivity, "Uploading failed referrals", Toast.LENGTH_SHORT)
-                            .show()
                         //update recylcer view
                         setuprecyclerview()
                     }
@@ -75,7 +72,7 @@ class MainActivity : AppCompatActivity(),
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
         // bind service in case its running
-        if (mService == null) {
+        if (SmsService.isServiceRunningInForeground(this,SmsService.javaClass)){
             val serviceIntent = Intent(
                 this,
                 SmsService::class.java
@@ -156,6 +153,7 @@ class MainActivity : AppCompatActivity(),
                 intent.action = SmsService.STOP_SERVICE
                 ContextCompat.startForegroundService(this, intent)
                 isServiceStarted = false
+                mIsBound = false
             }
         }
     }
@@ -232,7 +230,7 @@ class MainActivity : AppCompatActivity(),
 
     override fun onDestroy() {
         super.onDestroy()
-        if(mIsBound) {
+        if(mIsBound || SmsService.isServiceRunningInForeground(this,SmsService::class.java)) {
             unbindService(serviceConnection)
         }
     }

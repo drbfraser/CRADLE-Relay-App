@@ -1,8 +1,10 @@
 package com.cradle.cradle_vsa_sms_relay
 
+import android.app.ActivityManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
@@ -10,6 +12,7 @@ import android.os.AsyncTask
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleService
@@ -83,7 +86,9 @@ class SmsService : LifecycleService(), MultiMessageListener,
             if (action.equals(STOP_SERVICE)) {
                 stopForeground(true)
                 MessageReciever.unbindListener()
-                unregisterReceiver(smsReciver)
+                if (smsReciver!=null){
+                    unregisterReceiver(smsReciver)
+                }
                 smsReciver = null
                 this.stopService(intent)
                 this.stopSelf()
@@ -152,9 +157,10 @@ class SmsService : LifecycleService(), MultiMessageListener,
                             //since there is no success or failure state we cant let user know
                             //extactly whats going on.
                             if (it.state != WorkInfo.State.ENQUEUED) {
-                                notificationForReuploading(it, false)
+                                //todo figure out what to do :(
+                              //  notificationForReuploading(it, false)
                             } else {
-                                notificationForReuploading(it, true)
+                               // notificationForReuploading(it, true)
                             }
                             reuploadReferralListener.onReuploadReferral(it)
                         }
@@ -297,6 +303,24 @@ class SmsService : LifecycleService(), MultiMessageListener,
         val AUTH = "Authorization"
         val USER_ID = "userId"
         val referralsServerUrl = "https://cmpt373.csil.sfu.ca:8048/api/referral"
+
+        /**
+         * https://stackoverflow.com/questions/6452466/how-to-determine-if-an-android-service-is-running-in-the-foreground
+         */
+        public fun isServiceRunningInForeground(
+            context: Context,
+            serviceClass: Class<*>
+        ): Boolean {
+            val manager = context?.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+                Log.d("bugg","service name: "+service.service.className + " "+service.foreground+ " "+ serviceClass.canonicalName)
+                if (serviceClass.name == service.service.className && service.foreground) {
+                    Log.d("bugg","found service name: "+service.service.className)
+                    return true
+                }
+            }
+            return false
+        }
     }
 
     /**
