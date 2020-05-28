@@ -17,6 +17,7 @@ import com.cradle.cradle_vsa_sms_relay.R
 import com.cradle.cradle_vsa_sms_relay.SmsService.Companion.TOKEN
 import com.cradle.cradle_vsa_sms_relay.SmsService.Companion.USER_ID
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
+import com.google.android.material.button.MaterialButton
 import org.json.JSONObject
 import javax.inject.Inject
 
@@ -44,7 +45,7 @@ class LauncherActivity : AppCompatActivity() {
 
         val emailEditText = findViewById<TextView>(R.id.emailEditText)
         val passwordEdittext = findViewById<TextView>(R.id.passwordEditText)
-        findViewById<ImageButton>(R.id.loginButton).setOnClickListener {
+        findViewById<MaterialButton>(R.id.loginButton).setOnClickListener {
             val jsonObject = JSONObject();
             jsonObject.put("email",emailEditText.text)
             jsonObject.put("password",passwordEdittext.text)

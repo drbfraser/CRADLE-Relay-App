@@ -37,7 +37,7 @@ class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>, context:Context) 
         val smsReferralEntitiy: SmsReferralEntitiy = sms[position
         ]
         holder.smsText.text = smsReferralEntitiy.jsonData
-        if (smsReferralEntitiy.isUploaded) {
+        if (!smsReferralEntitiy.isUploaded) {
             holder.statusImg.setBackgroundResource(R.drawable.ic_check_circle_24dp)
             holder.statusTxt.setText("Success")
             holder.statusTxt.setTextColor(context.resources.getColor(R.color.green))
