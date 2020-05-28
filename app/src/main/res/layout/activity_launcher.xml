@@ -10,7 +10,7 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:layout_marginBottom="32dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
@@ -34,6 +34,7 @@
                 android:layout_height="wrap_content"
 
                 android:background="@color/white"
+                android:fontFamily="@font/lato_bold"
                 android:gravity="center"
                 android:padding="8dp"
                 android:text="SIGN IN"
@@ -49,13 +50,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="16dp"
                 android:text="Email:"
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="@id/guideline2"
-                app:layout_constraintTop_toBottomOf="@+id/textView16" />
+                app:layout_constraintTop_toTopOf="@+id/guideline7" />
 
             <TextView
                 android:id="@+id/textView27"
@@ -75,13 +76,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
-                app:backgroundTint="@color/colorPrimaryLight"
                 android:ems="10"
                 android:hint="@string/email_hint"
                 android:inputType="textEmailAddress"
                 android:singleLine="true"
                 android:textColor="@color/white"
                 android:textCursorDrawable="@null"
+                app:backgroundTint="@color/colorPrimaryLight"
                 app:layout_constraintEnd_toStartOf="@+id/guideline3"
                 app:layout_constraintStart_toStartOf="@+id/textView26"
                 app:layout_constraintTop_toBottomOf="@+id/textView26" />
@@ -90,12 +91,12 @@
                 android:id="@+id/passwordEditText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                app:backgroundTint="@color/colorPrimaryLight"
                 android:ems="10"
                 android:hint="*********"
                 android:inputType="textPassword"
                 android:singleLine="true"
                 android:textColor="@color/white"
+                app:backgroundTint="@color/colorPrimaryLight"
                 app:layout_constraintEnd_toEndOf="@+id/emailEditText"
                 app:layout_constraintStart_toStartOf="@+id/textView27"
                 app:layout_constraintTop_toBottomOf="@+id/textView27" />
@@ -106,15 +107,15 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp"
+                android:padding="8dp"
                 android:text="@string/log_in"
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                app:backgroundTint="#18142E"
+                app:backgroundTint="@color/login_button"
                 app:cornerRadius="16dp"
                 app:elevation="8dp"
-                android:padding="8dp"
-                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintBottom_toTopOf="@+id/guideline8"
                 app:layout_constraintEnd_toEndOf="@id/guideline3"
                 app:layout_constraintStart_toStartOf="@id/guideline2"
                 app:layout_constraintTop_toBottomOf="@+id/invalidLoginText" />
@@ -142,19 +143,33 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                app:layout_constraintGuide_percent="0.05" />
+                app:layout_constraintGuide_percent=".05" />
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guideline7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintGuide_percent=".15" />
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guideline8"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintGuide_percent=".85" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/imageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:layout_marginStart="8dp"
         app:layout_constraintStart_toStartOf="@id/guideline4"
         app:layout_constraintTop_toTopOf="@id/guideline6"
-        app:srcCompat="@drawable/cradle_icon" />
+        app:srcCompat="@drawable/cradle_login_icon" />
 
     <TextView
         android:id="@+id/textView6"
