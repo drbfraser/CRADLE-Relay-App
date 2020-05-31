@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
-        android:name="com.cradle.cradle_vsa_sms_relay.dagger.MyApp"
+        android:name=".dagger.MyApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -17,11 +17,24 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
+        <activity android:name=".activities.NewMessageActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SENDTO" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="mms" />
+                <data android:scheme="mmsto" />
+                <data android:scheme="sms" />
+                <data android:scheme="smsto" />
+            </intent-filter>
+        </activity>
         <activity
-            android:name="com.cradle.cradle_vsa_sms_relay.activities.SettingsActivity"
-            android:theme="@style/settingPreference"
-            android:label="@string/title_activity_settings" />
-        <activity android:name="com.cradle.cradle_vsa_sms_relay.activities.LauncherActivity"
+            android:name=".activities.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:theme="@style/settingPreference" />
+        <activity
+            android:name=".activities.LauncherActivity"
             android:theme="@style/NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,9 +42,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.cradle.cradle_vsa_sms_relay.activities.MainActivity"/>
+        <activity android:name=".activities.MainActivity" />
 
-        <service android:name="com.cradle.cradle_vsa_sms_relay.SmsService" />
+        <service android:name=".SmsService" />
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
