@@ -8,10 +8,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
-import android.os.AsyncTask
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.telephony.SmsManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -34,12 +34,19 @@ import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
 import java.nio.charset.Charset
+import java.time.Instant
+import java.time.ZonedDateTime
+import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 class SmsService : LifecycleService(), MultiMessageListener,
     SharedPreferences.OnSharedPreferenceChangeListener {
@@ -192,7 +199,7 @@ class SmsService : LifecycleService(), MultiMessageListener,
      * uploads [smsReferralEntitiy] to the server
      * updates the status of the upload to the database.
      */
-    public fun sendToServer(smsReferralEntitiy: SmsReferralEntitiy) {
+     fun sendToServer(smsReferralEntitiy: SmsReferralEntitiy) {
 
         val token = sharedPreferences.getString(TOKEN, "")
 
@@ -258,18 +265,45 @@ class SmsService : LifecycleService(), MultiMessageListener,
      * updates the room database and notifies [singleMessageListener] of the new message
      */
     fun updateDatabase(smsReferralEntitiy: SmsReferralEntitiy, isUploaded: Boolean) {
-        smsReferralEntitiy.isUploaded = isUploaded
-        if (isUploaded){
-            // we do not need to show anymore errors for this referral.
-            smsReferralEntitiy.errorMessage = ""
-        }
-        smsReferralEntitiy.numberOfTriesUploaded += 1
-        AsyncTask.execute {
+
+        GlobalScope.launch {
+            // Use SmsManager to send delivery confirmation
+            //todo get delivery confirmation for us as well
+            val smsManager = SmsManager.getDefault()
+            smsManager.sendMultipartTextMessage(smsReferralEntitiy.phoneNumber,null,
+                smsManager.divideMessage(constructDeliveryMessage(smsReferralEntitiy)),
+                null,null)
+            smsReferralEntitiy.isUploaded = isUploaded
+            smsReferralEntitiy.deliveryReportSent = true
+            if (isUploaded) {
+                // we do not need to show anymore errors for this referral.
+                smsReferralEntitiy.errorMessage = ""
+            }
+            smsReferralEntitiy.numberOfTriesUploaded += 1
             database.daoAccess().updateSmsReferral(smsReferralEntitiy)
             if (singleMessageListener != null) {
                 singleMessageListener?.newMessageReceived()
             }
         }
+    }
+
+    private fun constructDeliveryMessage(smsReferralEntitiy: SmsReferralEntitiy): String {
+        val stringBuilder = StringBuilder()
+        //todo shorter time string
+        val i: Instant = Instant.ofEpochSecond(smsReferralEntitiy.timeRecieved)
+        val zonttime: ZonedDateTime = ZonedDateTime.ofInstant(i, TimeZone.getDefault().toZoneId())
+        stringBuilder.append("referral Id: ").append(smsReferralEntitiy.id)
+            .append("\nTime received: ").append(zonttime.toString())
+            .append("\nSuccessfully sent to the health care facility? : ")
+
+        if (smsReferralEntitiy.isUploaded){
+            stringBuilder.append("YES\n")
+        } else{
+            stringBuilder.append("NO\n")
+                .append("ERROR: ").append(smsReferralEntitiy.errorMessage)
+                .append("\n")
+        }
+        return stringBuilder.toString()
     }
 
     override fun stopService(name: Intent?): Boolean {

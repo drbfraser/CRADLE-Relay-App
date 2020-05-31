@@ -176,7 +176,8 @@ class MainActivity : AppCompatActivity(),
                         Manifest.permission.INTERNET,
                         Manifest.permission.READ_SMS,
                         Manifest.permission.RECEIVE_SMS,
-                        Manifest.permission.RECEIVE_MMS
+                        Manifest.permission.RECEIVE_MMS,
+                        Manifest.permission.SEND_SMS
                     ), 99
                 )
             } else {
