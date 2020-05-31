@@ -1,6 +1,6 @@
 package com.cradle.cradle_vsa_sms_relay.dagger
 
-import com.cradle.cradle_vsa_sms_relay.SmsService
+import com.cradle.cradle_vsa_sms_relay.service.SmsService
 import com.cradle.cradle_vsa_sms_relay.activities.LauncherActivity
 import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker

@@ -1,4 +1,4 @@
-package com.cradle.cradle_vsa_sms_relay
+package com.cradle.cradle_vsa_sms_relay.service
 
 import android.app.ActivityManager
 import android.app.NotificationChannel
@@ -28,6 +28,10 @@ import com.android.volley.VolleyError
 import com.android.volley.toolbox.HttpHeaderParser
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
+import com.cradle.cradle_vsa_sms_relay.MultiMessageListener
+import com.cradle.cradle_vsa_sms_relay.R
+import com.cradle.cradle_vsa_sms_relay.ReuploadReferralListener
+import com.cradle.cradle_vsa_sms_relay.SingleMessageListener
 import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradle.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
@@ -48,7 +52,8 @@ import javax.inject.Inject
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
-class SmsService : LifecycleService(), MultiMessageListener,
+class SmsService : LifecycleService(),
+    MultiMessageListener,
     SharedPreferences.OnSharedPreferenceChangeListener {
     val CHANNEL_ID = "ForegroundServiceChannel"
     private val readingServerUrl =
@@ -214,7 +219,8 @@ class SmsService : LifecycleService(), MultiMessageListener,
             return
         }
         val jsonObjectRequest: JsonObjectRequest = object : JsonObjectRequest(
-            POST, referralsServerUrl, json, Response.Listener { response: JSONObject? ->
+            POST,
+            referralsServerUrl, json, Response.Listener { response: JSONObject? ->
                 updateDatabase(smsReferralEntitiy, true)
             },
             Response.ErrorListener { error: VolleyError ->
