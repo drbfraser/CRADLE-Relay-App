@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.provider.Telephony
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -27,6 +28,7 @@ import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.service.SmsService
 import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 
 
@@ -81,11 +83,34 @@ class MainActivity : AppCompatActivity(),
             )
             bindService(serviceIntent, serviceConnection, 0)
         }
+        checkDefaultSettings()
         setupToolBar()
         setupStartService()
         setupStopService()
         setuprecyclerview()
 
+    }
+
+    private fun checkDefaultSettings(): Boolean {
+        var isDefault = false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            isDefault = if (Telephony.Sms.getDefaultSmsPackage(this) != packageName) {
+                val builder = MaterialAlertDialogBuilder(this@MainActivity)
+                builder.setMessage("This app is not set as your default messaging app. Do you want to set it as default?")
+                    .setCancelable(false)
+                    .setNegativeButton("No") { dialog: DialogInterface, _: Int ->
+                        dialog.dismiss()
+                    }
+                    .setPositiveButton("Yes") { _: DialogInterface?, id: Int ->
+                        val intent = Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT)
+                        intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, packageName)
+                        startActivity(intent)
+                    }
+                builder.show()
+                false
+            } else true
+        }
+        return isDefault
     }
 
     private fun setupToolBar() {
