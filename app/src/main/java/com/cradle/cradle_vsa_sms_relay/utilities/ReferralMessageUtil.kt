@@ -44,7 +44,7 @@ object ReferralMessageUtil {
         try {
             referralJsonObject = JSONObject(message)
         } catch (e:JSONException){
-            referralJsonObject = JSONObject();
+            return message.toString();
         }
         // remove referralId
         referralJsonObject.remove(REFERRAL_ID_KEY)

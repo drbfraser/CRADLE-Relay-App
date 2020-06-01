@@ -2,6 +2,7 @@ package com.cradle.cradle_vsa_sms_relay.activities
 
 import android.Manifest
 import android.app.ActivityOptions
+import android.app.role.RoleManager
 import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
@@ -28,7 +29,6 @@ import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.service.SmsService
 import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 
 
@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity(),
             )
             bindService(serviceIntent, serviceConnection, 0)
         }
-        checkDefaultSettings()
+        SetAsDefaultHandler()
         setupToolBar()
         setupStartService()
         setupStopService()
@@ -91,26 +91,21 @@ class MainActivity : AppCompatActivity(),
 
     }
 
-    private fun checkDefaultSettings(): Boolean {
-        var isDefault = false
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            isDefault = if (Telephony.Sms.getDefaultSmsPackage(this) != packageName) {
-                val builder = MaterialAlertDialogBuilder(this@MainActivity)
-                builder.setMessage("This app is not set as your default messaging app. Do you want to set it as default?")
-                    .setCancelable(false)
-                    .setNegativeButton("No") { dialog: DialogInterface, _: Int ->
-                        dialog.dismiss()
-                    }
-                    .setPositiveButton("Yes") { _: DialogInterface?, id: Int ->
-                        val intent = Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT)
-                        intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, packageName)
-                        startActivity(intent)
-                    }
-                builder.show()
-                false
-            } else true
+    private fun SetAsDefaultHandler(){
+
+        val intent:Intent
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (Telephony.Sms.getDefaultSmsPackage(this) != packageName) {
+                intent = getSystemService(RoleManager::class.java).createRequestRoleIntent(RoleManager.ROLE_SMS)
+                startActivityForResult(intent, 99)
+            }
+        } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            if (Telephony.Sms.getDefaultSmsPackage(this) != packageName) {
+                intent =Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT)
+                intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, packageName)
+                startActivity(intent)
+            }
         }
-        return isDefault
     }
 
     private fun setupToolBar() {

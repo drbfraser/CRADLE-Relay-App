@@ -275,6 +275,7 @@ class SmsService : LifecycleService(),
         GlobalScope.launch {
             // Use SmsManager to send delivery confirmation
             //todo get delivery confirmation for us as well
+            Log.d("bugg","send to the deliverer")
             val smsManager = SmsManager.getDefault()
             smsManager.sendMultipartTextMessage(smsReferralEntitiy.phoneNumber,null,
                 smsManager.divideMessage(constructDeliveryMessage(smsReferralEntitiy)),
