@@ -53,7 +53,7 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
 
     override fun doWork(): Result {
         val referralEntities: List<SmsReferralEntitiy> =
-            database.daoAccess().getUnUploadedReferral()
+            database.daoAccess().getUnUploadedReferral().value!!
         //setProgressAsync(Data.Builder().putInt(Progress, 0).build())
         referralEntities.forEach { f ->
             sendtoServer(f)

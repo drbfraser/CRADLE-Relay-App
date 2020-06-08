@@ -20,7 +20,7 @@ class DataModule {
         return Room.databaseBuilder(
             app.applicationContext, ReferralDatabase::class.java,
             "referral-DB"
-        ).allowMainThreadQueries().fallbackToDestructiveMigration().build()
+        ).fallbackToDestructiveMigration().build()
     }
 
     @Provides

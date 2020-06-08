@@ -105,7 +105,7 @@ class MainActivity : AppCompatActivity(),
         val emptyImageView:ImageView = findViewById(R.id.emptyRecyclerView)
         val smsRecyclerView: RecyclerView = findViewById(R.id.messageRecyclerview)
         val referrals =
-            database.daoAccess().getAllReferrals().sortedByDescending { it.timeRecieved }
+            database.daoAccess().getAllReferrals().value!!.sortedByDescending { it.timeRecieved }
 
         if (referrals.isNotEmpty()){
             emptyImageView.visibility =GONE
