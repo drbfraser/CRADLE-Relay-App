@@ -39,6 +39,7 @@ import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
@@ -272,10 +273,9 @@ class SmsService : LifecycleService(),
      */
     fun updateDatabase(smsReferralEntitiy: SmsReferralEntitiy, isUploaded: Boolean) {
 
-        GlobalScope.launch {
+        MainScope().launch {
             // Use SmsManager to send delivery confirmation
             //todo get delivery confirmation for us as well
-            Log.d("bugg","send to the deliverer")
             val smsManager = SmsManager.getDefault()
             smsManager.sendMultipartTextMessage(smsReferralEntitiy.phoneNumber,null,
                 smsManager.divideMessage(constructDeliveryMessage(smsReferralEntitiy)),

@@ -83,29 +83,11 @@ class MainActivity : AppCompatActivity(),
             )
             bindService(serviceIntent, serviceConnection, 0)
         }
-        SetAsDefaultHandler()
         setupToolBar()
         setupStartService()
         setupStopService()
         setuprecyclerview()
 
-    }
-
-    private fun SetAsDefaultHandler(){
-
-        val intent:Intent
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (Telephony.Sms.getDefaultSmsPackage(this) != packageName) {
-                intent = getSystemService(RoleManager::class.java).createRequestRoleIntent(RoleManager.ROLE_SMS)
-                startActivityForResult(intent, 99)
-            }
-        } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            if (Telephony.Sms.getDefaultSmsPackage(this) != packageName) {
-                intent =Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT)
-                intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, packageName)
-                startActivity(intent)
-            }
-        }
     }
 
     private fun setupToolBar() {
