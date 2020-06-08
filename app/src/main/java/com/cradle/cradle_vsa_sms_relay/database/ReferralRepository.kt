@@ -9,8 +9,7 @@ import kotlinx.coroutines.launch
 
 class ReferralRepository {
     private var referralDao:DaoAccess
-    private var referrals:LiveData<List<SmsReferralEntitiy>>
-    get() = field
+    var referrals:LiveData<List<SmsReferralEntitiy>>
 
     constructor(database: ReferralDatabase){
         referralDao = database.daoAccess()
