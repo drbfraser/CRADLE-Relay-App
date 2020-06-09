@@ -35,10 +35,9 @@ import com.cradle.cradle_vsa_sms_relay.SingleMessageListener
 import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradle.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
+import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.json.JSONException
@@ -65,7 +64,7 @@ class SmsService : LifecycleService(),
     private val referralSummeriesServerUrl =
         "https://cmpt373.csil.sfu.ca:8048/api/mobile/summarized/follow_up"
     @Inject
-    lateinit var database: ReferralDatabase
+    lateinit var repository: ReferralRepository
     @Inject
     lateinit var sharedPreferences: SharedPreferences
 
@@ -287,7 +286,7 @@ class SmsService : LifecycleService(),
                 smsReferralEntitiy.errorMessage = ""
             }
             smsReferralEntitiy.numberOfTriesUploaded += 1
-            database.daoAccess().updateSmsReferral(smsReferralEntitiy)
+            repository.update(smsReferralEntitiy)
             if (singleMessageListener != null) {
                 singleMessageListener?.newMessageReceived()
             }
@@ -369,7 +368,7 @@ class SmsService : LifecycleService(),
      */
     override fun messageMapRecieved(smsReferralList: ArrayList<SmsReferralEntitiy>) {
 
-        smsReferralList.forEach { f -> database.daoAccess().insertSmsReferral(f) }
+        smsReferralList.forEach { f -> repository.insert(f) }
         smsReferralList.forEach { f ->
             sendToServer(f)
         }

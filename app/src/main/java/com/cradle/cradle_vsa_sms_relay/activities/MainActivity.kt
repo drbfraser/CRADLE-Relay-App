@@ -21,7 +21,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.work.WorkInfo
 import com.cradle.cradle_vsa_sms_relay.*
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
@@ -40,8 +39,6 @@ class MainActivity : AppCompatActivity(),
     var mIsBound: Boolean = false
     //our reference to the service
     var mService: SmsService? = null
-    @Inject
-    lateinit var database: ReferralDatabase
     @Inject
     lateinit var sharedPreferences: SharedPreferences
 
