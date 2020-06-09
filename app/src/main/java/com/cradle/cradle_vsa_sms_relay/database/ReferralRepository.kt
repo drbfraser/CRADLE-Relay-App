@@ -1,18 +1,15 @@
 package com.cradle.cradle_vsa_sms_relay.database
 
-import android.app.Application
 import androidx.lifecycle.LiveData
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
-class ReferralRepository {
-    private var referralDao:DaoAccess
+class ReferralRepository(database: ReferralDatabase) {
+    private var referralDao:DaoAccess = database.daoAccess()
     var referrals:LiveData<List<SmsReferralEntitiy>>
 
-    constructor(database: ReferralDatabase){
-        referralDao = database.daoAccess()
+    init {
         referrals = referralDao.getAllReferrals()
     }
 

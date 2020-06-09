@@ -14,12 +14,12 @@ import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.utilities.DateTimeUtil
 
-class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>, context:Context) :
+class SmsRecyclerViewAdaper(private val context: Context) :
     RecyclerView.Adapter<SmsRecyclerViewAdaper.SMSViewHolder>() {
 
-    private val sms: List<SmsReferralEntitiy> = smsList
-    private val context:Context = context
-    val onCLickList:ArrayList<MainActivity.AdapterClicker> = ArrayList<MainActivity.AdapterClicker>()
+    private var sms: List<SmsReferralEntitiy> = ArrayList()
+
+    val onCLickList:ArrayList<MainActivity.AdapterClicker> = ArrayList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SMSViewHolder {
         val v: View =
@@ -32,7 +32,10 @@ class SmsRecyclerViewAdaper(smsList: List<SmsReferralEntitiy>, context:Context) 
     override fun getItemCount(): Int {
         return sms.size
     }
-
+    fun setReferralList(smsReferralEntities: List<SmsReferralEntitiy>){
+        this.sms = smsReferralEntities
+        notifyDataSetChanged()
+    }
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
         val smsReferralEntitiy: SmsReferralEntitiy = sms[position
         ]

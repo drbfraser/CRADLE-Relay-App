@@ -4,6 +4,7 @@ import com.cradle.cradle_vsa_sms_relay.service.SmsService
 import com.cradle.cradle_vsa_sms_relay.activities.LauncherActivity
 import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
+import com.cradle.cradle_vsa_sms_relay.view_model.ReferralViewModel
 import dagger.Component
 import javax.inject.Singleton
 
@@ -16,4 +17,5 @@ interface AppComponent {
     fun inject(activity: MainActivity)
     fun inject(worker: UploadReferralWorker)
     fun inject(launcherActivity: LauncherActivity)
+    fun inject(referralViewModel: ReferralViewModel)
 }
