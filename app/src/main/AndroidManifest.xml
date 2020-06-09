@@ -4,11 +4,13 @@
 
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.WRITE_SMS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
-        android:name="com.cradle.cradle_vsa_sms_relay.dagger.MyApp"
+        android:name=".dagger.MyApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -16,11 +18,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
+
         <activity
-            android:name="com.cradle.cradle_vsa_sms_relay.activities.SettingsActivity"
-            android:theme="@style/settingPreference"
-            android:label="@string/title_activity_settings" />
-        <activity android:name="com.cradle.cradle_vsa_sms_relay.activities.LauncherActivity"
+            android:name=".activities.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:theme="@style/settingPreference" />
+        <activity
+            android:name=".activities.LauncherActivity"
             android:theme="@style/NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,9 +32,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.cradle.cradle_vsa_sms_relay.activities.MainActivity"/>
+        <activity android:name=".activities.MainActivity" />
 
-        <service android:name="com.cradle.cradle_vsa_sms_relay.SmsService" />
+        <service android:name=".service.SmsService" />
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />

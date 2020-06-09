@@ -2,15 +2,14 @@ package com.cradle.cradle_vsa_sms_relay.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.ImageButton
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.preference.*
 import com.cradle.cradle_vsa_sms_relay.R
-import com.cradle.cradle_vsa_sms_relay.SmsService
-import com.cradle.cradle_vsa_sms_relay.SmsService.Companion.isServiceRunningInForeground
+import com.cradle.cradle_vsa_sms_relay.service.SmsService
+import com.cradle.cradle_vsa_sms_relay.service.SmsService.Companion.isServiceRunningInForeground
 
 
 class SettingsActivity : AppCompatActivity() {
@@ -67,7 +66,8 @@ class SettingsActivity : AppCompatActivity() {
         fun signout(){
             PreferenceManager.getDefaultSharedPreferences(this.context).edit().clear().apply()
             //stop the service if running.
-            if (isServiceRunningInForeground(context!!,SmsService::class.java)) {
+            if (isServiceRunningInForeground(context!!,
+                    SmsService::class.java)) {
                 val intent1 = Intent(context, SmsService::class.java)
                 intent1.action = SmsService.STOP_SERVICE
                 context?.let { ContextCompat.startForegroundService(it, intent1) }

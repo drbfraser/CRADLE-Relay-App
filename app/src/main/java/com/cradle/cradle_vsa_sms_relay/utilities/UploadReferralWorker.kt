@@ -3,7 +3,6 @@ package com.cradle.cradle_vsa_sms_relay.utilities
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.AsyncTask
-import android.util.Log
 import androidx.work.Data
 import androidx.work.Worker
 import androidx.work.WorkerParameters
@@ -13,8 +12,8 @@ import com.android.volley.VolleyError
 import com.android.volley.toolbox.HttpHeaderParser
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-import com.cradle.cradle_vsa_sms_relay.SmsService
-import com.cradle.cradle_vsa_sms_relay.SmsService.Companion.TOKEN
+import com.cradle.cradle_vsa_sms_relay.service.SmsService
+import com.cradle.cradle_vsa_sms_relay.service.SmsService.Companion.TOKEN
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy

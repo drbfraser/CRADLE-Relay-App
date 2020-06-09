@@ -2,11 +2,13 @@ package com.cradle.cradle_vsa_sms_relay.activities
 
 import android.Manifest
 import android.app.ActivityOptions
+import android.app.role.RoleManager
 import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.provider.Telephony
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -24,6 +26,7 @@ import com.cradle.cradle_vsa_sms_relay.*
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.service.SmsService
 import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
@@ -72,7 +75,8 @@ class MainActivity : AppCompatActivity(),
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
         // bind service in case its running
-        if (SmsService.isServiceRunningInForeground(this,SmsService.javaClass)){
+        if (SmsService.isServiceRunningInForeground(this,
+                SmsService.javaClass)){
             val serviceIntent = Intent(
                 this,
                 SmsService::class.java
@@ -176,7 +180,8 @@ class MainActivity : AppCompatActivity(),
                         Manifest.permission.INTERNET,
                         Manifest.permission.READ_SMS,
                         Manifest.permission.RECEIVE_SMS,
-                        Manifest.permission.RECEIVE_MMS
+                        Manifest.permission.RECEIVE_MMS,
+                        Manifest.permission.SEND_SMS
                     ), 99
                 )
             } else {
@@ -230,7 +235,8 @@ class MainActivity : AppCompatActivity(),
 
     override fun onDestroy() {
         super.onDestroy()
-        if(mIsBound || SmsService.isServiceRunningInForeground(this,SmsService::class.java)) {
+        if(mIsBound || SmsService.isServiceRunningInForeground(this,
+                SmsService::class.java)) {
             unbindService(serviceConnection)
         }
     }
