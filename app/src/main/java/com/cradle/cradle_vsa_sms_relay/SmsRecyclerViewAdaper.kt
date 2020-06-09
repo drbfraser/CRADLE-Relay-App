@@ -45,10 +45,18 @@ class SmsRecyclerViewAdaper(private val context: Context) :
             holder.statusTxt.text = context.getString(R.string.sucess)
             holder.statusTxt.setTextColor(context.resources.getColor(R.color.green))
             holder.errorTxt.visibility = GONE
-        } else {
+        } else if (!smsReferralEntitiy.isUploaded && smsReferralEntitiy.numberOfTriesUploaded ==0){
+            holder.statusImg.setBackgroundResource(R.drawable.ic_error_24dp)
+            holder.statusTxt.text = context.getString(R.string.progress)
+            holder.statusTxt.setTextColor(context.resources.getColor(R.color.yellowDown))
+            holder.errorTxt.visibility = VISIBLE
+            holder.errorTxt.setTextColor(context.resources.getColor(R.color.yellowDown))
+            holder.errorTxt.text = context.getString(R.string.inProgessMessage)
+        } else{
             holder.statusImg.setBackgroundResource(R.drawable.ic_error_24dp)
             holder.statusTxt.text = context.getString(R.string.error)
             holder.statusTxt.setTextColor(context.resources.getColor(R.color.redDown))
+            holder.errorTxt.setTextColor(context.resources.getColor(R.color.redDown))
             holder.errorTxt.visibility = VISIBLE
             holder.errorTxt.text = smsReferralEntitiy.errorMessage
         }

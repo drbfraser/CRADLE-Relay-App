@@ -140,7 +140,7 @@ class MainActivity : AppCompatActivity(),
             } else {
                 emptyImageView.visibility = VISIBLE
             }
-            adapter.setReferralList(referrals)
+            adapter.setReferralList(referrals.asReversed())
         })
     }
 
