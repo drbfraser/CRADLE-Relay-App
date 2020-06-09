@@ -28,9 +28,10 @@ class DataModule {
     fun getSharedPref(app: MultiDexApplication): SharedPreferences {
         return PreferenceManager.getDefaultSharedPreferences(app)
     }
+
     @Provides
     @Singleton
-    fun getReferralRepository(database: ReferralDatabase):ReferralRepository{
+    fun getReferralRepository(database: ReferralDatabase): ReferralRepository {
         return ReferralRepository(database)
     }
 }

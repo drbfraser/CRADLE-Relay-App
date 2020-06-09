@@ -37,8 +37,10 @@ class MainActivity : AppCompatActivity(),
 
     private var isServiceStarted = false
     var mIsBound: Boolean = false
+
     //our reference to the service
     var mService: SmsService? = null
+
     @Inject
     lateinit var sharedPreferences: SharedPreferences
 
@@ -51,23 +53,26 @@ class MainActivity : AppCompatActivity(),
 
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
             val binder = p1 as SmsService.MyBinder
-            mIsBound=true
-            isServiceStarted= true
+            mIsBound = true
+            isServiceStarted = true
             mService = binder.service
             mService?.singleMessageListener = this@MainActivity
 
         }
 
     }
-    private lateinit var referralViewModel:ReferralViewModel
+    private lateinit var referralViewModel: ReferralViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
         // bind service in case its running
-        if (SmsService.isServiceRunningInForeground(this,
-                SmsService.javaClass)){
+        if (SmsService.isServiceRunningInForeground(
+                this,
+                SmsService.javaClass
+            )
+        ) {
             val serviceIntent = Intent(
                 this,
                 SmsService::class.java
@@ -84,11 +89,14 @@ class MainActivity : AppCompatActivity(),
     private fun setupToolBar() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
-        supportActionBar?.title="";
-        val settingButton:ImageButton = findViewById(R.id.settingIcon)
+        supportActionBar?.title = "";
+        val settingButton: ImageButton = findViewById(R.id.settingIcon)
         settingButton.setOnClickListener {
-            startActivity(Intent(this,SettingsActivity::class.java),
-                ActivityOptions.makeCustomAnimation(this,R.anim.slide_down,R.anim.nothing).toBundle())
+            startActivity(
+                Intent(this, SettingsActivity::class.java),
+                ActivityOptions.makeCustomAnimation(this, R.anim.slide_down, R.anim.nothing)
+                    .toBundle()
+            )
         }
     }
 
@@ -140,7 +148,7 @@ class MainActivity : AppCompatActivity(),
             } else {
                 emptyImageView.visibility = VISIBLE
             }
-            adapter.setReferralList(referrals.asReversed())
+            adapter.setReferralList(referrals.sortedByDescending { it.timeRecieved })
         })
     }
 
@@ -232,8 +240,11 @@ class MainActivity : AppCompatActivity(),
 
     override fun onDestroy() {
         super.onDestroy()
-        if(mIsBound || SmsService.isServiceRunningInForeground(this,
-                SmsService::class.java)) {
+        if (mIsBound || SmsService.isServiceRunningInForeground(
+                this,
+                SmsService::class.java
+            )
+        ) {
             unbindService(serviceConnection)
         }
     }

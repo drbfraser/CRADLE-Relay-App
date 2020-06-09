@@ -6,28 +6,31 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
 class ReferralRepository(database: ReferralDatabase) {
-    private var referralDao:DaoAccess = database.daoAccess()
-    var referrals:LiveData<List<SmsReferralEntitiy>>
+    private var referralDao: DaoAccess = database.daoAccess()
+    var referrals: LiveData<List<SmsReferralEntitiy>>
 
     init {
         referrals = referralDao.getAllReferrals()
     }
 
-    fun insert(smsReferralEntitiy: SmsReferralEntitiy){
+    fun insert(smsReferralEntitiy: SmsReferralEntitiy) {
         MainScope().launch(IO) {
             referralDao.insertSmsReferral(smsReferralEntitiy)
         }
     }
-    fun insertAll(smsReferralEntities:ArrayList<SmsReferralEntitiy>){
+
+    fun insertAll(smsReferralEntities: ArrayList<SmsReferralEntitiy>) {
         MainScope().launch(IO) {
             referralDao.insertAllReferral(smsReferralEntities)
         }
     }
-    fun update(smsReferralEntitiy: SmsReferralEntitiy){
+
+    fun update(smsReferralEntitiy: SmsReferralEntitiy) {
         MainScope().launch(IO) { referralDao.updateSmsReferral(smsReferralEntitiy) }
 
     }
-    fun delete(smsReferralEntitiy: SmsReferralEntitiy){
+
+    fun delete(smsReferralEntitiy: SmsReferralEntitiy) {
         MainScope().launch(IO) {
             referralDao.deleteSmsReferral(smsReferralEntitiy)
         }

@@ -63,20 +63,25 @@ class SmsService : LifecycleService(),
 //    private val referralsServerUrl = "http://10.0.2.2:5000/api/referral"
     private val referralSummeriesServerUrl =
         "https://cmpt373.csil.sfu.ca:8048/api/mobile/summarized/follow_up"
+
     @Inject
     lateinit var repository: ReferralRepository
+
     @Inject
     lateinit var sharedPreferences: SharedPreferences
 
     // maain sms broadcast listner
     private var smsReciver: MessageReciever? = null
+
     //to make sure we dont keep registering listerners
-    private var isMessageRecieverRegistered=false
+    private var isMessageRecieverRegistered = false
+
     //handles activity to service interactions
     private val mBinder: IBinder = MyBinder()
 
     // let activity know status of retrying the referral uploads etc.
     lateinit var reuploadReferralListener: ReuploadReferralListener
+
     //interface to let activity know a new message was received
     var singleMessageListener: SingleMessageListener? = null
 
@@ -98,7 +103,7 @@ class SmsService : LifecycleService(),
             if (action.equals(STOP_SERVICE)) {
                 stopForeground(true)
                 MessageReciever.unbindListener()
-                if (smsReciver!=null){
+                if (smsReciver != null) {
                     unregisterReceiver(smsReciver)
                 }
                 smsReciver = null
@@ -112,7 +117,7 @@ class SmsService : LifecycleService(),
                     intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
                     registerReceiver(smsReciver, intentFilter)
                     MessageReciever.bindListener(this)
-                    isMessageRecieverRegistered=true
+                    isMessageRecieverRegistered = true
                 }
                 val input = intent.getStringExtra("inputExtra")
                 createNotificationChannel()
@@ -170,9 +175,9 @@ class SmsService : LifecycleService(),
                             //extactly whats going on.
                             if (it.state != WorkInfo.State.ENQUEUED) {
                                 //todo figure out what to do :(
-                              //  notificationForReuploading(it, false)
+                                //  notificationForReuploading(it, false)
                             } else {
-                               // notificationForReuploading(it, true)
+                                // notificationForReuploading(it, true)
                             }
                             reuploadReferralListener.onReuploadReferral(it)
                         }
@@ -204,7 +209,7 @@ class SmsService : LifecycleService(),
      * uploads [smsReferralEntitiy] to the server
      * updates the status of the upload to the database.
      */
-     fun sendToServer(smsReferralEntitiy: SmsReferralEntitiy) {
+    fun sendToServer(smsReferralEntitiy: SmsReferralEntitiy) {
 
         val token = sharedPreferences.getString(TOKEN, "")
 
@@ -276,9 +281,11 @@ class SmsService : LifecycleService(),
             // Use SmsManager to send delivery confirmation
             //todo get delivery confirmation for us as well
             val smsManager = SmsManager.getDefault()
-            smsManager.sendMultipartTextMessage(smsReferralEntitiy.phoneNumber,null,
+            smsManager.sendMultipartTextMessage(
+                smsReferralEntitiy.phoneNumber, null,
                 smsManager.divideMessage(constructDeliveryMessage(smsReferralEntitiy)),
-                null,null)
+                null, null
+            )
             smsReferralEntitiy.isUploaded = isUploaded
             smsReferralEntitiy.deliveryReportSent = true
             if (isUploaded) {
@@ -302,9 +309,9 @@ class SmsService : LifecycleService(),
             .append("\nTime received: ").append(zonttime.toString())
             .append("\nSuccessfully sent to the health care facility? : ")
 
-        if (smsReferralEntitiy.isUploaded){
+        if (smsReferralEntitiy.isUploaded) {
             stringBuilder.append("YES\n")
-        } else{
+        } else {
             stringBuilder.append("NO\n")
                 .append("ERROR: ").append(smsReferralEntitiy.errorMessage)
                 .append("\n")
@@ -353,9 +360,12 @@ class SmsService : LifecycleService(),
         ): Boolean {
             val manager = context?.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
             for (service in manager.getRunningServices(Int.MAX_VALUE)) {
-                Log.d("bugg","service name: "+service.service.className + " "+service.foreground+ " "+ serviceClass.canonicalName)
+                Log.d(
+                    "bugg",
+                    "service name: " + service.service.className + " " + service.foreground + " " + serviceClass.canonicalName
+                )
                 if (serviceClass.name == service.service.className && service.foreground) {
-                    Log.d("bugg","found service name: "+service.service.className)
+                    Log.d("bugg", "found service name: " + service.service.className)
                     return true
                 }
             }
@@ -379,7 +389,8 @@ class SmsService : LifecycleService(),
         val listKey = getString(R.string.reuploadListPrefKey)
         // restart sending service if time to send changes or the decision to send changes.
         if (key.equals(listKey) ||
-            (key.equals(switchkey) && sharedPreferences.getBoolean(switchkey, false))) {
+            (key.equals(switchkey) && sharedPreferences.getBoolean(switchkey, false))
+        ) {
             startReuploadingReferralTask()
         }
     }

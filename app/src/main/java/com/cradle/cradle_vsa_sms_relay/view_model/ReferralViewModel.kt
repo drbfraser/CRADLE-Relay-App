@@ -9,28 +9,34 @@ import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import javax.inject.Inject
 
-class ReferralViewModel : AndroidViewModel {
-    public constructor(application: Application) : super(application) {
-        (application as MyApp).component.inject(this)
-        repository = ReferralRepository(database)
-        referrals = repository.referrals
-    }
+class ReferralViewModel constructor(application: Application) :
+    AndroidViewModel(application) {
 
-    private val repository:ReferralRepository
-    private val referrals:LiveData<List<SmsReferralEntitiy>>
+    private val repository: ReferralRepository
+    private val referrals: LiveData<List<SmsReferralEntitiy>>
+
     @Inject
     lateinit var database: ReferralDatabase
 
-    public fun insert(smsReferralEntitiy: SmsReferralEntitiy){
+    fun insert(smsReferralEntitiy: SmsReferralEntitiy) {
         repository.insert(smsReferralEntitiy)
     }
-    public fun update(smsReferralEntitiy: SmsReferralEntitiy){
+
+    fun update(smsReferralEntitiy: SmsReferralEntitiy) {
         repository.update(smsReferralEntitiy)
     }
-    public fun delete(smsReferralEntitiy: SmsReferralEntitiy){
+
+    fun delete(smsReferralEntitiy: SmsReferralEntitiy) {
         repository.delete(smsReferralEntitiy)
     }
-    public fun getAllReferrals(): LiveData<List<SmsReferralEntitiy>> {
+
+    fun getAllReferrals(): LiveData<List<SmsReferralEntitiy>> {
         return repository.referrals
+    }
+
+    init {
+        (application as MyApp).component.inject(this)
+        repository = ReferralRepository(database)
+        referrals = repository.referrals
     }
 }
