@@ -16,7 +16,7 @@ interface DaoAccess {
     fun deleteSmsReferral(smsReferralEntitiy: SmsReferralEntitiy)
 
     @Query("SELECT * FROM SmsReferralEntitiy WHERE isUploaded == 0")
-    fun getUnUploadedReferral(): LiveData<List<SmsReferralEntitiy>>
+    fun getUnUploadedReferral(): List<SmsReferralEntitiy>
 
     @Query("SELECT * FROM SmsReferralEntitiy")
     fun getAllReferrals(): LiveData<List<SmsReferralEntitiy>>

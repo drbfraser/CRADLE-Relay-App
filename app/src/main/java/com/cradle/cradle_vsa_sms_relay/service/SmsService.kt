@@ -30,7 +30,6 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.cradle.cradle_vsa_sms_relay.MultiMessageListener
 import com.cradle.cradle_vsa_sms_relay.R
-import com.cradle.cradle_vsa_sms_relay.ReuploadReferralListener
 import com.cradle.cradle_vsa_sms_relay.SingleMessageListener
 import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradle.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
@@ -65,7 +64,7 @@ class SmsService : LifecycleService(),
         "https://cmpt373.csil.sfu.ca:8048/api/mobile/summarized/follow_up"
 
     @Inject
-    lateinit var repository: ReferralRepository
+    lateinit var referralRepository: ReferralRepository
 
     @Inject
     lateinit var sharedPreferences: SharedPreferences
@@ -78,9 +77,6 @@ class SmsService : LifecycleService(),
 
     //handles activity to service interactions
     private val mBinder: IBinder = MyBinder()
-
-    // let activity know status of retrying the referral uploads etc.
-    lateinit var reuploadReferralListener: ReuploadReferralListener
 
     //interface to let activity know a new message was received
     var singleMessageListener: SingleMessageListener? = null
@@ -179,7 +175,6 @@ class SmsService : LifecycleService(),
                             } else {
                                 // notificationForReuploading(it, true)
                             }
-                            reuploadReferralListener.onReuploadReferral(it)
                         }
                     })
         } catch (e: NumberFormatException) {
@@ -293,7 +288,7 @@ class SmsService : LifecycleService(),
                 smsReferralEntitiy.errorMessage = ""
             }
             smsReferralEntitiy.numberOfTriesUploaded += 1
-            repository.update(smsReferralEntitiy)
+            referralRepository.update(smsReferralEntitiy)
             if (singleMessageListener != null) {
                 singleMessageListener?.newMessageReceived()
             }
@@ -377,8 +372,7 @@ class SmsService : LifecycleService(),
      * inserts the [smsReferralList] into the Database and sends the list to the server
      */
     override fun messageMapRecieved(smsReferralList: ArrayList<SmsReferralEntitiy>) {
-
-        smsReferralList.forEach { f -> repository.insert(f) }
+        referralRepository.insertAll(smsReferralList)
         smsReferralList.forEach { f ->
             sendToServer(f)
         }

@@ -15,7 +15,7 @@ import com.android.volley.toolbox.Volley
 import com.cradle.cradle_vsa_sms_relay.service.SmsService
 import com.cradle.cradle_vsa_sms_relay.service.SmsService.Companion.TOKEN
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
+import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import org.json.JSONException
 import org.json.JSONObject
@@ -35,7 +35,7 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
     Worker(appContext, workerParams) {
 
     @Inject
-    lateinit var database: ReferralDatabase
+    lateinit var referralRepository: ReferralRepository
     @Inject
     lateinit var sharedPreferences: SharedPreferences
 
@@ -53,7 +53,7 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
 
     override fun doWork(): Result {
         val referralEntities: List<SmsReferralEntitiy> =
-            database.daoAccess().getUnUploadedReferral().value!!
+            referralRepository.getAllUnUploadedReferrals()
         //setProgressAsync(Data.Builder().putInt(Progress, 0).build())
         referralEntities.forEach { f ->
             sendtoServer(f)
@@ -134,7 +134,7 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
         smsReferralEntitiy.isUploaded = isUploaded
         smsReferralEntitiy.numberOfTriesUploaded++
         AsyncTask.execute {
-            database.daoAccess().updateSmsReferral(smsReferralEntitiy)
+            referralRepository.update(smsReferralEntitiy)
         }
     }
 }

@@ -5,6 +5,9 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
+/**
+ * Main interface for interacting with the database for all classes.
+ */
 class ReferralRepository(database: ReferralDatabase) {
     private var referralDao: DaoAccess = database.daoAccess()
     var referrals: LiveData<List<SmsReferralEntitiy>>
@@ -26,13 +29,16 @@ class ReferralRepository(database: ReferralDatabase) {
     }
 
     fun update(smsReferralEntitiy: SmsReferralEntitiy) {
-        MainScope().launch(IO) { referralDao.updateSmsReferral(smsReferralEntitiy) }
-
+        MainScope().launch(IO) { referralDao.updateSmsReferral(smsReferralEntitiy)
+        }
     }
 
     fun delete(smsReferralEntitiy: SmsReferralEntitiy) {
         MainScope().launch(IO) {
             referralDao.deleteSmsReferral(smsReferralEntitiy)
         }
+    }
+    fun getAllUnUploadedReferrals(): List<SmsReferralEntitiy> {
+        return referralDao.getUnUploadedReferral()
     }
 }
