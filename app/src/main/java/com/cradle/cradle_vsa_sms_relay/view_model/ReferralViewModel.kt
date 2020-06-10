@@ -12,11 +12,10 @@ import javax.inject.Inject
 class ReferralViewModel constructor(application: Application) :
     AndroidViewModel(application) {
 
-    private val repository: ReferralRepository
-    private val referrals: LiveData<List<SmsReferralEntitiy>>
-
     @Inject
-    lateinit var database: ReferralDatabase
+    lateinit var repository: ReferralRepository
+
+    private val referrals: LiveData<List<SmsReferralEntitiy>>
 
     fun insert(smsReferralEntitiy: SmsReferralEntitiy) {
         repository.insert(smsReferralEntitiy)
@@ -36,7 +35,6 @@ class ReferralViewModel constructor(application: Application) :
 
     init {
         (application as MyApp).component.inject(this)
-        repository = ReferralRepository(database)
         referrals = repository.referrals
     }
 }
