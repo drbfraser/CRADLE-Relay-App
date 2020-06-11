@@ -55,13 +55,6 @@ class SmsService : LifecycleService(),
     MultiMessageListener,
     SharedPreferences.OnSharedPreferenceChangeListener {
     val CHANNEL_ID = "ForegroundServiceChannel"
-    private val readingServerUrl =
-        "https://cmpt373.csil.sfu.ca:8048/api/patient/reading"
-
-    // localhost
-//    private val referralsServerUrl = "http://10.0.2.2:5000/api/referral"
-    private val referralSummeriesServerUrl =
-        "https://cmpt373.csil.sfu.ca:8048/api/mobile/summarized/follow_up"
 
     @Inject
     lateinit var referralRepository: ReferralRepository
@@ -232,6 +225,8 @@ class SmsService : LifecycleService(),
                             Charset.forName(HttpHeaderParser.parseCharset(error.networkResponse.headers))
                         )
                         smsReferralEntitiy.errorMessage = json.toString()
+                    } else {
+                        smsReferralEntitiy.errorMessage+= error.localizedMessage.toString()
                     }
                 } catch (e: UnsupportedEncodingException) {
                     smsReferralEntitiy.errorMessage =
@@ -344,7 +339,7 @@ class SmsService : LifecycleService(),
         val TOKEN = "token"
         val AUTH = "Authorization"
         val USER_ID = "userId"
-        val referralsServerUrl = "https://cmpt373.csil.sfu.ca:8048/api/referral"
+        val referralsServerUrl = "https://cmpt373-lockdown.cs.surrey.sfu.ca/api/referral"
 
         /**
          * https://stackoverflow.com/questions/6452466/how-to-determine-if-an-android-service-is-running-in-the-foreground
