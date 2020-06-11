@@ -19,9 +19,11 @@
     <string name="cradle">CRADLE</string>
     <string name="data">Data</string>
     <string name="error">Error</string>
+    <string name="progress">In Progress</string>
     <string name="login_error">Login error, check the credentials</string>
     <string name="log_in">Log In</string>
     <string name="email_hint">someone@example.com</string>
     <string name="password">Password:</string>
     <string name="sucess">Success</string>
+    <string name="inProgessMessage">Referral is currently being sent to the server</string>
 </resources>

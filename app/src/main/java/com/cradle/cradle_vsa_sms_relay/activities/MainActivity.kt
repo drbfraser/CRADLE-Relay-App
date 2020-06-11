@@ -2,13 +2,11 @@ package com.cradle.cradle_vsa_sms_relay.activities
 
 import android.Manifest
 import android.app.ActivityOptions
-import android.app.role.RoleManager
 import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.provider.Telephony
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -19,14 +17,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.work.WorkInfo
 import com.cradle.cradle_vsa_sms_relay.*
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.service.SmsService
+import com.cradle.cradle_vsa_sms_relay.view_model.ReferralViewModel
 import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
@@ -37,10 +36,10 @@ class MainActivity : AppCompatActivity(),
 
     private var isServiceStarted = false
     var mIsBound: Boolean = false
+
     //our reference to the service
     var mService: SmsService? = null
-    @Inject
-    lateinit var database: ReferralDatabase
+
     @Inject
     lateinit var sharedPreferences: SharedPreferences
 
@@ -53,30 +52,26 @@ class MainActivity : AppCompatActivity(),
 
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
             val binder = p1 as SmsService.MyBinder
-            mIsBound=true
-            isServiceStarted= true
+            mIsBound = true
+            isServiceStarted = true
             mService = binder.service
             mService?.singleMessageListener = this@MainActivity
 
-            mService?.reuploadReferralListener = object : ReuploadReferralListener {
-                override fun onReuploadReferral(workInfo: WorkInfo) {
-                    if (workInfo.state == WorkInfo.State.RUNNING) {
-                        //update recylcer view
-                        setuprecyclerview()
-                    }
-                }
-            }
         }
 
     }
+    private lateinit var referralViewModel: ReferralViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
         // bind service in case its running
-        if (SmsService.isServiceRunningInForeground(this,
-                SmsService.javaClass)){
+        if (SmsService.isServiceRunningInForeground(
+                this,
+                SmsService.javaClass
+            )
+        ) {
             val serviceIntent = Intent(
                 this,
                 SmsService::class.java
@@ -93,39 +88,38 @@ class MainActivity : AppCompatActivity(),
     private fun setupToolBar() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
-        supportActionBar?.title="";
-        val settingButton:ImageButton = findViewById(R.id.settingIcon)
+        supportActionBar?.title = "";
+        val settingButton: ImageButton = findViewById(R.id.settingIcon)
         settingButton.setOnClickListener {
-            startActivity(Intent(this,SettingsActivity::class.java),
-                ActivityOptions.makeCustomAnimation(this,R.anim.slide_down,R.anim.nothing).toBundle())
+            startActivity(
+                Intent(this, SettingsActivity::class.java),
+                ActivityOptions.makeCustomAnimation(this, R.anim.slide_down, R.anim.nothing)
+                    .toBundle()
+            )
         }
     }
 
     private fun setuprecyclerview() {
-        val emptyImageView:ImageView = findViewById(R.id.emptyRecyclerView)
-        val smsRecyclerView: RecyclerView = findViewById(R.id.messageRecyclerview)
-        val referrals =
-            database.daoAccess().getAllReferrals().sortedByDescending { it.timeRecieved }
 
-        if (referrals.isNotEmpty()){
-            emptyImageView.visibility =GONE
-        } else {
-            emptyImageView.visibility = VISIBLE
-        }
-        val adapter = SmsRecyclerViewAdaper(referrals,this)
+        val emptyImageView: ImageView = findViewById(R.id.emptyRecyclerView)
+        val smsRecyclerView: RecyclerView = findViewById(R.id.messageRecyclerview)
+        val adapter = SmsRecyclerViewAdaper(this)
+        smsRecyclerView.adapter = adapter
+        val layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
+        smsRecyclerView.layoutManager = layout
         adapter.onCLickList.add(object : AdapterClicker {
             override fun onClick(referralEntitiy: SmsReferralEntitiy) {
-                val referralAlertDialog =ReferralAlertDialog(this@MainActivity,referralEntitiy)
+                val referralAlertDialog = ReferralAlertDialog(this@MainActivity, referralEntitiy)
 
                 referralAlertDialog.setOnSendToServerListener(View.OnClickListener {
-                    if (isServiceStarted && mIsBound){
+                    if (isServiceStarted && mIsBound) {
                         if (!referralEntitiy.isUploaded) {
                             mService?.sendToServer(referralEntitiy)
                             Toast.makeText(
                                 this@MainActivity, "Uploading the referral to the server",
                                 Toast.LENGTH_SHORT
                             ).show()
-                        } else{
+                        } else {
                             Toast.makeText(
                                 this@MainActivity, "Referral is already uploaded to the server ",
                                 Toast.LENGTH_SHORT
@@ -133,18 +127,28 @@ class MainActivity : AppCompatActivity(),
                         }
                         referralAlertDialog.cancel()
                     } else {
-                        Toast.makeText(this@MainActivity,"Unable to send to the server, " +
-                                "Make sure service is running.",Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this@MainActivity, "Unable to send to the server, " +
+                                    "Make sure service is running.", Toast.LENGTH_SHORT
+                        ).show()
                     }
                 })
                 referralAlertDialog.show()
             }
         })
-        smsRecyclerView.adapter = adapter
-        val layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
-        smsRecyclerView.layoutManager = layout
-        adapter.notifyDataSetChanged()
-
+        referralViewModel =
+            ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application)).get(
+                ReferralViewModel::class.java
+            )
+        referralViewModel.getAllReferrals().observe(this, Observer { referrals ->
+            // update the recyclerview on updating
+            if (referrals.isNotEmpty()) {
+                emptyImageView.visibility = GONE
+            } else {
+                emptyImageView.visibility = VISIBLE
+            }
+            adapter.setReferralList(referrals.sortedByDescending { it.timeRecieved })
+        })
     }
 
 
@@ -228,15 +232,18 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun newMessageReceived() {
-        runOnUiThread {
-            setuprecyclerview()
-        }
+//        runOnUiThread {
+//            setuprecyclerview()
+//        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if(mIsBound || SmsService.isServiceRunningInForeground(this,
-                SmsService::class.java)) {
+        if (mIsBound || SmsService.isServiceRunningInForeground(
+                this,
+                SmsService::class.java
+            )
+        ) {
             unbindService(serviceConnection)
         }
     }

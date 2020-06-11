@@ -30,15 +30,13 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.cradle.cradle_vsa_sms_relay.MultiMessageListener
 import com.cradle.cradle_vsa_sms_relay.R
-import com.cradle.cradle_vsa_sms_relay.ReuploadReferralListener
 import com.cradle.cradle_vsa_sms_relay.SingleMessageListener
 import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradle.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
+import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.json.JSONException
@@ -57,27 +55,22 @@ class SmsService : LifecycleService(),
     MultiMessageListener,
     SharedPreferences.OnSharedPreferenceChangeListener {
     val CHANNEL_ID = "ForegroundServiceChannel"
-    private val readingServerUrl =
-        "https://cmpt373.csil.sfu.ca:8048/api/patient/reading"
 
-    // localhost
-//    private val referralsServerUrl = "http://10.0.2.2:5000/api/referral"
-    private val referralSummeriesServerUrl =
-        "https://cmpt373.csil.sfu.ca:8048/api/mobile/summarized/follow_up"
     @Inject
-    lateinit var database: ReferralDatabase
+    lateinit var referralRepository: ReferralRepository
+
     @Inject
     lateinit var sharedPreferences: SharedPreferences
 
     // maain sms broadcast listner
     private var smsReciver: MessageReciever? = null
+
     //to make sure we dont keep registering listerners
-    private var isMessageRecieverRegistered=false
+    private var isMessageRecieverRegistered = false
+
     //handles activity to service interactions
     private val mBinder: IBinder = MyBinder()
 
-    // let activity know status of retrying the referral uploads etc.
-    lateinit var reuploadReferralListener: ReuploadReferralListener
     //interface to let activity know a new message was received
     var singleMessageListener: SingleMessageListener? = null
 
@@ -99,7 +92,7 @@ class SmsService : LifecycleService(),
             if (action.equals(STOP_SERVICE)) {
                 stopForeground(true)
                 MessageReciever.unbindListener()
-                if (smsReciver!=null){
+                if (smsReciver != null) {
                     unregisterReceiver(smsReciver)
                 }
                 smsReciver = null
@@ -113,7 +106,7 @@ class SmsService : LifecycleService(),
                     intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
                     registerReceiver(smsReciver, intentFilter)
                     MessageReciever.bindListener(this)
-                    isMessageRecieverRegistered=true
+                    isMessageRecieverRegistered = true
                 }
                 val input = intent.getStringExtra("inputExtra")
                 createNotificationChannel()
@@ -171,11 +164,10 @@ class SmsService : LifecycleService(),
                             //extactly whats going on.
                             if (it.state != WorkInfo.State.ENQUEUED) {
                                 //todo figure out what to do :(
-                              //  notificationForReuploading(it, false)
+                                //  notificationForReuploading(it, false)
                             } else {
-                               // notificationForReuploading(it, true)
+                                // notificationForReuploading(it, true)
                             }
-                            reuploadReferralListener.onReuploadReferral(it)
                         }
                     })
         } catch (e: NumberFormatException) {
@@ -205,7 +197,7 @@ class SmsService : LifecycleService(),
      * uploads [smsReferralEntitiy] to the server
      * updates the status of the upload to the database.
      */
-     fun sendToServer(smsReferralEntitiy: SmsReferralEntitiy) {
+    fun sendToServer(smsReferralEntitiy: SmsReferralEntitiy) {
 
         val token = sharedPreferences.getString(TOKEN, "")
 
@@ -233,6 +225,8 @@ class SmsService : LifecycleService(),
                             Charset.forName(HttpHeaderParser.parseCharset(error.networkResponse.headers))
                         )
                         smsReferralEntitiy.errorMessage = json.toString()
+                    } else {
+                        smsReferralEntitiy.errorMessage+= error.localizedMessage.toString()
                     }
                 } catch (e: UnsupportedEncodingException) {
                     smsReferralEntitiy.errorMessage =
@@ -277,9 +271,11 @@ class SmsService : LifecycleService(),
             // Use SmsManager to send delivery confirmation
             //todo get delivery confirmation for us as well
             val smsManager = SmsManager.getDefault()
-            smsManager.sendMultipartTextMessage(smsReferralEntitiy.phoneNumber,null,
+            smsManager.sendMultipartTextMessage(
+                smsReferralEntitiy.phoneNumber, null,
                 smsManager.divideMessage(constructDeliveryMessage(smsReferralEntitiy)),
-                null,null)
+                null, null
+            )
             smsReferralEntitiy.isUploaded = isUploaded
             smsReferralEntitiy.deliveryReportSent = true
             if (isUploaded) {
@@ -287,7 +283,7 @@ class SmsService : LifecycleService(),
                 smsReferralEntitiy.errorMessage = ""
             }
             smsReferralEntitiy.numberOfTriesUploaded += 1
-            database.daoAccess().updateSmsReferral(smsReferralEntitiy)
+            referralRepository.update(smsReferralEntitiy)
             if (singleMessageListener != null) {
                 singleMessageListener?.newMessageReceived()
             }
@@ -303,9 +299,9 @@ class SmsService : LifecycleService(),
             .append("\nTime received: ").append(zonttime.toString())
             .append("\nSuccessfully sent to the health care facility? : ")
 
-        if (smsReferralEntitiy.isUploaded){
+        if (smsReferralEntitiy.isUploaded) {
             stringBuilder.append("YES\n")
-        } else{
+        } else {
             stringBuilder.append("NO\n")
                 .append("ERROR: ").append(smsReferralEntitiy.errorMessage)
                 .append("\n")
@@ -343,7 +339,7 @@ class SmsService : LifecycleService(),
         val TOKEN = "token"
         val AUTH = "Authorization"
         val USER_ID = "userId"
-        val referralsServerUrl = "https://cmpt373.csil.sfu.ca:8048/api/referral"
+        val referralsServerUrl = "https://cmpt373-lockdown.cs.surrey.sfu.ca/api/referral"
 
         /**
          * https://stackoverflow.com/questions/6452466/how-to-determine-if-an-android-service-is-running-in-the-foreground
@@ -354,9 +350,12 @@ class SmsService : LifecycleService(),
         ): Boolean {
             val manager = context?.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
             for (service in manager.getRunningServices(Int.MAX_VALUE)) {
-                Log.d("bugg","service name: "+service.service.className + " "+service.foreground+ " "+ serviceClass.canonicalName)
+                Log.d(
+                    "bugg",
+                    "service name: " + service.service.className + " " + service.foreground + " " + serviceClass.canonicalName
+                )
                 if (serviceClass.name == service.service.className && service.foreground) {
-                    Log.d("bugg","found service name: "+service.service.className)
+                    Log.d("bugg", "found service name: " + service.service.className)
                     return true
                 }
             }
@@ -368,8 +367,7 @@ class SmsService : LifecycleService(),
      * inserts the [smsReferralList] into the Database and sends the list to the server
      */
     override fun messageMapRecieved(smsReferralList: ArrayList<SmsReferralEntitiy>) {
-
-        smsReferralList.forEach { f -> database.daoAccess().insertSmsReferral(f) }
+        referralRepository.insertAll(smsReferralList)
         smsReferralList.forEach { f ->
             sendToServer(f)
         }
@@ -380,7 +378,8 @@ class SmsService : LifecycleService(),
         val listKey = getString(R.string.reuploadListPrefKey)
         // restart sending service if time to send changes or the decision to send changes.
         if (key.equals(listKey) ||
-            (key.equals(switchkey) && sharedPreferences.getBoolean(switchkey, false))) {
+            (key.equals(switchkey) && sharedPreferences.getBoolean(switchkey, false))
+        ) {
             startReuploadingReferralTask()
         }
     }

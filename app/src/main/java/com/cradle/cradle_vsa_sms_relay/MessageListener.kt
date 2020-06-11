@@ -7,10 +7,6 @@ interface SingleMessageListener {
     fun newMessageReceived()
 }
 
-interface ReuploadReferralListener {
-    fun onReuploadReferral(workInfo: WorkInfo)
-}
-
 interface MultiMessageListener {
     fun messageMapRecieved(smsReferralList: ArrayList<SmsReferralEntitiy>)
 

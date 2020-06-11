@@ -1,5 +1,6 @@
 package com.cradle.cradle_vsa_sms_relay.database
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 
 @Dao
@@ -18,7 +19,7 @@ interface DaoAccess {
     fun getUnUploadedReferral(): List<SmsReferralEntitiy>
 
     @Query("SELECT * FROM SmsReferralEntitiy")
-    fun getAllReferrals(): List<SmsReferralEntitiy>
+    fun getAllReferrals(): LiveData<List<SmsReferralEntitiy>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertAllReferral(referralList: ArrayList<SmsReferralEntitiy>)
