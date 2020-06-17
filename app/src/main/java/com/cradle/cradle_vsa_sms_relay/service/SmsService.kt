@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.IBinder
 import android.telephony.SmsManager
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleService
@@ -344,18 +345,13 @@ class SmsService : LifecycleService(),
         /**
          * https://stackoverflow.com/questions/6452466/how-to-determine-if-an-android-service-is-running-in-the-foreground
          */
-        public fun isServiceRunningInForeground(
+        fun isServiceRunningInForeground(
             context: Context,
             serviceClass: Class<*>
         ): Boolean {
             val manager = context?.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
             for (service in manager.getRunningServices(Int.MAX_VALUE)) {
-                Log.d(
-                    "bugg",
-                    "service name: " + service.service.className + " " + service.foreground + " " + serviceClass.canonicalName
-                )
                 if (serviceClass.name == service.service.className && service.foreground) {
-                    Log.d("bugg", "found service name: " + service.service.className)
                     return true
                 }
             }
@@ -376,10 +372,13 @@ class SmsService : LifecycleService(),
     override fun onSharedPreferenceChanged(p0: SharedPreferences?, key: String?) {
         val switchkey = getString(R.string.reuploadSwitchPrefKey)
         val listKey = getString(R.string.reuploadListPrefKey)
+        val syncNowKey = getString(R.string.sync_now_key)
         // restart sending service if time to send changes or the decision to send changes.
         if (key.equals(listKey) ||
-            (key.equals(switchkey) && sharedPreferences.getBoolean(switchkey, false))
-        ) {
+            (key.equals(switchkey) && sharedPreferences.getBoolean(switchkey, false))) {
+            startReuploadingReferralTask()
+        } else if (key.equals(syncNowKey)){
+            Toast.makeText(this,getString(R.string.service_running_sync_toast), Toast.LENGTH_LONG).show()
             startReuploadingReferralTask()
         }
     }

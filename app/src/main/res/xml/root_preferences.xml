@@ -1,23 +1,29 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory app:title="@string/sync_header"
         app:iconSpaceReserved="false">
 
         <SwitchPreferenceCompat
-            app:defaultValue="false"
+            app:defaultValue="true"
             app:iconSpaceReserved="false"
             app:key="@string/reuploadSwitchPrefKey"
             app:summary="@string/sync_title" />
 
         <ListPreference
-            app:defaultValue="5"
-            app:isPreferenceVisible="false"
+            app:defaultValue="60"
+            app:isPreferenceVisible="true"
             app:entries="@array/syncTimesInMinutes"
             app:entryValues="@array/syncTimeValue"
             app:key="@string/reuploadListPrefKey"
             app:title="@string/reuploadtime"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
+
+        <Preference app:title="@string/sync_now"
+            android:key="@string/sync_now_key"
+            app:isPreferenceVisible="true"
+            app:icon="@drawable/ic_sync_black_24dp"/>
 
     </PreferenceCategory>
 

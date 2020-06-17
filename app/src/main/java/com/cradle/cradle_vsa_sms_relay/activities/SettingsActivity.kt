@@ -3,6 +3,7 @@ package com.cradle.cradle_vsa_sms_relay.activities
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageButton
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -45,14 +46,20 @@ class SettingsActivity : AppCompatActivity() {
             val reuploadListKey = getString(R.string.reuploadListPrefKey)
             val reuploadSwitchKey = getString(R.string.reuploadSwitchPrefKey)
             val signoutKey = getString(R.string.signout)
+            val syncNowkey = getString(R.string.sync_now_key)
+            val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.context)
+            // show/ hide pref on default
+            val syncNowPref = findPreference<Preference>(syncNowkey)
+            syncNowPref?.isVisible = defaultSharedPreferences.getBoolean(reuploadSwitchKey, true)
 
-            val pref = findPreference<ListPreference>(reuploadListKey)
-            pref?.isVisible =
-                PreferenceManager.getDefaultSharedPreferences(this.context)
-                    .getBoolean(reuploadSwitchKey, false)
+            val listPref = findPreference<ListPreference>(reuploadListKey)
+            listPref?.isVisible = defaultSharedPreferences.getBoolean(reuploadSwitchKey, true)
+
+            //setting values based on switch changes
             findPreference<SwitchPreferenceCompat>(reuploadSwitchKey)?.setOnPreferenceClickListener { preference ->
-                pref?.isVisible =
+                listPref?.isVisible =
                     preference.sharedPreferences.getBoolean(reuploadSwitchKey, false)
+                syncNowPref?.isVisible  = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(reuploadSwitchKey,false)
                 true
             }
             findPreference<Preference>(signoutKey)?.setOnPreferenceClickListener {
@@ -62,11 +69,23 @@ class SettingsActivity : AppCompatActivity() {
                 true
             }
 
+            syncNowPref?.setOnPreferenceClickListener {
+                if (!isServiceRunningInForeground(this.requireContext(), SmsService::class.java)) {
+                    Toast.makeText(this.context,getString(R.string.service_not_running_sync_toast),Toast.LENGTH_LONG).show()
+                } else {
+                    val x = defaultSharedPreferences.getBoolean(syncNowkey,false)
+                    // always changing the value so service can listen for sharedpref change
+                    // solution for now, otherwise SettingActivity needs to know about service..
+                    //todo better achitecture? maybe its ok for activity to know about service?
+                    defaultSharedPreferences.edit().putBoolean(syncNowkey,!x).apply()
+                }
+                true
+            }
         }
         fun signout(){
             PreferenceManager.getDefaultSharedPreferences(this.context).edit().clear().apply()
             //stop the service if running.
-            if (isServiceRunningInForeground(context!!,
+            if (isServiceRunningInForeground(this.requireContext(),
                     SmsService::class.java)) {
                 val intent1 = Intent(context, SmsService::class.java)
                 intent1.action = SmsService.STOP_SERVICE
