@@ -26,4 +26,8 @@
     <string name="password">Password:</string>
     <string name="sucess">Success</string>
     <string name="inProgessMessage">Referral is currently being sent to the server</string>
+    <string name="sync_now">Sync Now</string>
+    <string name="sync_now_key">syncNowKey</string>
+    <string name="service_running_sync_toast">All the failed referrals are being uploaded</string>
+    <string name="service_not_running_sync_toast">Referral service is not running, please start the service</string>
 </resources>
