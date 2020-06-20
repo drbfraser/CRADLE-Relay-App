@@ -12,14 +12,10 @@ import com.cradle.cradle_vsa_sms_relay.utilities.DateTimeUtil
 import org.json.JSONException
 import org.json.JSONObject
 
-class ReferralAlertDialog : AlertDialog {
+class ReferralAlertDialog(context: Context, var smsReferralEntitiy: SmsReferralEntitiy) :
+    AlertDialog(context) {
 
-    var  smsReferralEntitiy:SmsReferralEntitiy
     private lateinit var sendToServiceButtonClickListener: View.OnClickListener
-
-    constructor(context: Context, smsReferralEntitiy: SmsReferralEntitiy) : super(context) {
-        this.smsReferralEntitiy = smsReferralEntitiy
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

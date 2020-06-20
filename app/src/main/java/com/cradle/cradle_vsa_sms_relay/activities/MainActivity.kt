@@ -2,18 +2,17 @@ package com.cradle.cradle_vsa_sms_relay.activities
 
 import android.Manifest
 import android.app.ActivityOptions
+import android.app.AlertDialog
 import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
@@ -139,17 +138,33 @@ class MainActivity : AppCompatActivity(){
 
     private fun setupStopService() {
         findViewById<MaterialButton>(R.id.btnStopService).setOnClickListener {
-            if (mService != null && isServiceStarted) {
-                val intent: Intent = Intent(this, SmsService::class.java).also { intent ->
-                    unbindService(serviceConnection)
-                }
-                intent.action = SmsService.STOP_SERVICE
-                ContextCompat.startForegroundService(this, intent)
-                isServiceStarted = false
-                makeButtonUnclickable(false)
+
+            val alertDialog = AlertDialog.Builder(this).create()
+            val view = layoutInflater.inflate(R.layout.stop_service_dialog,null)
+            alertDialog.setView(view)
+            view.findViewById<Button>(R.id.yesButton).setOnClickListener{
+                alertDialog.dismiss()
+                stopSmsService()
             }
+            view.findViewById<Button>(R.id.noButton).setOnClickListener{
+                alertDialog.dismiss()
+            }
+            alertDialog.show()
         }
     }
+
+    private fun stopSmsService() {
+        if (mService != null && isServiceStarted) {
+            val intent: Intent = Intent(this, SmsService::class.java).also { intent ->
+                unbindService(serviceConnection)
+            }
+            intent.action = SmsService.STOP_SERVICE
+            ContextCompat.startForegroundService(this, intent)
+            isServiceStarted = false
+            makeButtonUnclickable(false)
+        }
+    }
+
     private fun makeButtonUnclickable(serviceStarted:Boolean){
         val statusTxt = findViewById<TextView>(R.id.serviceStatusTxt)
         val startButton = findViewById<MaterialButton>(R.id.btnStartService)
