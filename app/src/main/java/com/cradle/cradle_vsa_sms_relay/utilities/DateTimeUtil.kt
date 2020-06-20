@@ -9,11 +9,11 @@ class DateTimeUtil {
         fun convertUnixToTimeString(unixTime: Long): String {
             val cal: Calendar = Calendar.getInstance()
             val timezone: TimeZone = cal.timeZone
-            val simpleDateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+            val simpleDateFormat = SimpleDateFormat("MMM dd, yyyy hh.mm aa")
             simpleDateFormat.timeZone = timezone
             val localTime =
                 //unix time is in seconds, converting to milli
-                simpleDateFormat.format(Date(unixTime * 100))
+                simpleDateFormat.format(Date(unixTime))
             return localTime
 
         }

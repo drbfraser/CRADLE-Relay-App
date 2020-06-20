@@ -56,7 +56,7 @@ class MessageReciever : BroadcastReceiver() {
         val smsReferralList: ArrayList<SmsReferralEntitiy> = ArrayList()
 
         messages.entries.forEach { entry ->
-            val currTime = System.currentTimeMillis() / 100L
+            val currTime = System.currentTimeMillis()
             smsReferralList.add(
                 SmsReferralEntitiy(
                     ReferralMessageUtil.getIdFromMessage(entry.value),

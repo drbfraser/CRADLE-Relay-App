@@ -31,12 +31,12 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.cradle.cradle_vsa_sms_relay.MultiMessageListener
 import com.cradle.cradle_vsa_sms_relay.R
-import com.cradle.cradle_vsa_sms_relay.SingleMessageListener
 import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradle.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.utilities.DateTimeUtil
 import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -44,12 +44,9 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
 import java.nio.charset.Charset
-import java.time.Instant
-import java.time.ZonedDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 class SmsService : LifecycleService(),
@@ -287,11 +284,9 @@ class SmsService : LifecycleService(),
 
     private fun constructDeliveryMessage(smsReferralEntitiy: SmsReferralEntitiy): String {
         val stringBuilder = StringBuilder()
-        //todo shorter time string
-        val i: Instant = Instant.ofEpochSecond(smsReferralEntitiy.timeRecieved)
-        val zonttime: ZonedDateTime = ZonedDateTime.ofInstant(i, TimeZone.getDefault().toZoneId())
+        val timeString = DateTimeUtil.convertUnixToTimeString(smsReferralEntitiy.timeRecieved)
         stringBuilder.append("referral Id: ").append(smsReferralEntitiy.id)
-            .append("\nTime received: ").append(zonttime.toString())
+            .append("\nTime received: ").append(timeString)
             .append("\nSuccessfully sent to the health care facility? : ")
 
         if (smsReferralEntitiy.isUploaded) {
