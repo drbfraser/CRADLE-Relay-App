@@ -33,8 +33,7 @@ import org.w3c.dom.Text
 import javax.inject.Inject
 
 
-class MainActivity : AppCompatActivity(),
-    SingleMessageListener {
+class MainActivity : AppCompatActivity(){
 
     private var isServiceStarted = false
     var mIsBound: Boolean = false
@@ -57,8 +56,6 @@ class MainActivity : AppCompatActivity(),
             mIsBound = true
             isServiceStarted = true
             mService = binder.service
-            mService?.singleMessageListener = this@MainActivity
-
         }
 
     }
@@ -255,12 +252,6 @@ class MainActivity : AppCompatActivity(),
                 startService()
             }
         }
-    }
-
-    override fun newMessageReceived() {
-//        runOnUiThread {
-//            setuprecyclerview()
-//        }
     }
 
     override fun onDestroy() {

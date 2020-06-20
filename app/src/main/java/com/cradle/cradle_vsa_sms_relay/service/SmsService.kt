@@ -72,9 +72,6 @@ class SmsService : LifecycleService(),
     //handles activity to service interactions
     private val mBinder: IBinder = MyBinder()
 
-    //interface to let activity know a new message was received
-    var singleMessageListener: SingleMessageListener? = null
-
     override fun onBind(intent: Intent): IBinder? {
         super.onBind(intent)
         return mBinder
@@ -285,9 +282,6 @@ class SmsService : LifecycleService(),
             }
             smsReferralEntitiy.numberOfTriesUploaded += 1
             referralRepository.update(smsReferralEntitiy)
-            if (singleMessageListener != null) {
-                singleMessageListener?.newMessageReceived()
-            }
         }
     }
 
