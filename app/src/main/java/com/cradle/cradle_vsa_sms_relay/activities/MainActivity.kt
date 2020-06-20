@@ -36,7 +36,6 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity(){
 
     private var isServiceStarted = false
-    var mIsBound: Boolean = false
 
     //our reference to the service
     var mService: SmsService? = null
@@ -46,14 +45,12 @@ class MainActivity : AppCompatActivity(){
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceDisconnected(p0: ComponentName?) {
-            mIsBound = false
             mService = null
             isServiceStarted = false
         }
 
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
             val binder = p1 as SmsService.MyBinder
-            mIsBound = true
             isServiceStarted = true
             mService = binder.service
         }
@@ -65,18 +62,7 @@ class MainActivity : AppCompatActivity(){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
-        // bind service in case its running
-        if (SmsService.isServiceRunningInForeground(
-                this,
-                SmsService.javaClass
-            )
-        ) {
-            val serviceIntent = Intent(
-                this,
-                SmsService::class.java
-            )
-            bindService(serviceIntent, serviceConnection, 0)
-        }
+
         setupToolBar()
         setupStartService()
         setupStopService()
@@ -111,7 +97,7 @@ class MainActivity : AppCompatActivity(){
                 val referralAlertDialog = ReferralAlertDialog(this@MainActivity, referralEntitiy)
 
                 referralAlertDialog.setOnSendToServerListener(View.OnClickListener {
-                    if (isServiceStarted && mIsBound) {
+                    if (isServiceStarted) {
                         if (!referralEntitiy.isUploaded) {
                             mService?.sendToServer(referralEntitiy)
                             Toast.makeText(
@@ -160,8 +146,7 @@ class MainActivity : AppCompatActivity(){
                 intent.action = SmsService.STOP_SERVICE
                 ContextCompat.startForegroundService(this, intent)
                 isServiceStarted = false
-                mIsBound = false
-                makeButtonUnclickable(!isServiceStarted)
+                makeButtonUnclickable(false)
             }
         }
     }
@@ -170,7 +155,7 @@ class MainActivity : AppCompatActivity(){
         val startButton = findViewById<MaterialButton>(R.id.btnStartService)
         val stopButton = findViewById<MaterialButton>(R.id.btnStopService)
 
-        if (serviceStarted) {
+        if (!serviceStarted) {
             statusTxt.text = getString(R.string.stop_service_status)
             statusTxt.setTextColor(resources.getColor(R.color.redDown))
             stopButton.alpha = 0.2F
@@ -192,6 +177,8 @@ class MainActivity : AppCompatActivity(){
         findViewById<MaterialButton>(R.id.btnStartService).setOnClickListener {
             checkpermissions()
         }
+        //start the service initially
+        checkpermissions()
     }
 
 
@@ -236,8 +223,8 @@ class MainActivity : AppCompatActivity(){
         ).also { intent -> bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE) }
         serviceIntent.action = SmsService.START_SERVICE
         ContextCompat.startForegroundService(this, serviceIntent)
-        isServiceStarted = true
-        makeButtonUnclickable(!isServiceStarted)
+        bindService(serviceIntent, serviceConnection, 0)
+        makeButtonUnclickable(true)
     }
 
     override fun onRequestPermissionsResult(
@@ -256,7 +243,7 @@ class MainActivity : AppCompatActivity(){
 
     override fun onDestroy() {
         super.onDestroy()
-        if (mIsBound || SmsService.isServiceRunningInForeground(
+        if (SmsService.isServiceRunningInForeground(
                 this,
                 SmsService::class.java
             )
