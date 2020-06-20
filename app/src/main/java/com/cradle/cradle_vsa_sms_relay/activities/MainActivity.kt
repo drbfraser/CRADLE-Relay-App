@@ -12,6 +12,7 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -28,6 +29,7 @@ import com.cradle.cradle_vsa_sms_relay.service.SmsService
 import com.cradle.cradle_vsa_sms_relay.view_model.ReferralViewModel
 import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
+import org.w3c.dom.Text
 import javax.inject.Inject
 
 
@@ -215,6 +217,7 @@ class MainActivity : AppCompatActivity(),
         serviceIntent.action = SmsService.START_SERVICE
         ContextCompat.startForegroundService(this, serviceIntent)
         isServiceStarted = true
+        findViewById<TextView>(R.id.serviceStatusTxt).text = "The service is running, please do not shut it down"
     }
 
     override fun onRequestPermissionsResult(
