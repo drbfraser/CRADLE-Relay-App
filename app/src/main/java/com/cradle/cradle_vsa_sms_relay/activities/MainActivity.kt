@@ -166,6 +166,8 @@ class MainActivity : AppCompatActivity(),
                 mIsBound = false
             }
         }
+        findViewById<TextView>(R.id.serviceStatusTxt).text = "The service is not running, press the start button"
+
     }
 
     private fun setupStartService() {
