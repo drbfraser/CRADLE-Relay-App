@@ -164,12 +164,30 @@ class MainActivity : AppCompatActivity(),
                 ContextCompat.startForegroundService(this, intent)
                 isServiceStarted = false
                 mIsBound = false
+                makeButtonUnclickable(!isServiceStarted)
             }
         }
+    }
+    private fun makeButtonUnclickable(serviceStarted:Boolean){
         val statusTxt = findViewById<TextView>(R.id.serviceStatusTxt)
-        statusTxt.text = getString(R.string.stop_service_status)
-        statusTxt.setTextColor(resources.getColor(R.color.redDown))
+        val startButton = findViewById<MaterialButton>(R.id.btnStartService)
+        val stopButton = findViewById<MaterialButton>(R.id.btnStopService)
 
+        if (serviceStarted) {
+            statusTxt.text = getString(R.string.stop_service_status)
+            statusTxt.setTextColor(resources.getColor(R.color.redDown))
+            stopButton.alpha = 0.2F
+            stopButton.isClickable = false
+            startButton.alpha = 1.0F
+            startButton.isClickable = true
+        } else {
+            statusTxt.text = getString(R.string.start_service_status)
+            statusTxt.setTextColor(resources.getColor(R.color.green))
+            startButton.alpha = 0.2F
+            startButton.isClickable = false
+            stopButton.alpha = 1.0F
+            stopButton.isClickable = true
+        }
 
     }
 
@@ -222,9 +240,7 @@ class MainActivity : AppCompatActivity(),
         serviceIntent.action = SmsService.START_SERVICE
         ContextCompat.startForegroundService(this, serviceIntent)
         isServiceStarted = true
-        val statusTxt = findViewById<TextView>(R.id.serviceStatusTxt)
-        statusTxt.text = getString(R.string.start_service_status)
-        statusTxt.setTextColor(resources.getColor(R.color.green))
+        makeButtonUnclickable(!isServiceStarted)
     }
 
     override fun onRequestPermissionsResult(
