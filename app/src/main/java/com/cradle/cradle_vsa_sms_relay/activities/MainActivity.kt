@@ -166,7 +166,10 @@ class MainActivity : AppCompatActivity(),
                 mIsBound = false
             }
         }
-        findViewById<TextView>(R.id.serviceStatusTxt).text = "The service is not running, press the start button"
+        val statusTxt = findViewById<TextView>(R.id.serviceStatusTxt)
+        statusTxt.text = getString(R.string.stop_service_status)
+        statusTxt.setTextColor(resources.getColor(R.color.redDown))
+
 
     }
 
@@ -219,7 +222,9 @@ class MainActivity : AppCompatActivity(),
         serviceIntent.action = SmsService.START_SERVICE
         ContextCompat.startForegroundService(this, serviceIntent)
         isServiceStarted = true
-        findViewById<TextView>(R.id.serviceStatusTxt).text = "The service is running, please do not shut it down"
+        val statusTxt = findViewById<TextView>(R.id.serviceStatusTxt)
+        statusTxt.text = getString(R.string.start_service_status)
+        statusTxt.setTextColor(resources.getColor(R.color.green))
     }
 
     override fun onRequestPermissionsResult(
