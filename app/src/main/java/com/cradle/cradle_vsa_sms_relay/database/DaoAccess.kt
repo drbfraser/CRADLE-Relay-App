@@ -22,5 +22,5 @@ interface DaoAccess {
     fun getAllReferrals(): LiveData<List<SmsReferralEntitiy>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insertAllReferral(referralList: ArrayList<SmsReferralEntitiy>)
+    fun insertAllReferral(referralList: List<SmsReferralEntitiy>)
 }

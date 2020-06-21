@@ -39,7 +39,7 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
 
     override fun onReceive(p0: Context?, p1: Intent?) {
         val data = p1?.extras
-        val pdus = data?.get("pdus") as Array<Any>
+        val pdus = data?.get("pdus") as Array<*>
 
         // may recieve multiple messages at the same time from different numbers so
         // we keep track of all the messages from different numbers
@@ -91,8 +91,8 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
     /**
      * Queries sms depending on the time we were listening for sms
      */
-    private fun getUnsentSms(): java.util.ArrayList<SmsReferralEntitiy> {
-        val sms = java.util.ArrayList<SmsReferralEntitiy>()
+    private fun getUnsentSms(): List<SmsReferralEntitiy> {
+        val sms = ArrayList<SmsReferralEntitiy>()
         val smsURI = Uri.parse("content://sms/inbox")
         val columns =
             arrayOf("address", "body", "date")
@@ -114,7 +114,7 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
                 ,time,false,addresses,0,"",false))
         }
         cursor?.close()
-        return sms
+        return sms.toList()
 
     }
 }

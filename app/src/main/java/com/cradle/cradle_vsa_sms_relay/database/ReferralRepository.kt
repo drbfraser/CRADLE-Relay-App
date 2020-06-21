@@ -22,7 +22,7 @@ class ReferralRepository(database: ReferralDatabase) {
         }
     }
 
-    fun insertAll(smsReferralEntities: ArrayList<SmsReferralEntitiy>) {
+    fun insertAll(smsReferralEntities: List<SmsReferralEntitiy>) {
         MainScope().launch(IO) {
             referralDao.insertAllReferral(smsReferralEntities)
         }

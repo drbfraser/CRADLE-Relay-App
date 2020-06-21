@@ -350,7 +350,7 @@ class SmsService : LifecycleService(),
     /**
      * inserts the [smsReferralList] into the Database and sends the list to the server
      */
-    override fun messageMapRecieved(smsReferralList: ArrayList<SmsReferralEntitiy>) {
+    override fun messageMapRecieved(smsReferralList: List<SmsReferralEntitiy>) {
         referralRepository.insertAll(smsReferralList)
         smsReferralList.forEach { f ->
             sendToServer(f)
