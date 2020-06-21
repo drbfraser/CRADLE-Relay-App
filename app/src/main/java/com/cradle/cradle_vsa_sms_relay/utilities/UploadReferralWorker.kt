@@ -16,7 +16,7 @@ import com.cradle.cradle_vsa_sms_relay.service.SmsService
 import com.cradle.cradle_vsa_sms_relay.service.SmsService.Companion.TOKEN
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
-import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
@@ -52,7 +52,7 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
 
 
     override fun doWork(): Result {
-        val referralEntities: List<SmsReferralEntitiy> =
+        val referralEntities: List<SmsReferralEntity> =
             referralRepository.getAllUnUploadedReferrals()
         //setProgressAsync(Data.Builder().putInt(Progress, 0).build())
         referralEntities.forEach { f ->
@@ -68,13 +68,13 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
         return Result.success(Data.Builder().putBoolean("finished", true).build())
     }
 
-    private fun sendtoServer(smsReferralEntitiy: SmsReferralEntitiy) {
+    private fun sendtoServer(smsReferralEntity: SmsReferralEntity) {
         val json: JSONObject?
         try {
-            json = JSONObject(smsReferralEntitiy.jsonData)
+            json = JSONObject(smsReferralEntity.jsonData)
         } catch (e: JSONException) {
-            smsReferralEntitiy.errorMessage = "Not a valid JSON format"
-            updateDatabase(smsReferralEntitiy, false)
+            smsReferralEntity.errorMessage = "Not a valid JSON format"
+            updateDatabase(smsReferralEntity, false)
             e.printStackTrace()
             //no need to send it to the server, we know its not a valid json
             return
@@ -84,7 +84,7 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
             SmsService.referralsServerUrl,
             json,
             Response.Listener { response: JSONObject? ->
-                updateDatabase(smsReferralEntitiy, true)
+                updateDatabase(smsReferralEntity, true)
             },
             Response.ErrorListener { error: VolleyError ->
                 var json: String? = ""
@@ -94,24 +94,24 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
                             error.networkResponse.data,
                             Charset.forName(HttpHeaderParser.parseCharset(error.networkResponse.headers))
                         )
-                        smsReferralEntitiy.errorMessage = json.toString()
+                        smsReferralEntity.errorMessage = json.toString()
                     }
                 } catch (e: UnsupportedEncodingException) {
-                    smsReferralEntitiy.errorMessage =
+                    smsReferralEntity.errorMessage =
                         "No clue whats going on, return message is null"
                     e.printStackTrace()
                 }
                 //giving back extra info based on status code
                 if (error.networkResponse != null) {
                     if (error.networkResponse.statusCode >= 500) {
-                        smsReferralEntitiy.errorMessage += " Please make sure referral has all the fields"
+                        smsReferralEntity.errorMessage += " Please make sure referral has all the fields"
                     } else if (error.networkResponse.statusCode >= 400) {
-                        smsReferralEntitiy.errorMessage += " Invalid request, make sure you have correct credentials"
+                        smsReferralEntity.errorMessage += " Invalid request, make sure you have correct credentials"
                     }
                 } else {
-                    smsReferralEntitiy.errorMessage = "Unable to get error message"
+                    smsReferralEntity.errorMessage = "Unable to get error message"
                 }
-                updateDatabase(smsReferralEntitiy, false)
+                updateDatabase(smsReferralEntity, false)
 
             }
         ) {
@@ -130,11 +130,11 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
         queue.add(jsonObjectRequest)
     }
 
-    fun updateDatabase(smsReferralEntitiy: SmsReferralEntitiy, isUploaded: Boolean) {
-        smsReferralEntitiy.isUploaded = isUploaded
-        smsReferralEntitiy.numberOfTriesUploaded++
+    fun updateDatabase(smsReferralEntity: SmsReferralEntity, isUploaded: Boolean) {
+        smsReferralEntity.isUploaded = isUploaded
+        smsReferralEntity.numberOfTriesUploaded++
         AsyncTask.execute {
-            referralRepository.update(smsReferralEntitiy)
+            referralRepository.update(smsReferralEntity)
         }
     }
 }

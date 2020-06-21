@@ -7,12 +7,12 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import com.cradle.cradle_vsa_sms_relay.R
-import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradle.cradle_vsa_sms_relay.utilities.DateTimeUtil
 import org.json.JSONException
 import org.json.JSONObject
 
-class ReferralAlertDialog(context: Context, var smsReferralEntitiy: SmsReferralEntitiy) :
+class ReferralAlertDialog(context: Context, var smsReferralEntity: SmsReferralEntity) :
     AlertDialog(context) {
 
     private lateinit var sendToServiceButtonClickListener: View.OnClickListener
@@ -20,17 +20,17 @@ class ReferralAlertDialog(context: Context, var smsReferralEntitiy: SmsReferralE
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.referral_alert_dialog);
-        findViewById<TextView>(R.id.titleAD).setText(smsReferralEntitiy.id)
+        findViewById<TextView>(R.id.titleAD).setText(smsReferralEntity.id)
         val msg:String = try {
-            JSONObject(smsReferralEntitiy.jsonData).toString(4)
+            JSONObject(smsReferralEntity.jsonData).toString(4)
         } catch (e: JSONException) {
-            smsReferralEntitiy.jsonData.toString()
+            smsReferralEntity.jsonData.toString()
         }
         findViewById<TextView>(R.id.jsonDataAd).setText(msg)
-        findViewById<TextView>(R.id.timeRecievedAd).setText(DateTimeUtil.convertUnixToTimeString(smsReferralEntitiy.timeRecieved))
-        findViewById<TextView>(R.id.numAttemptAd).setText(smsReferralEntitiy.numberOfTriesUploaded.toString())
-        findViewById<TextView>(R.id.refUploadedAd).setText(smsReferralEntitiy.isUploaded.toString())
-        findViewById<TextView>(R.id.errorDataAd).setText(smsReferralEntitiy.errorMessage)
+        findViewById<TextView>(R.id.timeReceivedAd).setText(DateTimeUtil.convertUnixToTimeString(smsReferralEntity.timeReceived))
+        findViewById<TextView>(R.id.numAttemptAd).setText(smsReferralEntity.numberOfTriesUploaded.toString())
+        findViewById<TextView>(R.id.refUploadedAd).setText(smsReferralEntity.isUploaded.toString())
+        findViewById<TextView>(R.id.errorDataAd).setText(smsReferralEntity.errorMessage)
 
         findViewById<Button>(R.id.sendToServerAdButton).setOnClickListener(sendToServiceButtonClickListener)
         findViewById<Button>(R.id.cancelAdButton).setOnClickListener { this.cancel() }

@@ -22,12 +22,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.cradle.cradle_vsa_sms_relay.*
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradle.cradle_vsa_sms_relay.service.SmsService
 import com.cradle.cradle_vsa_sms_relay.view_model.ReferralViewModel
 import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
-import org.w3c.dom.Text
 import javax.inject.Inject
 
 
@@ -91,13 +90,13 @@ class MainActivity : AppCompatActivity(){
         val layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
         smsRecyclerView.layoutManager = layout
         adapter.onCLickList.add(object : AdapterClicker {
-            override fun onClick(referralEntitiy: SmsReferralEntitiy) {
-                val referralAlertDialog = ReferralAlertDialog(this@MainActivity, referralEntitiy)
+            override fun onClick(referralEntity: SmsReferralEntity) {
+                val referralAlertDialog = ReferralAlertDialog(this@MainActivity, referralEntity)
 
                 referralAlertDialog.setOnSendToServerListener(View.OnClickListener {
                     if (isServiceStarted) {
-                        if (!referralEntitiy.isUploaded) {
-                            mService?.sendToServer(referralEntitiy)
+                        if (!referralEntity.isUploaded) {
+                            mService?.sendToServer(referralEntity)
                             Toast.makeText(
                                 this@MainActivity, "Uploading the referral to the server",
                                 Toast.LENGTH_SHORT
@@ -130,7 +129,7 @@ class MainActivity : AppCompatActivity(){
             } else {
                 emptyImageView.visibility = VISIBLE
             }
-            adapter.setReferralList(referrals.sortedByDescending { it.timeRecieved })
+            adapter.setReferralList(referrals.sortedByDescending { it.timeReceived })
         })
     }
 
@@ -267,6 +266,6 @@ class MainActivity : AppCompatActivity(){
     }
 
     interface AdapterClicker {
-        fun onClick(referralEntitiy: SmsReferralEntitiy)
+        fun onClick(referralEntity: SmsReferralEntity)
     }
 }

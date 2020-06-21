@@ -3,31 +3,43 @@ package com.cradle.cradle_vsa_sms_relay.broadcast_receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.telephony.SmsMessage
+import android.net.Uri import android.telephony.SmsMessage
 import com.cradle.cradle_vsa_sms_relay.MultiMessageListener
-import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradle.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 /**
  * detects messages receives
  */
-class MessageReciever : BroadcastReceiver() {
+class MessageReciever(val context: Context) : BroadcastReceiver() {
 
-    companion object {
         private var meListener: MultiMessageListener? = null
+        private val LAST_RUN_PREF = "sharedPrefLastTimeServiceRun"
+        private val LAST_RUN_TIME = "lastTimeServiceRun"
 
         fun bindListener(messageListener: MultiMessageListener) {
             meListener = messageListener
+            //dont want to block main thread
+            MainScope().launch(Dispatchers.IO) {
+                meListener?.messageMapReceived(getUnsentSms())
+            }
         }
 
         fun unbindListener() {
             meListener = null
+            //update time last listened to sms
+            val sharedPreferences = context.getSharedPreferences(LAST_RUN_PREF,Context.MODE_PRIVATE)
+            sharedPreferences.edit().putLong(LAST_RUN_TIME,System.currentTimeMillis()).apply()
         }
-    }
 
     override fun onReceive(p0: Context?, p1: Intent?) {
         val data = p1?.extras
-        val pdus = data?.get("pdus") as Array<Any>
+        val pdus = data?.get("pdus") as Array<*>
 
         // may recieve multiple messages at the same time from different numbers so
         // we keep track of all the messages from different numbers
@@ -53,12 +65,12 @@ class MessageReciever : BroadcastReceiver() {
             }
 
         }
-        val smsReferralList: ArrayList<SmsReferralEntitiy> = ArrayList()
+        val smsReferralList: ArrayList<SmsReferralEntity> = ArrayList()
 
         messages.entries.forEach { entry ->
             val currTime = System.currentTimeMillis()
             smsReferralList.add(
-                SmsReferralEntitiy(
+                SmsReferralEntity(
                     ReferralMessageUtil.getIdFromMessage(entry.value),
                     ReferralMessageUtil.getReferralJsonFromMessage(entry.value),
                     currTime,
@@ -71,7 +83,38 @@ class MessageReciever : BroadcastReceiver() {
         }
 
         // send it to the service to send to the server
-        meListener?.messageMapRecieved(smsReferralList)
+        meListener?.messageMapReceived(smsReferralList)
+
+    }
+
+
+    /**
+     * Queries sms depending on the time we were listening for sms
+     */
+    private fun getUnsentSms(): List<SmsReferralEntity> {
+        val sms = ArrayList<SmsReferralEntity>()
+        val smsURI = Uri.parse("content://sms/inbox")
+        val columns =
+            arrayOf("address", "body", "date")
+        //check when we were last listening for the messages
+        val sharedPreferences = context.getSharedPreferences(LAST_RUN_PREF,Context.MODE_PRIVATE)
+        //if the app is running the first time, we dont want to start sending a large number of text messages
+        //for now we ignore all the past messages on login.
+        val lastRunTime = sharedPreferences.getLong(LAST_RUN_TIME,System.currentTimeMillis())
+        val whereClause = "date >= $lastRunTime"
+        val cursor = context.contentResolver.query(smsURI, columns, whereClause, null, null)
+
+        while(cursor != null && cursor.moveToNext()) {
+
+            val body = cursor.getString(cursor.getColumnIndex("body"))
+            val addresses = cursor.getString((cursor.getColumnIndex("address")))
+            val time = cursor.getString((cursor.getColumnIndex("date"))).toLong()
+            val id = ReferralMessageUtil.getIdFromMessage(body)
+            sms.add(SmsReferralEntity(id,ReferralMessageUtil.getReferralJsonFromMessage(body)
+                ,time,false,addresses,0,"",false))
+        }
+        cursor?.close()
+        return sms.toList()
 
     }
 }

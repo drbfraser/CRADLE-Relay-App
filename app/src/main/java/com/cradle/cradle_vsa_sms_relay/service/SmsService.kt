@@ -12,7 +12,6 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.telephony.SmsManager
-import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -35,7 +34,7 @@ import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradle.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
-import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradle.cradle_vsa_sms_relay.utilities.DateTimeUtil
 import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
 import kotlinx.coroutines.MainScope
@@ -44,7 +43,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
 import java.nio.charset.Charset
-import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.collections.HashMap
@@ -86,7 +84,7 @@ class SmsService : LifecycleService(),
             val action: String? = intent.action
             if (action.equals(STOP_SERVICE)) {
                 stopForeground(true)
-                MessageReciever.unbindListener()
+                smsReciver?.unbindListener()
                 if (smsReciver != null) {
                     unregisterReceiver(smsReciver)
                 }
@@ -96,11 +94,11 @@ class SmsService : LifecycleService(),
 
             } else {
                 if (!isMessageRecieverRegistered) {
-                    smsReciver = MessageReciever()
+                    smsReciver = MessageReciever(this)
                     val intentFilter = IntentFilter()
                     intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
                     registerReceiver(smsReciver, intentFilter)
-                    MessageReciever.bindListener(this)
+                    smsReciver?.bindListener(this)
                     isMessageRecieverRegistered = true
                 }
                 val input = intent.getStringExtra("inputExtra")
@@ -189,19 +187,19 @@ class SmsService : LifecycleService(),
 
 
     /**
-     * uploads [smsReferralEntitiy] to the server
+     * uploads [smsReferralEntity] to the server
      * updates the status of the upload to the database.
      */
-    fun sendToServer(smsReferralEntitiy: SmsReferralEntitiy) {
+    fun sendToServer(smsReferralEntity: SmsReferralEntity) {
 
         val token = sharedPreferences.getString(TOKEN, "")
 
         var json: JSONObject? = null
         try {
-            json = JSONObject(smsReferralEntitiy.jsonData)
+            json = JSONObject(smsReferralEntity.jsonData)
         } catch (e: JSONException) {
-            smsReferralEntitiy.errorMessage = "Not a valid JSON format"
-            updateDatabase(smsReferralEntitiy, false)
+            smsReferralEntity.errorMessage = "Not a valid JSON format"
+            updateDatabase(smsReferralEntity, false)
             e.printStackTrace()
             //no need to send it to the server, we know its not a valid json
             return
@@ -209,7 +207,7 @@ class SmsService : LifecycleService(),
         val jsonObjectRequest: JsonObjectRequest = object : JsonObjectRequest(
             POST,
             referralsServerUrl, json, Response.Listener { response: JSONObject? ->
-                updateDatabase(smsReferralEntitiy, true)
+                updateDatabase(smsReferralEntity, true)
             },
             Response.ErrorListener { error: VolleyError ->
                 var json: String? = ""
@@ -219,26 +217,26 @@ class SmsService : LifecycleService(),
                             error.networkResponse.data,
                             Charset.forName(HttpHeaderParser.parseCharset(error.networkResponse.headers))
                         )
-                        smsReferralEntitiy.errorMessage = json.toString()
+                        smsReferralEntity.errorMessage = json.toString()
                     } else {
-                        smsReferralEntitiy.errorMessage+= error.localizedMessage.toString()
+                        smsReferralEntity.errorMessage+= error.localizedMessage.toString()
                     }
                 } catch (e: UnsupportedEncodingException) {
-                    smsReferralEntitiy.errorMessage =
+                    smsReferralEntity.errorMessage =
                         "No clue whats going on, return message is null"
                     e.printStackTrace()
                 }
                 //giving back extra info based on status code
                 if (error.networkResponse != null) {
                     if (error.networkResponse.statusCode >= 500) {
-                        smsReferralEntitiy.errorMessage += " Please make sure referral has all the fields"
+                        smsReferralEntity.errorMessage += " Please make sure referral has all the fields"
                     } else if (error.networkResponse.statusCode >= 400) {
-                        smsReferralEntitiy.errorMessage += " Invalid request, make sure you have correct credentials"
+                        smsReferralEntity.errorMessage += " Invalid request, make sure you have correct credentials"
                     }
                 } else {
-                    smsReferralEntitiy.errorMessage = "Unable to get error message"
+                    smsReferralEntity.errorMessage = "Unable to get error message"
                 }
-                updateDatabase(smsReferralEntitiy, false)
+                updateDatabase(smsReferralEntity, false)
 
             }
         ) {
@@ -260,40 +258,40 @@ class SmsService : LifecycleService(),
     /**
      * updates the room database and notifies [singleMessageListener] of the new message
      */
-    fun updateDatabase(smsReferralEntitiy: SmsReferralEntitiy, isUploaded: Boolean) {
+    fun updateDatabase(smsReferralEntity: SmsReferralEntity, isUploaded: Boolean) {
 
         MainScope().launch {
             // Use SmsManager to send delivery confirmation
             //todo get delivery confirmation for us as well
             val smsManager = SmsManager.getDefault()
             smsManager.sendMultipartTextMessage(
-                smsReferralEntitiy.phoneNumber, null,
-                smsManager.divideMessage(constructDeliveryMessage(smsReferralEntitiy)),
+                smsReferralEntity.phoneNumber, null,
+                smsManager.divideMessage(constructDeliveryMessage(smsReferralEntity)),
                 null, null
             )
-            smsReferralEntitiy.isUploaded = isUploaded
-            smsReferralEntitiy.deliveryReportSent = true
+            smsReferralEntity.isUploaded = isUploaded
+            smsReferralEntity.deliveryReportSent = true
             if (isUploaded) {
                 // we do not need to show anymore errors for this referral.
-                smsReferralEntitiy.errorMessage = ""
+                smsReferralEntity.errorMessage = ""
             }
-            smsReferralEntitiy.numberOfTriesUploaded += 1
-            referralRepository.update(smsReferralEntitiy)
+            smsReferralEntity.numberOfTriesUploaded += 1
+            referralRepository.update(smsReferralEntity)
         }
     }
 
-    private fun constructDeliveryMessage(smsReferralEntitiy: SmsReferralEntitiy): String {
+    private fun constructDeliveryMessage(smsReferralEntity: SmsReferralEntity): String {
         val stringBuilder = StringBuilder()
-        val timeString = DateTimeUtil.convertUnixToTimeString(smsReferralEntitiy.timeRecieved)
-        stringBuilder.append("referral Id: ").append(smsReferralEntitiy.id)
+        val timeString = DateTimeUtil.convertUnixToTimeString(smsReferralEntity.timeReceived)
+        stringBuilder.append("referral Id: ").append(smsReferralEntity.id)
             .append("\nTime received: ").append(timeString)
             .append("\nSuccessfully sent to the health care facility? : ")
 
-        if (smsReferralEntitiy.isUploaded) {
+        if (smsReferralEntity.isUploaded) {
             stringBuilder.append("YES\n")
         } else {
             stringBuilder.append("NO\n")
-                .append("ERROR: ").append(smsReferralEntitiy.errorMessage)
+                .append("ERROR: ").append(smsReferralEntity.errorMessage)
                 .append("\n")
         }
         return stringBuilder.toString()
@@ -351,7 +349,7 @@ class SmsService : LifecycleService(),
     /**
      * inserts the [smsReferralList] into the Database and sends the list to the server
      */
-    override fun messageMapRecieved(smsReferralList: ArrayList<SmsReferralEntitiy>) {
+    override fun messageMapReceived(smsReferralList: List<SmsReferralEntity>) {
         referralRepository.insertAll(smsReferralList)
         smsReferralList.forEach { f ->
             sendToServer(f)

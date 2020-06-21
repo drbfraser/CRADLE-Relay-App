@@ -11,13 +11,13 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
-import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradle.cradle_vsa_sms_relay.utilities.DateTimeUtil
 
 class SmsRecyclerViewAdaper(private val context: Context) :
     RecyclerView.Adapter<SmsRecyclerViewAdaper.SMSViewHolder>() {
 
-    private var sms: List<SmsReferralEntitiy> = ArrayList()
+    private var sms: List<SmsReferralEntity> = ArrayList()
 
     val onCLickList: ArrayList<MainActivity.AdapterClicker> = ArrayList()
 
@@ -34,21 +34,21 @@ class SmsRecyclerViewAdaper(private val context: Context) :
         return sms.size
     }
 
-    fun setReferralList(smsReferralEntities: List<SmsReferralEntitiy>) {
+    fun setReferralList(smsReferralEntities: List<SmsReferralEntity>) {
         this.sms = smsReferralEntities
         notifyDataSetChanged()
     }
 
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
-        val smsReferralEntitiy: SmsReferralEntitiy = sms[position
+        val smsReferralEntity: SmsReferralEntity = sms[position
         ]
-        holder.smsText.text = smsReferralEntitiy.jsonData
-        if (smsReferralEntitiy.isUploaded) {
+        holder.smsText.text = smsReferralEntity.jsonData
+        if (smsReferralEntity.isUploaded) {
             holder.statusImg.setBackgroundResource(R.drawable.ic_check_circle_24dp)
             holder.statusTxt.text = context.getString(R.string.sucess)
             holder.statusTxt.setTextColor(context.resources.getColor(R.color.green))
             holder.errorTxt.visibility = GONE
-        } else if (!smsReferralEntitiy.isUploaded && smsReferralEntitiy.numberOfTriesUploaded == 0) {
+        } else if (!smsReferralEntity.isUploaded && smsReferralEntity.numberOfTriesUploaded == 0) {
             holder.statusImg.setBackgroundResource(R.drawable.ic_error_24dp)
             holder.statusTxt.text = context.getString(R.string.progress)
             holder.statusTxt.setTextColor(context.resources.getColor(R.color.yellowDown))
@@ -61,12 +61,12 @@ class SmsRecyclerViewAdaper(private val context: Context) :
             holder.statusTxt.setTextColor(context.resources.getColor(R.color.redDown))
             holder.errorTxt.setTextColor(context.resources.getColor(R.color.redDown))
             holder.errorTxt.visibility = VISIBLE
-            holder.errorTxt.text = smsReferralEntitiy.errorMessage
+            holder.errorTxt.text = smsReferralEntity.errorMessage
         }
         holder.receivedTimeTxt.text =
-            DateTimeUtil.convertUnixToTimeString(smsReferralEntitiy.timeRecieved)
+            DateTimeUtil.convertUnixToTimeString(smsReferralEntity.timeReceived)
         holder.layout.setOnClickListener {
-            onCLickList.forEach { f -> f.onClick(smsReferralEntitiy) }
+            onCLickList.forEach { f -> f.onClick(smsReferralEntity) }
         }
     }
 
