@@ -3,27 +3,35 @@ package com.cradle.cradle_vsa_sms_relay.broadcast_receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.telephony.SmsMessage
+import android.net.Uri import android.telephony.SmsMessage
+import android.util.Log
 import com.cradle.cradle_vsa_sms_relay.MultiMessageListener
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 /**
  * detects messages receives
  */
-class MessageReciever : BroadcastReceiver() {
+class MessageReciever(val context: Context) : BroadcastReceiver() {
 
-    companion object {
         private var meListener: MultiMessageListener? = null
+        private val LAST_RUN_PREF = "sharedPrefLastTimeServiceRun"
+        private val LAST_RUN_TIME = "lastTimeServiceRun"
 
         fun bindListener(messageListener: MultiMessageListener) {
             meListener = messageListener
+            meListener?.messageMapRecieved(getUnsentSms())
         }
 
         fun unbindListener() {
             meListener = null
+            //update time last listened to sms
+            val sharedPreferences = context.getSharedPreferences(LAST_RUN_PREF,Context.MODE_PRIVATE)
+            sharedPreferences.edit().putLong(LAST_RUN_TIME,System.currentTimeMillis()).apply()
         }
-    }
 
     override fun onReceive(p0: Context?, p1: Intent?) {
         val data = p1?.extras
@@ -72,6 +80,33 @@ class MessageReciever : BroadcastReceiver() {
 
         // send it to the service to send to the server
         meListener?.messageMapRecieved(smsReferralList)
+
+    }
+
+
+    /**
+     * Queries sms depending on the time we were listening for sms
+     */
+    fun getUnsentSms(): java.util.ArrayList<SmsReferralEntitiy> {
+        val sms = java.util.ArrayList<SmsReferralEntitiy>()
+        val smsURI = Uri.parse("content://sms/inbox")
+        val projection =
+            arrayOf("address", "body", "date")
+        //check when we were last listening for the messages
+        val sharedPreferences = context.getSharedPreferences(LAST_RUN_PREF,Context.MODE_PRIVATE)
+        val lastRunTime = sharedPreferences.getLong(LAST_RUN_TIME,0)
+        val whereClause = "date >= $lastRunTime"
+        val cursor = context.contentResolver.query(smsURI, projection, whereClause, null, null)
+
+        while(cursor != null && cursor.moveToNext()) {
+
+            val body = cursor.getString(cursor.getColumnIndex("body"))
+            val addresses = cursor.getString((cursor.getColumnIndex("address")))
+            val time = cursor.getString((cursor.getColumnIndex("date"))).toLong()
+            sms.add(0,SmsReferralEntitiy(UUID.randomUUID().toString(),body,time,false,addresses,0,"",false))
+        }
+        cursor?.close()
+        return sms
 
     }
 }

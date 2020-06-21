@@ -12,7 +12,6 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.telephony.SmsManager
-import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -86,7 +85,7 @@ class SmsService : LifecycleService(),
             val action: String? = intent.action
             if (action.equals(STOP_SERVICE)) {
                 stopForeground(true)
-                MessageReciever.unbindListener()
+                smsReciver?.unbindListener()
                 if (smsReciver != null) {
                     unregisterReceiver(smsReciver)
                 }
@@ -96,11 +95,11 @@ class SmsService : LifecycleService(),
 
             } else {
                 if (!isMessageRecieverRegistered) {
-                    smsReciver = MessageReciever()
+                    smsReciver = MessageReciever(this)
                     val intentFilter = IntentFilter()
                     intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
                     registerReceiver(smsReciver, intentFilter)
-                    MessageReciever.bindListener(this)
+                    smsReciver?.bindListener(this)
                     isMessageRecieverRegistered = true
                 }
                 val input = intent.getStringExtra("inputExtra")

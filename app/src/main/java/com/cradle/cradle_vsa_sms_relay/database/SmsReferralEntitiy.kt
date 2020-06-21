@@ -24,4 +24,12 @@ data class SmsReferralEntitiy(
     override fun compareTo(other: SmsReferralEntitiy): Int {
         return (this.timeRecieved - other.timeRecieved).toInt()
     }
+
+    override fun toString(): String {
+        return "SmsReferralEntitiy(id='$id', jsonData=$jsonData, timeRecieved=$timeRecieved," +
+                " isUploaded=$isUploaded, phoneNumber=$phoneNumber," +
+                " numberOfTriesUploaded=$numberOfTriesUploaded, errorMessage='$errorMessage', " +
+                "deliveryReportSent=$deliveryReportSent)"
+    }
+
 }
