@@ -11,11 +11,7 @@ class DateTimeUtil {
             val timezone: TimeZone = cal.timeZone
             val simpleDateFormat = SimpleDateFormat("MMM d, yyyy h:mm aa")
             simpleDateFormat.timeZone = timezone
-            val localTime =
-                //unix time is in seconds, converting to milli
-                simpleDateFormat.format(Date(unixTime))
-            return localTime
-
+            return simpleDateFormat.format(Date(unixTime))
         }
     }
 }

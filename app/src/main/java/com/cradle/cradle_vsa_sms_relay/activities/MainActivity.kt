@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -72,7 +71,7 @@ class MainActivity : AppCompatActivity(){
     private fun setupToolBar() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
-        supportActionBar?.title = "";
+        supportActionBar?.title = ""
         val settingButton: ImageButton = findViewById(R.id.settingIcon)
         settingButton.setOnClickListener {
             startActivity(
@@ -231,7 +230,7 @@ class MainActivity : AppCompatActivity(){
         }
     }
 
-    fun startService() {
+    private fun startService() {
         val serviceIntent = Intent(
             this,
             SmsService::class.java
