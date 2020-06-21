@@ -4,11 +4,12 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri import android.telephony.SmsMessage
-import android.util.Log
 import com.cradle.cradle_vsa_sms_relay.MultiMessageListener
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import com.cradle.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
-import java.util.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
@@ -23,7 +24,10 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
 
         fun bindListener(messageListener: MultiMessageListener) {
             meListener = messageListener
-            meListener?.messageMapRecieved(getUnsentSms())
+            //dont want to block main thread
+            MainScope().launch(Dispatchers.IO) {
+                meListener?.messageMapRecieved(getUnsentSms())
+            }
         }
 
         fun unbindListener() {
@@ -87,23 +91,27 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
     /**
      * Queries sms depending on the time we were listening for sms
      */
-    fun getUnsentSms(): java.util.ArrayList<SmsReferralEntitiy> {
+    private fun getUnsentSms(): java.util.ArrayList<SmsReferralEntitiy> {
         val sms = java.util.ArrayList<SmsReferralEntitiy>()
         val smsURI = Uri.parse("content://sms/inbox")
-        val projection =
+        val columns =
             arrayOf("address", "body", "date")
         //check when we were last listening for the messages
         val sharedPreferences = context.getSharedPreferences(LAST_RUN_PREF,Context.MODE_PRIVATE)
-        val lastRunTime = sharedPreferences.getLong(LAST_RUN_TIME,0)
+        //if the app is running the first time, we dont want to start sending a large number of text messages
+        //for now we ignore all the past messages on login.
+        val lastRunTime = sharedPreferences.getLong(LAST_RUN_TIME,System.currentTimeMillis())
         val whereClause = "date >= $lastRunTime"
-        val cursor = context.contentResolver.query(smsURI, projection, whereClause, null, null)
+        val cursor = context.contentResolver.query(smsURI, columns, whereClause, null, null)
 
         while(cursor != null && cursor.moveToNext()) {
 
             val body = cursor.getString(cursor.getColumnIndex("body"))
             val addresses = cursor.getString((cursor.getColumnIndex("address")))
             val time = cursor.getString((cursor.getColumnIndex("date"))).toLong()
-            sms.add(0,SmsReferralEntitiy(UUID.randomUUID().toString(),body,time,false,addresses,0,"",false))
+            val id = ReferralMessageUtil.getIdFromMessage(body)
+            sms.add(SmsReferralEntitiy(id,ReferralMessageUtil.getReferralJsonFromMessage(body)
+                ,time,false,addresses,0,"",false))
         }
         cursor?.close()
         return sms
