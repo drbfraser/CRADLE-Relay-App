@@ -2,6 +2,7 @@ package com.cradle.cradle_vsa_sms_relay.activities
 
 import android.Manifest
 import android.app.ActivityOptions
+import android.app.AlertDialog
 import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
@@ -10,9 +11,7 @@ import android.os.IBinder
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
@@ -28,14 +27,13 @@ import com.cradle.cradle_vsa_sms_relay.service.SmsService
 import com.cradle.cradle_vsa_sms_relay.view_model.ReferralViewModel
 import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
+import org.w3c.dom.Text
 import javax.inject.Inject
 
 
-class MainActivity : AppCompatActivity(),
-    SingleMessageListener {
+class MainActivity : AppCompatActivity(){
 
     private var isServiceStarted = false
-    var mIsBound: Boolean = false
 
     //our reference to the service
     var mService: SmsService? = null
@@ -45,18 +43,14 @@ class MainActivity : AppCompatActivity(),
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceDisconnected(p0: ComponentName?) {
-            mIsBound = false
             mService = null
             isServiceStarted = false
         }
 
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
             val binder = p1 as SmsService.MyBinder
-            mIsBound = true
             isServiceStarted = true
             mService = binder.service
-            mService?.singleMessageListener = this@MainActivity
-
         }
 
     }
@@ -66,18 +60,7 @@ class MainActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
-        // bind service in case its running
-        if (SmsService.isServiceRunningInForeground(
-                this,
-                SmsService.javaClass
-            )
-        ) {
-            val serviceIntent = Intent(
-                this,
-                SmsService::class.java
-            )
-            bindService(serviceIntent, serviceConnection, 0)
-        }
+
         setupToolBar()
         setupStartService()
         setupStopService()
@@ -88,7 +71,7 @@ class MainActivity : AppCompatActivity(),
     private fun setupToolBar() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
-        supportActionBar?.title = "";
+        supportActionBar?.title = ""
         val settingButton: ImageButton = findViewById(R.id.settingIcon)
         settingButton.setOnClickListener {
             startActivity(
@@ -112,7 +95,7 @@ class MainActivity : AppCompatActivity(),
                 val referralAlertDialog = ReferralAlertDialog(this@MainActivity, referralEntitiy)
 
                 referralAlertDialog.setOnSendToServerListener(View.OnClickListener {
-                    if (isServiceStarted && mIsBound) {
+                    if (isServiceStarted) {
                         if (!referralEntitiy.isUploaded) {
                             mService?.sendToServer(referralEntitiy)
                             Toast.makeText(
@@ -154,22 +137,62 @@ class MainActivity : AppCompatActivity(),
 
     private fun setupStopService() {
         findViewById<MaterialButton>(R.id.btnStopService).setOnClickListener {
-            if (mService != null && isServiceStarted) {
-                val intent: Intent = Intent(this, SmsService::class.java).also { intent ->
-                    unbindService(serviceConnection)
-                }
-                intent.action = SmsService.STOP_SERVICE
-                ContextCompat.startForegroundService(this, intent)
-                isServiceStarted = false
-                mIsBound = false
+
+            val alertDialog = AlertDialog.Builder(this).create()
+            val view = layoutInflater.inflate(R.layout.stop_service_dialog,null)
+            alertDialog.setView(view)
+            view.findViewById<Button>(R.id.yesButton).setOnClickListener{
+                alertDialog.dismiss()
+                stopSmsService()
             }
+            view.findViewById<Button>(R.id.noButton).setOnClickListener{
+                alertDialog.dismiss()
+            }
+            alertDialog.show()
         }
+    }
+
+    private fun stopSmsService() {
+        if (mService != null && isServiceStarted) {
+            val intent: Intent = Intent(this, SmsService::class.java).also { intent ->
+                unbindService(serviceConnection)
+            }
+            intent.action = SmsService.STOP_SERVICE
+            ContextCompat.startForegroundService(this, intent)
+            isServiceStarted = false
+            makeButtonUnclickable(false)
+        }
+    }
+
+    private fun makeButtonUnclickable(serviceStarted:Boolean){
+        val statusTxt = findViewById<TextView>(R.id.serviceStatusTxt)
+        val startButton = findViewById<MaterialButton>(R.id.btnStartService)
+        val stopButton = findViewById<MaterialButton>(R.id.btnStopService)
+
+        if (!serviceStarted) {
+            statusTxt.text = getString(R.string.stop_service_status)
+            statusTxt.setTextColor(resources.getColor(R.color.redDown))
+            stopButton.alpha = 0.2F
+            stopButton.isClickable = false
+            startButton.alpha = 1.0F
+            startButton.isClickable = true
+        } else {
+            statusTxt.text = getString(R.string.start_service_status)
+            statusTxt.setTextColor(resources.getColor(R.color.green))
+            startButton.alpha = 0.2F
+            startButton.isClickable = false
+            stopButton.alpha = 1.0F
+            stopButton.isClickable = true
+        }
+
     }
 
     private fun setupStartService() {
         findViewById<MaterialButton>(R.id.btnStartService).setOnClickListener {
             checkpermissions()
         }
+        //start the service initially
+        checkpermissions()
     }
 
 
@@ -207,14 +230,15 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    fun startService() {
+    private fun startService() {
         val serviceIntent = Intent(
             this,
             SmsService::class.java
         ).also { intent -> bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE) }
         serviceIntent.action = SmsService.START_SERVICE
         ContextCompat.startForegroundService(this, serviceIntent)
-        isServiceStarted = true
+        bindService(serviceIntent, serviceConnection, 0)
+        makeButtonUnclickable(true)
     }
 
     override fun onRequestPermissionsResult(
@@ -231,15 +255,9 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    override fun newMessageReceived() {
-//        runOnUiThread {
-//            setuprecyclerview()
-//        }
-    }
-
     override fun onDestroy() {
         super.onDestroy()
-        if (mIsBound || SmsService.isServiceRunningInForeground(
+        if (SmsService.isServiceRunningInForeground(
                 this,
                 SmsService::class.java
             )

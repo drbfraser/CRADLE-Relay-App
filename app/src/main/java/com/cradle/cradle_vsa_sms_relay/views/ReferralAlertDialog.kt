@@ -12,24 +12,19 @@ import com.cradle.cradle_vsa_sms_relay.utilities.DateTimeUtil
 import org.json.JSONException
 import org.json.JSONObject
 
-class ReferralAlertDialog : AlertDialog {
+class ReferralAlertDialog(context: Context, var smsReferralEntitiy: SmsReferralEntitiy) :
+    AlertDialog(context) {
 
-    var  smsReferralEntitiy:SmsReferralEntitiy
     private lateinit var sendToServiceButtonClickListener: View.OnClickListener
-
-    constructor(context: Context, smsReferralEntitiy: SmsReferralEntitiy) : super(context) {
-        this.smsReferralEntitiy = smsReferralEntitiy
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.referral_alert_dialog);
         findViewById<TextView>(R.id.titleAD).setText(smsReferralEntitiy.id)
-        var msg:String
-        try {
-            msg = JSONObject(smsReferralEntitiy.jsonData).toString(4)
+        val msg:String = try {
+            JSONObject(smsReferralEntitiy.jsonData).toString(4)
         } catch (e: JSONException) {
-            msg = smsReferralEntitiy.jsonData.toString()
+            smsReferralEntitiy.jsonData.toString()
         }
         findViewById<TextView>(R.id.jsonDataAd).setText(msg)
         findViewById<TextView>(R.id.timeRecievedAd).setText(DateTimeUtil.convertUnixToTimeString(smsReferralEntitiy.timeRecieved))

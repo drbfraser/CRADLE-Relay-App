@@ -59,8 +59,20 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnStopService" />
+            app:layout_constraintTop_toBottomOf="@+id/serviceStatusTxt" />
 
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/serviceStatusTxt"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Service has stopped"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="@+id/btnStopService"
+            app:layout_constraintStart_toStartOf="@+id/btnStartService"
+            app:layout_constraintTop_toBottomOf="@id/btnStartService" />
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/messageRecyclerview"
             android:layout_width="0dp"
@@ -71,7 +83,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnStopService" />
+            app:layout_constraintTop_toBottomOf="@+id/serviceStatusTxt" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

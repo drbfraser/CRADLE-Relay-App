@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
 import javax.inject.Inject
