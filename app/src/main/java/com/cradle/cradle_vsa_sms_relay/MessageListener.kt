@@ -1,8 +1,7 @@
 package com.cradle.cradle_vsa_sms_relay
 
-import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 
 interface MultiMessageListener {
-    fun messageMapRecieved(smsReferralList: List<SmsReferralEntitiy>)
-
+    fun messageMapReceived(smsReferralList: List<SmsReferralEntity>)
 }

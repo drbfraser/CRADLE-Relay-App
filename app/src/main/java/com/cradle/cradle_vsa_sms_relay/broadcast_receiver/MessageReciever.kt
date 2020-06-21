@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri import android.telephony.SmsMessage
 import com.cradle.cradle_vsa_sms_relay.MultiMessageListener
-import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradle.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -26,7 +26,7 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
             meListener = messageListener
             //dont want to block main thread
             MainScope().launch(Dispatchers.IO) {
-                meListener?.messageMapRecieved(getUnsentSms())
+                meListener?.messageMapReceived(getUnsentSms())
             }
         }
 
@@ -65,12 +65,12 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
             }
 
         }
-        val smsReferralList: ArrayList<SmsReferralEntitiy> = ArrayList()
+        val smsReferralList: ArrayList<SmsReferralEntity> = ArrayList()
 
         messages.entries.forEach { entry ->
             val currTime = System.currentTimeMillis()
             smsReferralList.add(
-                SmsReferralEntitiy(
+                SmsReferralEntity(
                     ReferralMessageUtil.getIdFromMessage(entry.value),
                     ReferralMessageUtil.getReferralJsonFromMessage(entry.value),
                     currTime,
@@ -83,7 +83,7 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
         }
 
         // send it to the service to send to the server
-        meListener?.messageMapRecieved(smsReferralList)
+        meListener?.messageMapReceived(smsReferralList)
 
     }
 
@@ -91,8 +91,8 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
     /**
      * Queries sms depending on the time we were listening for sms
      */
-    private fun getUnsentSms(): List<SmsReferralEntitiy> {
-        val sms = ArrayList<SmsReferralEntitiy>()
+    private fun getUnsentSms(): List<SmsReferralEntity> {
+        val sms = ArrayList<SmsReferralEntity>()
         val smsURI = Uri.parse("content://sms/inbox")
         val columns =
             arrayOf("address", "body", "date")
@@ -110,7 +110,7 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
             val addresses = cursor.getString((cursor.getColumnIndex("address")))
             val time = cursor.getString((cursor.getColumnIndex("date"))).toLong()
             val id = ReferralMessageUtil.getIdFromMessage(body)
-            sms.add(SmsReferralEntitiy(id,ReferralMessageUtil.getReferralJsonFromMessage(body)
+            sms.add(SmsReferralEntity(id,ReferralMessageUtil.getReferralJsonFromMessage(body)
                 ,time,false,addresses,0,"",false))
         }
         cursor?.close()

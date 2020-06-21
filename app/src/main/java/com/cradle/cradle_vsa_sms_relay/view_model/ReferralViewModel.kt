@@ -5,7 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
-import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntitiy
+import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import javax.inject.Inject
 
 class ReferralViewModel constructor(application: Application) :
@@ -14,21 +14,21 @@ class ReferralViewModel constructor(application: Application) :
     @Inject
     lateinit var repository: ReferralRepository
 
-    private val referrals: LiveData<List<SmsReferralEntitiy>>
+    private val referrals: LiveData<List<SmsReferralEntity>>
 
-    fun insert(smsReferralEntitiy: SmsReferralEntitiy) {
-        repository.insert(smsReferralEntitiy)
+    fun insert(smsReferralEntity: SmsReferralEntity) {
+        repository.insert(smsReferralEntity)
     }
 
-    fun update(smsReferralEntitiy: SmsReferralEntitiy) {
-        repository.update(smsReferralEntitiy)
+    fun update(smsReferralEntity: SmsReferralEntity) {
+        repository.update(smsReferralEntity)
     }
 
-    fun delete(smsReferralEntitiy: SmsReferralEntitiy) {
-        repository.delete(smsReferralEntitiy)
+    fun delete(smsReferralEntity: SmsReferralEntity) {
+        repository.delete(smsReferralEntity)
     }
 
-    fun getAllReferrals(): LiveData<List<SmsReferralEntitiy>> {
+    fun getAllReferrals(): LiveData<List<SmsReferralEntity>> {
         return repository.referrals
     }
 

@@ -7,20 +7,20 @@ import androidx.room.*
 interface DaoAccess {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insertSmsReferral(smsReferralEntitiy: SmsReferralEntitiy)
+    fun insertSmsReferral(smsReferralEntity: SmsReferralEntity)
 
     @Update
-    fun updateSmsReferral(smsReferralEntitiy: SmsReferralEntitiy)
+    fun updateSmsReferral(smsReferralEntity: SmsReferralEntity)
 
     @Delete
-    fun deleteSmsReferral(smsReferralEntitiy: SmsReferralEntitiy)
+    fun deleteSmsReferral(smsReferralEntity: SmsReferralEntity)
 
-    @Query("SELECT * FROM SmsReferralEntitiy WHERE isUploaded == 0")
-    fun getUnUploadedReferral(): List<SmsReferralEntitiy>
+    @Query("SELECT * FROM SmsReferralEntity WHERE isUploaded == 0")
+    fun getUnUploadedReferral(): List<SmsReferralEntity>
 
-    @Query("SELECT * FROM SmsReferralEntitiy")
-    fun getAllReferrals(): LiveData<List<SmsReferralEntitiy>>
+    @Query("SELECT * FROM SmsReferralEntity")
+    fun getAllReferrals(): LiveData<List<SmsReferralEntity>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insertAllReferral(referralList: List<SmsReferralEntitiy>)
+    fun insertAllReferral(referralList: List<SmsReferralEntity>)
 }

@@ -84,7 +84,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toEndOf="@+id/cancelAdButton"
-                app:layout_constraintTop_toBottomOf="@+id/timeRecievedAd"
+                app:layout_constraintTop_toBottomOf="@+id/timeReceivedAd"
                 app:strokeColor="@color/colorPrimary"
                 app:strokeWidth="2dp" />
 
@@ -133,14 +133,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Time Recieved: "
+                android:text="Time Received: "
                 android:textColor="@color/black"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="@+id/textView4"
                 app:layout_constraintTop_toBottomOf="@+id/numAttemptAd" />
 
             <TextView
-                android:id="@+id/timeRecievedAd"
+                android:id="@+id/timeReceivedAd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
