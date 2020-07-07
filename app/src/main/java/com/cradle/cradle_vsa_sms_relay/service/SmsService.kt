@@ -219,7 +219,7 @@ class SmsService : LifecycleService(),
                         )
                         smsReferralEntity.errorMessage = json.toString()
                     } else {
-                        smsReferralEntity.errorMessage+= error.localizedMessage.toString()
+                        smsReferralEntity.errorMessage+= error.localizedMessage?.toString()
                     }
                 } catch (e: UnsupportedEncodingException) {
                     smsReferralEntity.errorMessage =

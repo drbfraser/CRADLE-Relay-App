@@ -246,7 +246,11 @@ class MainActivity : AppCompatActivity(){
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 99) {
+        if (requestCode == 99 ) {
+            //need all the permissions
+            grantResults.forEach { if (it == PackageManager.PERMISSION_DENIED)
+            return
+            }
             //do whatever when permissions are granted
             if (!isServiceStarted) {
                 startService()
