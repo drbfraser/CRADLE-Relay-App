@@ -35,9 +35,8 @@ import com.cradle.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
-import com.cradle.cradle_vsa_sms_relay.utilities.DateTimeUtil
 import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
@@ -46,12 +45,15 @@ import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.collections.HashMap
+import kotlin.coroutines.CoroutineContext
 
-class SmsService : LifecycleService(),
+class SmsService(override val coroutineContext: CoroutineContext) : LifecycleService(),
     MultiMessageListener,
-    SharedPreferences.OnSharedPreferenceChangeListener {
-    val CHANNEL_ID = "ForegroundServiceChannel"
+    SharedPreferences.OnSharedPreferenceChangeListener, CoroutineScope {
 
+    private val CHANNEL_ID = "ForegroundServiceChannel"
+
+    private val coroutineScope = CoroutineScope(coroutineContext)
     @Inject
     lateinit var referralRepository: ReferralRepository
 
@@ -260,7 +262,7 @@ class SmsService : LifecycleService(),
      */
     fun updateDatabase(smsReferralEntity: SmsReferralEntity, isUploaded: Boolean) {
 
-        MainScope().launch {
+        coroutineScope.launch {
             // Use SmsManager to send delivery confirmation
             //todo get delivery confirmation for us as well
             val smsManager = SmsManager.getDefault()
@@ -282,17 +284,15 @@ class SmsService : LifecycleService(),
 
     private fun constructDeliveryMessage(smsReferralEntity: SmsReferralEntity): String {
         val stringBuilder = StringBuilder()
-        val timeString = DateTimeUtil.convertUnixToTimeString(smsReferralEntity.timeReceived)
-        stringBuilder.append("referral Id: ").append(smsReferralEntity.id)
-            .append("\nTime received: ").append(timeString)
-            .append("\nSuccessfully sent to the health care facility? : ")
+        if (smsReferralEntity.isUploaded){
+            stringBuilder.append("Referral delivered")
+        } else{
+            stringBuilder.append("Referral NOT delivered")
+        }
+        stringBuilder.append("\nID: ").append(smsReferralEntity.id)
 
-        if (smsReferralEntity.isUploaded) {
-            stringBuilder.append("YES\n")
-        } else {
-            stringBuilder.append("NO\n")
-                .append("ERROR: ").append(smsReferralEntity.errorMessage)
-                .append("\n")
+        if (!smsReferralEntity.isUploaded){
+            stringBuilder.append("\nERROR: ").append(smsReferralEntity.errorMessage)
         }
         return stringBuilder.toString()
     }
