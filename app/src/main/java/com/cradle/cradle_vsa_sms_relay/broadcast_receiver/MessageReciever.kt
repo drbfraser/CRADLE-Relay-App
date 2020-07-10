@@ -90,6 +90,7 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
 
     /**
      * Queries sms depending on the time we were listening for sms
+     * //todo need to check for permission
      */
     private fun getUnsentSms(): List<SmsReferralEntity> {
         val sms = ArrayList<SmsReferralEntity>()

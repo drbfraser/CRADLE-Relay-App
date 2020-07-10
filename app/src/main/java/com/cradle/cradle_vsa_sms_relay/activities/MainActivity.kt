@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.PermissionChecker.PERMISSION_DENIED
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -136,7 +137,10 @@ class MainActivity : AppCompatActivity(){
 
     private fun setupStopService() {
         findViewById<MaterialButton>(R.id.btnStopService).setOnClickListener {
-
+            if (!isServiceStarted){
+                Toast.makeText(this,"Service is not running",Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
             val alertDialog = AlertDialog.Builder(this).create()
             val view = layoutInflater.inflate(R.layout.stop_service_dialog,null)
             alertDialog.setView(view)
@@ -206,7 +210,6 @@ class MainActivity : AppCompatActivity(){
                         Manifest.permission.INTERNET,
                         Manifest.permission.READ_SMS,
                         Manifest.permission.RECEIVE_SMS,
-                        Manifest.permission.RECEIVE_MMS,
                         Manifest.permission.SEND_SMS
                     ), 99
                 )
@@ -216,7 +219,7 @@ class MainActivity : AppCompatActivity(){
                         Manifest.permission.INTERNET,
                         Manifest.permission.READ_SMS,
                         Manifest.permission.RECEIVE_SMS,
-                        Manifest.permission.RECEIVE_MMS
+                        Manifest.permission.SEND_SMS
                     ), 99
                 )
             }
@@ -246,7 +249,12 @@ class MainActivity : AppCompatActivity(){
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 99) {
+        if (requestCode == 99 ) {
+            //need all the permissions
+            grantResults.forEach {
+                if (it==PERMISSION_DENIED)
+                    return
+            }
             //do whatever when permissions are granted
             if (!isServiceStarted) {
                 startService()
