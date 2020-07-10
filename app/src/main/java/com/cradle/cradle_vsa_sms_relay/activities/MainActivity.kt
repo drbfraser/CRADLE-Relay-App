@@ -138,7 +138,7 @@ class MainActivity : AppCompatActivity(){
     private fun setupStopService() {
         findViewById<MaterialButton>(R.id.btnStopService).setOnClickListener {
             if (!isServiceStarted){
-                Toast.makeText(this,"Servicce is not running",Toast.LENGTH_LONG).show()
+                Toast.makeText(this,"Service is not running",Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
             val alertDialog = AlertDialog.Builder(this).create()
