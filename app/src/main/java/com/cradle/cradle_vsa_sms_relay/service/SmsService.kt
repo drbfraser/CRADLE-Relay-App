@@ -37,6 +37,8 @@ import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
@@ -47,13 +49,16 @@ import javax.inject.Inject
 import kotlin.collections.HashMap
 import kotlin.coroutines.CoroutineContext
 
-class SmsService(override val coroutineContext: CoroutineContext) : LifecycleService(),
+class SmsService () : LifecycleService(),
     MultiMessageListener,
     SharedPreferences.OnSharedPreferenceChangeListener, CoroutineScope {
 
     private val CHANNEL_ID = "ForegroundServiceChannel"
 
-    private val coroutineScope = CoroutineScope(coroutineContext)
+    private val coroutineScope by lazy { CoroutineScope(coroutineContext) }
+
+    private var coroutineJob : Job = Job()
+    override val coroutineContext: CoroutineContext by lazy { Dispatchers.IO + coroutineJob }
     @Inject
     lateinit var referralRepository: ReferralRepository
 
@@ -305,6 +310,11 @@ class SmsService(override val coroutineContext: CoroutineContext) : LifecycleSer
         stopSelf()
         onDestroy()
         return true
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        coroutineJob.cancel()
     }
 
     private fun createNotificationChannel() {
