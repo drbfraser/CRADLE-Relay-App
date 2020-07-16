@@ -9,18 +9,16 @@ data class SmsReferralEntity(
     @PrimaryKey
     val id: String,
     val jsonData: String?,
-    //unix stamp
+    // unix stamp
     val timeReceived: Long,
     var isUploaded: Boolean,
     val phoneNumber: String?,
     var numberOfTriesUploaded: Int,
-    var errorMessage:String,
-    var deliveryReportSent:Boolean
+    var errorMessage: String,
+    var deliveryReportSent: Boolean
 ) : Serializable, Comparable<SmsReferralEntity> {
-
 
     override fun compareTo(other: SmsReferralEntity): Int {
         return (this.timeReceived - other.timeReceived).toInt()
     }
-
 }

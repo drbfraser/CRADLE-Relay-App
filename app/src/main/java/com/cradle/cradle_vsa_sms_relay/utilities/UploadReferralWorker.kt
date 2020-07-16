@@ -12,16 +12,16 @@ import com.android.volley.VolleyError
 import com.android.volley.toolbox.HttpHeaderParser
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-import com.cradle.cradle_vsa_sms_relay.service.SmsService
-import com.cradle.cradle_vsa_sms_relay.service.SmsService.Companion.TOKEN
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
-import org.json.JSONException
-import org.json.JSONObject
+import com.cradle.cradle_vsa_sms_relay.service.SmsService
+import com.cradle.cradle_vsa_sms_relay.service.SmsService.Companion.TOKEN
 import java.io.UnsupportedEncodingException
 import java.nio.charset.Charset
 import javax.inject.Inject
+import org.json.JSONException
+import org.json.JSONObject
 
 /**
  * we are using work manager to schedule tasks.
@@ -50,15 +50,14 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
         const val Progress = "Progress"
     }
 
-
     override fun doWork(): Result {
         val referralEntities: List<SmsReferralEntity> =
             referralRepository.getAllUnUploadedReferrals()
-        //setProgressAsync(Data.Builder().putInt(Progress, 0).build())
+        // setProgressAsync(Data.Builder().putInt(Progress, 0).build())
         referralEntities.forEach { f ->
             sendtoServer(f)
         }
-        //setProgressAsync(Data.Builder().putInt(Progress, 100).build())
+        // setProgressAsync(Data.Builder().putInt(Progress, 100).build())
 
         // Indicate whether the task finished successfully with the Result
         val x: HashMap<String, Boolean> = HashMap<String, Boolean>()
@@ -76,7 +75,7 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
             smsReferralEntity.errorMessage = "Not a valid JSON format"
             updateDatabase(smsReferralEntity, false)
             e.printStackTrace()
-            //no need to send it to the server, we know its not a valid json
+            // no need to send it to the server, we know its not a valid json
             return
         }
         val jsonObjectRequest: JsonObjectRequest = object : JsonObjectRequest(
@@ -101,7 +100,7 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
                         "No clue whats going on, return message is null"
                     e.printStackTrace()
                 }
-                //giving back extra info based on status code
+                // giving back extra info based on status code
                 if (error.networkResponse != null) {
                     if (error.networkResponse.statusCode >= 500) {
                         smsReferralEntity.errorMessage += " Please make sure referral has all the fields"
@@ -112,7 +111,6 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
                     smsReferralEntity.errorMessage = "Unable to get error message"
                 }
                 updateDatabase(smsReferralEntity, false)
-
             }
         ) {
             /**

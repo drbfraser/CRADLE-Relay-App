@@ -5,13 +5,10 @@ import android.content.Context
 import android.os.Bundle
 import com.cradle.cradle_vsa_sms_relay.R
 
-class StopServiceAlertDialog (val contxt: Context): AlertDialog(contxt) {
+class StopServiceAlertDialog(val contxt: Context) : AlertDialog(contxt) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.stop_service_dialog);
-
+        setContentView(R.layout.stop_service_dialog)
     }
-
-
 }

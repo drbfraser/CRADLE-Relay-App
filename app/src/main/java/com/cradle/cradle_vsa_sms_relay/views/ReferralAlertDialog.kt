@@ -19,9 +19,9 @@ class ReferralAlertDialog(context: Context, var smsReferralEntity: SmsReferralEn
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.referral_alert_dialog);
+        setContentView(R.layout.referral_alert_dialog)
         findViewById<TextView>(R.id.titleAD).setText(smsReferralEntity.id)
-        val msg:String = try {
+        val msg: String = try {
             JSONObject(smsReferralEntity.jsonData).toString(4)
         } catch (e: JSONException) {
             smsReferralEntity.jsonData.toString()
@@ -34,11 +34,11 @@ class ReferralAlertDialog(context: Context, var smsReferralEntity: SmsReferralEn
 
         findViewById<Button>(R.id.sendToServerAdButton).setOnClickListener(sendToServiceButtonClickListener)
         findViewById<Button>(R.id.cancelAdButton).setOnClickListener { this.cancel() }
-        //need to show cardview corners
+        // need to show cardview corners
         window?.setBackgroundDrawableResource(android.R.color.transparent)
     }
 
-    fun setOnSendToServerListener(onClickListener: View.OnClickListener){
+    fun setOnSendToServerListener(onClickListener: View.OnClickListener) {
         this.sendToServiceButtonClickListener = onClickListener
     }
 }

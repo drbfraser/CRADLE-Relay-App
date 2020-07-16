@@ -16,7 +16,7 @@ class DataModule {
     @Provides
     @Singleton
     fun getDatabase(app: MultiDexApplication): ReferralDatabase {
-        //todo create a migration class
+        // todo create a migration class
         return Room.databaseBuilder(
             app.applicationContext, ReferralDatabase::class.java,
             "referral-DB"

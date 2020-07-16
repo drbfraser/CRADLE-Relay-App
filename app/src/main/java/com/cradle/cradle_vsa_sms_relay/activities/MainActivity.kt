@@ -30,12 +30,11 @@ import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
 
-
-class MainActivity : AppCompatActivity(){
+class MainActivity : AppCompatActivity() {
 
     private var isServiceStarted = false
 
-    //our reference to the service
+    // our reference to the service
     var mService: SmsService? = null
 
     @Inject
@@ -52,7 +51,6 @@ class MainActivity : AppCompatActivity(){
             isServiceStarted = true
             mService = binder.service
         }
-
     }
     private lateinit var referralViewModel: ReferralViewModel
 
@@ -65,7 +63,6 @@ class MainActivity : AppCompatActivity(){
         setupStartService()
         setupStopService()
         setuprecyclerview()
-
     }
 
     private fun setupToolBar() {
@@ -134,21 +131,20 @@ class MainActivity : AppCompatActivity(){
         })
     }
 
-
     private fun setupStopService() {
         findViewById<MaterialButton>(R.id.btnStopService).setOnClickListener {
-            if (!isServiceStarted){
-                Toast.makeText(this,"Service is not running",Toast.LENGTH_LONG).show()
+            if (!isServiceStarted) {
+                Toast.makeText(this, "Service is not running", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
             val alertDialog = AlertDialog.Builder(this).create()
-            val view = layoutInflater.inflate(R.layout.stop_service_dialog,null)
+            val view = layoutInflater.inflate(R.layout.stop_service_dialog, null)
             alertDialog.setView(view)
-            view.findViewById<Button>(R.id.yesButton).setOnClickListener{
+            view.findViewById<Button>(R.id.yesButton).setOnClickListener {
                 alertDialog.dismiss()
                 stopSmsService()
             }
-            view.findViewById<Button>(R.id.noButton).setOnClickListener{
+            view.findViewById<Button>(R.id.noButton).setOnClickListener {
                 alertDialog.dismiss()
             }
             alertDialog.show()
@@ -167,7 +163,7 @@ class MainActivity : AppCompatActivity(){
         }
     }
 
-    private fun makeButtonUnclickable(serviceStarted:Boolean){
+    private fun makeButtonUnclickable(serviceStarted: Boolean) {
         val statusTxt = findViewById<TextView>(R.id.serviceStatusTxt)
         val startButton = findViewById<MaterialButton>(R.id.btnStartService)
         val stopButton = findViewById<MaterialButton>(R.id.btnStopService)
@@ -187,17 +183,15 @@ class MainActivity : AppCompatActivity(){
             stopButton.alpha = 1.0F
             stopButton.isClickable = true
         }
-
     }
 
     private fun setupStartService() {
         findViewById<MaterialButton>(R.id.btnStartService).setOnClickListener {
             checkpermissions()
         }
-        //start the service initially
+        // start the service initially
         checkpermissions()
     }
-
 
     private fun checkpermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
@@ -224,11 +218,10 @@ class MainActivity : AppCompatActivity(){
                 )
             }
         } else {
-            //permission already granted
+            // permission already granted
             if (!isServiceStarted) {
                 startService()
             }
-
         }
     }
 
@@ -249,13 +242,13 @@ class MainActivity : AppCompatActivity(){
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 99 ) {
-            //need all the permissions
+        if (requestCode == 99) {
+            // need all the permissions
             grantResults.forEach {
-                if (it==PERMISSION_DENIED)
+                if (it == PERMISSION_DENIED)
                     return
             }
-            //do whatever when permissions are granted
+            // do whatever when permissions are granted
             if (!isServiceStarted) {
                 startService()
             }

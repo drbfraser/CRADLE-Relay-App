@@ -26,9 +26,7 @@ class SmsRecyclerViewAdaper(private val context: Context) :
             LayoutInflater.from(parent.context)
                 .inflate(R.layout.sms_recycler_item_layout, parent, false)
         return SMSViewHolder(v)
-
     }
-
 
     override fun getItemCount(): Int {
         return sms.size
