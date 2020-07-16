@@ -12,12 +12,12 @@ import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.cradle.cradle_vsa_sms_relay.R
+import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.service.SmsService.Companion.TOKEN
 import com.cradle.cradle_vsa_sms_relay.service.SmsService.Companion.USER_ID
-import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.google.android.material.button.MaterialButton
-import org.json.JSONObject
 import javax.inject.Inject
+import org.json.JSONObject
 
 class LauncherActivity : AppCompatActivity() {
     var authServer = "https://cmpt373-lockdown.cs.surrey.sfu.ca/api/user/auth"
@@ -35,7 +35,7 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     private fun checkForAuthentication() {
-        if (sharedPreferences.contains(TOKEN)){
+        if (sharedPreferences.contains(TOKEN)) {
             startActivity()
         }
     }
@@ -46,21 +46,21 @@ class LauncherActivity : AppCompatActivity() {
         val passwordEdittext = findViewById<TextView>(R.id.passwordEditText)
         findViewById<MaterialButton>(R.id.loginButton).setOnClickListener {
             val jsonObject = JSONObject()
-            jsonObject.put("email",emailEditText.text)
-            jsonObject.put("password",passwordEdittext.text)
-            val que= Volley.newRequestQueue(this)
+            jsonObject.put("email", emailEditText.text)
+            jsonObject.put("password", passwordEdittext.text)
+            val que = Volley.newRequestQueue(this)
 
             val progressDialog = ProgressDialog(this)
             progressDialog.setTitle("Logging In")
             progressDialog.setCancelable(false)
             progressDialog.show()
 
-            val jsonObjectRequest = JsonObjectRequest(Request.Method.POST,authServer,
-                jsonObject,Response.Listener { response ->
+            val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, authServer,
+                jsonObject, Response.Listener { response ->
                     val editer = sharedPreferences.edit()
-                    editer.putString(TOKEN,response.getString("token"))
-                    editer.putString(USER_ID,response.getString("userId"))
-                    editer.putString("email",emailEditText.text.toString())
+                    editer.putString(TOKEN, response.getString("token"))
+                    editer.putString(USER_ID, response.getString("userId"))
+                    editer.putString("email", emailEditText.text.toString())
                     editer.apply()
                     progressDialog.cancel()
                     startActivity()
@@ -68,8 +68,8 @@ class LauncherActivity : AppCompatActivity() {
                 Response.ErrorListener { error ->
                     error.printStackTrace()
                     progressDialog.cancel()
-                    findViewById<TextView>(R.id.invalidLoginText).visibility= View.VISIBLE
-                } )
+                    findViewById<TextView>(R.id.invalidLoginText).visibility = View.VISIBLE
+                })
             que.add(jsonObjectRequest)
         }
     }

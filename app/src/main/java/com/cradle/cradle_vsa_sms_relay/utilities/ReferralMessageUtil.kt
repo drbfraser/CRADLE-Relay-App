@@ -40,11 +40,11 @@ object ReferralMessageUtil {
     val REFERRAL_ID_KEY = "31"
 
     fun getReferralJsonFromMessage(message: String?): String {
-        var referralJsonObject:JSONObject;
+        var referralJsonObject: JSONObject
         try {
             referralJsonObject = JSONObject(message)
-        } catch (e:JSONException){
-            return message.toString();
+        } catch (e: JSONException) {
+            return message.toString()
         }
         // remove referralId
         referralJsonObject.remove(REFERRAL_ID_KEY)
@@ -61,8 +61,8 @@ object ReferralMessageUtil {
         try {
             val jsonObject = JSONObject(message)
             return jsonObject.getString(REFERRAL_ID_KEY)
-        } catch (e:JSONException){
-            return "";
+        } catch (e: JSONException) {
+            return ""
         }
     }
 }

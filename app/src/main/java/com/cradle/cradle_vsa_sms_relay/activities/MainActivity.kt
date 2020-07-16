@@ -3,7 +3,11 @@ package com.cradle.cradle_vsa_sms_relay.activities
 import android.Manifest
 import android.app.ActivityOptions
 import android.app.AlertDialog
-import android.content.*
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -11,7 +15,11 @@ import android.os.IBinder
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
-import android.widget.*
+import android.widget.Button
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
@@ -21,7 +29,8 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.cradle.cradle_vsa_sms_relay.*
+import com.cradle.cradle_vsa_sms_relay.R
+import com.cradle.cradle_vsa_sms_relay.SmsRecyclerViewAdaper
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradle.cradle_vsa_sms_relay.service.SmsService
@@ -30,12 +39,12 @@ import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
 
-
-class MainActivity : AppCompatActivity(){
+@Suppress("LargeClass", "TooManyFunctions")
+class MainActivity : AppCompatActivity() {
 
     private var isServiceStarted = false
 
-    //our reference to the service
+    // our reference to the service
     var mService: SmsService? = null
 
     @Inject
@@ -52,7 +61,6 @@ class MainActivity : AppCompatActivity(){
             isServiceStarted = true
             mService = binder.service
         }
-
     }
     private lateinit var referralViewModel: ReferralViewModel
 
@@ -65,7 +73,6 @@ class MainActivity : AppCompatActivity(){
         setupStartService()
         setupStopService()
         setuprecyclerview()
-
     }
 
     private fun setupToolBar() {
@@ -134,21 +141,20 @@ class MainActivity : AppCompatActivity(){
         })
     }
 
-
     private fun setupStopService() {
         findViewById<MaterialButton>(R.id.btnStopService).setOnClickListener {
-            if (!isServiceStarted){
-                Toast.makeText(this,"Service is not running",Toast.LENGTH_LONG).show()
+            if (!isServiceStarted) {
+                Toast.makeText(this, "Service is not running", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
             val alertDialog = AlertDialog.Builder(this).create()
-            val view = layoutInflater.inflate(R.layout.stop_service_dialog,null)
+            val view = layoutInflater.inflate(R.layout.stop_service_dialog, null)
             alertDialog.setView(view)
-            view.findViewById<Button>(R.id.yesButton).setOnClickListener{
+            view.findViewById<Button>(R.id.yesButton).setOnClickListener {
                 alertDialog.dismiss()
                 stopSmsService()
             }
-            view.findViewById<Button>(R.id.noButton).setOnClickListener{
+            view.findViewById<Button>(R.id.noButton).setOnClickListener {
                 alertDialog.dismiss()
             }
             alertDialog.show()
@@ -167,7 +173,7 @@ class MainActivity : AppCompatActivity(){
         }
     }
 
-    private fun makeButtonUnclickable(serviceStarted:Boolean){
+    private fun makeButtonUnclickable(serviceStarted: Boolean) {
         val statusTxt = findViewById<TextView>(R.id.serviceStatusTxt)
         val startButton = findViewById<MaterialButton>(R.id.btnStartService)
         val stopButton = findViewById<MaterialButton>(R.id.btnStopService)
@@ -175,29 +181,27 @@ class MainActivity : AppCompatActivity(){
         if (!serviceStarted) {
             statusTxt.text = getString(R.string.stop_service_status)
             statusTxt.setTextColor(resources.getColor(R.color.redDown))
-            stopButton.alpha = 0.2F
+            stopButton.alpha = ALPHA_LOW
             stopButton.isClickable = false
-            startButton.alpha = 1.0F
+            startButton.alpha = ALPHA_HIGH
             startButton.isClickable = true
         } else {
             statusTxt.text = getString(R.string.start_service_status)
             statusTxt.setTextColor(resources.getColor(R.color.green))
-            startButton.alpha = 0.2F
+            startButton.alpha = ALPHA_LOW
             startButton.isClickable = false
-            stopButton.alpha = 1.0F
+            stopButton.alpha = ALPHA_HIGH
             stopButton.isClickable = true
         }
-
     }
 
     private fun setupStartService() {
         findViewById<MaterialButton>(R.id.btnStartService).setOnClickListener {
             checkpermissions()
         }
-        //start the service initially
+        // start the service initially
         checkpermissions()
     }
-
 
     private fun checkpermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
@@ -211,7 +215,7 @@ class MainActivity : AppCompatActivity(){
                         Manifest.permission.READ_SMS,
                         Manifest.permission.RECEIVE_SMS,
                         Manifest.permission.SEND_SMS
-                    ), 99
+                    ), PERMISSION_REQUEST_CODE
                 )
             } else {
                 ActivityCompat.requestPermissions(
@@ -220,15 +224,14 @@ class MainActivity : AppCompatActivity(){
                         Manifest.permission.READ_SMS,
                         Manifest.permission.RECEIVE_SMS,
                         Manifest.permission.SEND_SMS
-                    ), 99
+                    ), PERMISSION_REQUEST_CODE
                 )
             }
         } else {
-            //permission already granted
+            // permission already granted
             if (!isServiceStarted) {
                 startService()
             }
-
         }
     }
 
@@ -249,13 +252,13 @@ class MainActivity : AppCompatActivity(){
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 99 ) {
-            //need all the permissions
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            // need all the permissions
             grantResults.forEach {
-                if (it==PERMISSION_DENIED)
+                if (it == PERMISSION_DENIED)
                     return
             }
-            //do whatever when permissions are granted
+            // do whatever when permissions are granted
             if (!isServiceStarted) {
                 startService()
             }
@@ -275,5 +278,10 @@ class MainActivity : AppCompatActivity(){
 
     interface AdapterClicker {
         fun onClick(referralEntity: SmsReferralEntity)
+    }
+    companion object {
+        const val ALPHA_LOW = 0.2F
+        const val ALPHA_HIGH = 1.0F
+        const val PERMISSION_REQUEST_CODE = 99
     }
 }

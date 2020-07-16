@@ -11,5 +11,4 @@ class AppModule(val application: MultiDexApplication) {
     @Provides
     @Singleton
     fun provideApplication() = application
-
 }

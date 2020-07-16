@@ -36,28 +36,27 @@ import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import org.json.JSONException
-import org.json.JSONObject
 import java.io.UnsupportedEncodingException
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.collections.HashMap
 import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import org.json.JSONException
+import org.json.JSONObject
 
-class SmsService () : LifecycleService(),
+@Suppress("LargeClass", "TooManyFunctions")
+class SmsService : LifecycleService(),
     MultiMessageListener,
     SharedPreferences.OnSharedPreferenceChangeListener, CoroutineScope {
 
-    private val CHANNEL_ID = "ForegroundServiceChannel"
-
     private val coroutineScope by lazy { CoroutineScope(coroutineContext) }
 
-    private var coroutineJob : Job = Job()
+    private var coroutineJob: Job = Job()
     override val coroutineContext: CoroutineContext by lazy { Dispatchers.IO + coroutineJob }
     @Inject
     lateinit var referralRepository: ReferralRepository
@@ -68,10 +67,10 @@ class SmsService () : LifecycleService(),
     // maain sms broadcast listner
     private var smsReciver: MessageReciever? = null
 
-    //to make sure we dont keep registering listerners
+    // to make sure we dont keep registering listerners
     private var isMessageRecieverRegistered = false
 
-    //handles activity to service interactions
+    // handles activity to service interactions
     private val mBinder: IBinder = MyBinder()
 
     override fun onBind(intent: Intent): IBinder? {
@@ -98,7 +97,6 @@ class SmsService () : LifecycleService(),
                 smsReciver = null
                 this.stopService(intent)
                 this.stopSelf()
-
             } else {
                 if (!isMessageRecieverRegistered) {
                     smsReciver = MessageReciever(this)
@@ -125,8 +123,6 @@ class SmsService () : LifecycleService(),
             }
         }
         return START_STICKY
-
-
     }
 
     /**
@@ -158,12 +154,12 @@ class SmsService () : LifecycleService(),
                 .observeForever(
                     Observer {
                         if (it != null) {
-                            //this is where we notify user but right now dont have a good mechanism
-                            //periodice work state is enqued->running->enque
-                            //since there is no success or failure state we cant let user know
-                            //extactly whats going on.
+                            // this is where we notify user but right now dont have a good mechanism
+                            // periodice work state is enqued->running->enque
+                            // since there is no success or failure state we cant let user know
+                            // extactly whats going on.
                             if (it.state != WorkInfo.State.ENQUEUED) {
-                                //todo figure out what to do :(
+                                // todo figure out what to do :(
                                 //  notificationForReuploading(it, false)
                             } else {
                                 // notificationForReuploading(it, true)
@@ -171,6 +167,7 @@ class SmsService () : LifecycleService(),
                         }
                     })
         } catch (e: NumberFormatException) {
+            e.printStackTrace()
         }
     }
 
@@ -179,7 +176,7 @@ class SmsService () : LifecycleService(),
         val notificationManager =
             NotificationManagerCompat.from(this)
         if (cancel) {
-            notificationManager.cancel(99)
+            notificationManager.cancel(NOTIFICATION_ID)
             return
         }
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
@@ -188,27 +185,26 @@ class SmsService () : LifecycleService(),
             .setContentText("" + cancel)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
-        notificationManager.notify(99, builder.build())
-
+        notificationManager.notify(NOTIFICATION_ID, builder.build())
     }
-
 
     /**
      * uploads [smsReferralEntity] to the server
      * updates the status of the upload to the database.
      */
+    @Suppress("LongMethod", "ComplexMethod")
     fun sendToServer(smsReferralEntity: SmsReferralEntity) {
 
         val token = sharedPreferences.getString(TOKEN, "")
 
-        var json: JSONObject? = null
+        val json: JSONObject?
         try {
-            json = JSONObject(smsReferralEntity.jsonData)
+            json = JSONObject(smsReferralEntity.jsonData.toString())
         } catch (e: JSONException) {
             smsReferralEntity.errorMessage = "Not a valid JSON format"
             updateDatabase(smsReferralEntity, false)
             e.printStackTrace()
-            //no need to send it to the server, we know its not a valid json
+            // no need to send it to the server, we know its not a valid json
             return
         }
         val jsonObjectRequest: JsonObjectRequest = object : JsonObjectRequest(
@@ -226,25 +222,24 @@ class SmsService () : LifecycleService(),
                         )
                         smsReferralEntity.errorMessage = json.toString()
                     } else {
-                        smsReferralEntity.errorMessage+= error.localizedMessage?.toString()
+                        smsReferralEntity.errorMessage += error.localizedMessage?.toString()
                     }
                 } catch (e: UnsupportedEncodingException) {
                     smsReferralEntity.errorMessage =
                         "No clue whats going on, return message is null"
                     e.printStackTrace()
                 }
-                //giving back extra info based on status code
+                // giving back extra info based on status code
                 if (error.networkResponse != null) {
-                    if (error.networkResponse.statusCode >= 500) {
+                    if (error.networkResponse.statusCode >= UploadReferralWorker.INTERNAL_SERVER_ERROR) {
                         smsReferralEntity.errorMessage += " Please make sure referral has all the fields"
-                    } else if (error.networkResponse.statusCode >= 400) {
+                    } else if (error.networkResponse.statusCode >= UploadReferralWorker.CLIENT_ERROR_CODE) {
                         smsReferralEntity.errorMessage += " Invalid request, make sure you have correct credentials"
                     }
                 } else {
                     smsReferralEntity.errorMessage = "Unable to get error message"
                 }
                 updateDatabase(smsReferralEntity, false)
-
             }
         ) {
             /**
@@ -269,7 +264,7 @@ class SmsService () : LifecycleService(),
 
         coroutineScope.launch {
             // Use SmsManager to send delivery confirmation
-            //todo get delivery confirmation for us as well
+            // todo get delivery confirmation for us as well
             val smsManager = SmsManager.getDefault()
             smsManager.sendMultipartTextMessage(
                 smsReferralEntity.phoneNumber, null,
@@ -289,14 +284,14 @@ class SmsService () : LifecycleService(),
 
     private fun constructDeliveryMessage(smsReferralEntity: SmsReferralEntity): String {
         val stringBuilder = StringBuilder()
-        if (smsReferralEntity.isUploaded){
+        if (smsReferralEntity.isUploaded) {
             stringBuilder.append("Referral delivered")
-        } else{
+        } else {
             stringBuilder.append("Referral NOT delivered")
         }
         stringBuilder.append("\nID: ").append(smsReferralEntity.id)
 
-        if (!smsReferralEntity.isUploaded){
+        if (!smsReferralEntity.isUploaded) {
             stringBuilder.append("\nERROR: ").append(smsReferralEntity.errorMessage)
         }
         return stringBuilder.toString()
@@ -305,7 +300,7 @@ class SmsService () : LifecycleService(),
     override fun stopService(name: Intent?): Boolean {
         super.stopService(name)
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
-        //cancel all the calls
+        // cancel all the calls
         WorkManager.getInstance(this).cancelAllWork()
         stopSelf()
         onDestroy()
@@ -332,12 +327,14 @@ class SmsService () : LifecycleService(),
     }
 
     companion object {
-        val STOP_SERVICE = "STOP SERVICE"
-        val START_SERVICE = "START SERVICE"
-        val TOKEN = "token"
-        val AUTH = "Authorization"
-        val USER_ID = "userId"
-        val referralsServerUrl = "https://cmpt373-lockdown.cs.surrey.sfu.ca/api/referral"
+        const val CHANNEL_ID = "ForegroundServiceChannel"
+        const val NOTIFICATION_ID = 99
+        const val STOP_SERVICE = "STOP SERVICE"
+        const val START_SERVICE = "START SERVICE"
+        const val TOKEN = "token"
+        const val AUTH = "Authorization"
+        const val USER_ID = "userId"
+        const val referralsServerUrl = "https://cmpt373-lockdown.cs.surrey.sfu.ca/api/referral"
 
         /**
          * https://stackoverflow.com/questions/6452466/how-to-determine-if-an-android-service-is-running-in-the-foreground
@@ -374,15 +371,15 @@ class SmsService () : LifecycleService(),
         if (key.equals(listKey) ||
             (key.equals(switchkey) && sharedPreferences.getBoolean(switchkey, false))) {
             startReuploadingReferralTask()
-        } else if (key.equals(syncNowKey)){
-            Toast.makeText(this,getString(R.string.service_running_sync_toast), Toast.LENGTH_LONG).show()
+        } else if (key.equals(syncNowKey)) {
+            Toast.makeText(this, getString(R.string.service_running_sync_toast), Toast.LENGTH_LONG).show()
             startReuploadingReferralTask()
         }
     }
 
     inner class MyBinder : Binder() {
         val service: SmsService
-            get() =// clients can call public methods
+            get() = // clients can call public methods
                 this@SmsService
     }
 }
