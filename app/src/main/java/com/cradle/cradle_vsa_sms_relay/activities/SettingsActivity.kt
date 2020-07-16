@@ -67,7 +67,8 @@ class SettingsActivity : AppCompatActivity() {
                 true
             }
             findPreference<Preference>(signoutKey)?.setOnPreferenceClickListener {
-                AlertDialog.Builder(this.requireContext()).setTitle("Sign out?").setMessage("You will be required to sign in again")
+                AlertDialog.Builder(this.requireContext()).setTitle("Sign out?")
+                    .setMessage("You will be required to sign in again")
                     .setPositiveButton("YES") { _, _ -> signout() }
                     .setNegativeButton("NO") { _, _ -> }.show()
                 true
@@ -75,7 +76,9 @@ class SettingsActivity : AppCompatActivity() {
 
             syncNowPref?.setOnPreferenceClickListener {
                 if (!isServiceRunningInForeground(this.requireContext(), SmsService::class.java)) {
-                    Toast.makeText(this.context, getString(R.string.service_not_running_sync_toast), Toast.LENGTH_LONG).show()
+                    Toast.makeText(this.context,
+                        getString(R.string.service_not_running_sync_toast),
+                        Toast.LENGTH_LONG).show()
                 } else {
                     val x = defaultSharedPreferences.getBoolean(syncNowkey, false)
                     // always changing the value so service can listen for sharedpref change

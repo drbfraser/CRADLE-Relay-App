@@ -3,7 +3,7 @@ failFast: false
 
 test-pattern: # Configure exclusions for test sources
   active: true
-  patterns: # Test file regexes
+  patterns: # Test file regexesx
     - '.*/test/.*'
     - '.*Test.kt'
     - '.*Spec.kt'
@@ -22,7 +22,7 @@ test-pattern: # Configure exclusions for test sources
     - 'FunctionMaxLength'
 
 build:
-  maxIssues: 10
+  maxIssues: 0
   weights:
     # complexity: 2
     # LongParameterList: 1
@@ -354,7 +354,7 @@ naming:
 performance:
   active: true
   ArrayPrimitive:
-    active: false
+    active: true
   ForEachOnRange:
     active: true
   SpreadOperator:

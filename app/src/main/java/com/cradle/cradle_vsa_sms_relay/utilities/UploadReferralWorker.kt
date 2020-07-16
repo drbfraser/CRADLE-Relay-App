@@ -68,10 +68,12 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
         return Result.success(Data.Builder().putBoolean("finished", true).build())
     }
 
+    @Suppress("ComplexMethod", "LongMethod")
     private fun sendtoServer(smsReferralEntity: SmsReferralEntity) {
         val json: JSONObject?
         try {
-            json = JSONObject(smsReferralEntity.jsonData)
+
+            json = JSONObject(smsReferralEntity.jsonData.toString())
         } catch (e: JSONException) {
             smsReferralEntity.errorMessage = "Not a valid JSON format"
             updateDatabase(smsReferralEntity, false)
@@ -79,6 +81,7 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
             // no need to send it to the server, we know its not a valid json
             return
         }
+
         val jsonObjectRequest: JsonObjectRequest = object : JsonObjectRequest(
             Method.POST,
             SmsService.referralsServerUrl,

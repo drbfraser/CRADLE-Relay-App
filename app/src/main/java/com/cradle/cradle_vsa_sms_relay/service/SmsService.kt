@@ -54,8 +54,6 @@ class SmsService : LifecycleService(),
     MultiMessageListener,
     SharedPreferences.OnSharedPreferenceChangeListener, CoroutineScope {
 
-    private val CHANNEL_ID = "ForegroundServiceChannel"
-
     private val coroutineScope by lazy { CoroutineScope(coroutineContext) }
 
     private var coroutineJob: Job = Job()
@@ -194,14 +192,14 @@ class SmsService : LifecycleService(),
      * uploads [smsReferralEntity] to the server
      * updates the status of the upload to the database.
      */
-    @Suppress("LongMethod")
+    @Suppress("LongMethod", "ComplexMethod")
     fun sendToServer(smsReferralEntity: SmsReferralEntity) {
 
         val token = sharedPreferences.getString(TOKEN, "")
 
         val json: JSONObject?
         try {
-            json = JSONObject(smsReferralEntity.jsonData)
+            json = JSONObject(smsReferralEntity.jsonData.toString())
         } catch (e: JSONException) {
             smsReferralEntity.errorMessage = "Not a valid JSON format"
             updateDatabase(smsReferralEntity, false)
@@ -233,9 +231,9 @@ class SmsService : LifecycleService(),
                 }
                 // giving back extra info based on status code
                 if (error.networkResponse != null) {
-                    if (error.networkResponse.statusCode >= 500) {
+                    if (error.networkResponse.statusCode >= UploadReferralWorker.INTERNAL_SERVER_ERROR) {
                         smsReferralEntity.errorMessage += " Please make sure referral has all the fields"
-                    } else if (error.networkResponse.statusCode >= 400) {
+                    } else if (error.networkResponse.statusCode >= UploadReferralWorker.CLIENT_ERROR_CODE) {
                         smsReferralEntity.errorMessage += " Invalid request, make sure you have correct credentials"
                     }
                 } else {
@@ -329,6 +327,7 @@ class SmsService : LifecycleService(),
     }
 
     companion object {
+        const val CHANNEL_ID = "ForegroundServiceChannel"
         const val NOTIFICATION_ID = 99
         const val STOP_SERVICE = "STOP SERVICE"
         const val START_SERVICE = "START SERVICE"

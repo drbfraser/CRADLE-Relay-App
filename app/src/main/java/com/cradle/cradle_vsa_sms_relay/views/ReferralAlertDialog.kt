@@ -20,17 +20,18 @@ class ReferralAlertDialog(context: Context, var smsReferralEntity: SmsReferralEn
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.referral_alert_dialog)
-        findViewById<TextView>(R.id.titleAD).setText(smsReferralEntity.id)
+        findViewById<TextView>(R.id.titleAD).text = smsReferralEntity.id
         val msg: String = try {
-            JSONObject(smsReferralEntity.jsonData).toString(4)
+            JSONObject(smsReferralEntity.jsonData.toString()).toString(JSON_INDENT)
         } catch (e: JSONException) {
             smsReferralEntity.jsonData.toString()
         }
-        findViewById<TextView>(R.id.jsonDataAd).setText(msg)
-        findViewById<TextView>(R.id.timeReceivedAd).setText(DateTimeUtil.convertUnixToTimeString(smsReferralEntity.timeReceived))
-        findViewById<TextView>(R.id.numAttemptAd).setText(smsReferralEntity.numberOfTriesUploaded.toString())
-        findViewById<TextView>(R.id.refUploadedAd).setText(smsReferralEntity.isUploaded.toString())
-        findViewById<TextView>(R.id.errorDataAd).setText(smsReferralEntity.errorMessage)
+        findViewById<TextView>(R.id.jsonDataAd).text = msg
+        findViewById<TextView>(R.id.timeReceivedAd).text =
+            DateTimeUtil.convertUnixToTimeString(smsReferralEntity.timeReceived)
+        findViewById<TextView>(R.id.numAttemptAd).text = smsReferralEntity.numberOfTriesUploaded.toString()
+        findViewById<TextView>(R.id.refUploadedAd).text = smsReferralEntity.isUploaded.toString()
+        findViewById<TextView>(R.id.errorDataAd).text = smsReferralEntity.errorMessage
 
         findViewById<Button>(R.id.sendToServerAdButton).setOnClickListener(sendToServiceButtonClickListener)
         findViewById<Button>(R.id.cancelAdButton).setOnClickListener { this.cancel() }
@@ -40,5 +41,8 @@ class ReferralAlertDialog(context: Context, var smsReferralEntity: SmsReferralEn
 
     fun setOnSendToServerListener(onClickListener: View.OnClickListener) {
         this.sendToServiceButtonClickListener = onClickListener
+    }
+    companion object {
+        const val JSON_INDENT = 4
     }
 }
