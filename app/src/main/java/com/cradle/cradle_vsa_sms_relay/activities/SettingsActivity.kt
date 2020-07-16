@@ -7,7 +7,11 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.preference.*
+import androidx.preference.ListPreference
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceManager
+import androidx.preference.SwitchPreferenceCompat
 import com.cradle.cradle_vsa_sms_relay.R
 import com.cradle.cradle_vsa_sms_relay.service.SmsService
 import com.cradle.cradle_vsa_sms_relay.service.SmsService.Companion.isServiceRunningInForeground
@@ -58,11 +62,12 @@ class SettingsActivity : AppCompatActivity() {
             findPreference<SwitchPreferenceCompat>(reuploadSwitchKey)?.setOnPreferenceClickListener { preference ->
                 listPref?.isVisible =
                     preference.sharedPreferences.getBoolean(reuploadSwitchKey, false)
-                syncNowPref?.isVisible = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(reuploadSwitchKey, false)
+                syncNowPref?.isVisible = PreferenceManager.getDefaultSharedPreferences(context)
+                    .getBoolean(reuploadSwitchKey, false)
                 true
             }
             findPreference<Preference>(signoutKey)?.setOnPreferenceClickListener {
-                AlertDialog.Builder(this.context!!).setTitle("Sign out?").setMessage("You will be required to sign in again")
+                AlertDialog.Builder(this.requireContext()).setTitle("Sign out?").setMessage("You will be required to sign in again")
                     .setPositiveButton("YES") { _, _ -> signout() }
                     .setNegativeButton("NO") { _, _ -> }.show()
                 true

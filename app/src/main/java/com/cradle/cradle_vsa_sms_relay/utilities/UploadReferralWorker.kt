@@ -47,7 +47,8 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
     }
 
     companion object {
-        const val Progress = "Progress"
+        const val INTERNAL_SERVER_ERROR = 500
+        const val CLIENT_ERROR_CODE = 400
     }
 
     override fun doWork(): Result {
@@ -102,10 +103,12 @@ class UploadReferralWorker(val appContext: Context, workerParams: WorkerParamete
                 }
                 // giving back extra info based on status code
                 if (error.networkResponse != null) {
-                    if (error.networkResponse.statusCode >= 500) {
+                    if (error.networkResponse.statusCode >= INTERNAL_SERVER_ERROR) {
                         smsReferralEntity.errorMessage += " Please make sure referral has all the fields"
-                    } else if (error.networkResponse.statusCode >= 400) {
-                        smsReferralEntity.errorMessage += " Invalid request, make sure you have correct credentials"
+                    } else {
+                        if (error.networkResponse.statusCode >= CLIENT_ERROR_CODE) {
+                            smsReferralEntity.errorMessage += " Invalid request, make sure you have correct credentials"
+                        }
                     }
                 } else {
                     smsReferralEntity.errorMessage = "Unable to get error message"

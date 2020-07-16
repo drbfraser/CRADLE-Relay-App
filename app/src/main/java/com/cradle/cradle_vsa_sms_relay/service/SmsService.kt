@@ -49,6 +49,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
 
+@Suppress("LargeClass", "TooManyFunctions")
 class SmsService : LifecycleService(),
     MultiMessageListener,
     SharedPreferences.OnSharedPreferenceChangeListener, CoroutineScope {
@@ -177,7 +178,7 @@ class SmsService : LifecycleService(),
         val notificationManager =
             NotificationManagerCompat.from(this)
         if (cancel) {
-            notificationManager.cancel(99)
+            notificationManager.cancel(NOTIFICATION_ID)
             return
         }
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
@@ -186,18 +187,19 @@ class SmsService : LifecycleService(),
             .setContentText("" + cancel)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
-        notificationManager.notify(99, builder.build())
+        notificationManager.notify(NOTIFICATION_ID, builder.build())
     }
 
     /**
      * uploads [smsReferralEntity] to the server
      * updates the status of the upload to the database.
      */
+    @Suppress("LongMethod")
     fun sendToServer(smsReferralEntity: SmsReferralEntity) {
 
         val token = sharedPreferences.getString(TOKEN, "")
 
-        var json: JSONObject? = null
+        val json: JSONObject?
         try {
             json = JSONObject(smsReferralEntity.jsonData)
         } catch (e: JSONException) {
@@ -327,12 +329,13 @@ class SmsService : LifecycleService(),
     }
 
     companion object {
-        val STOP_SERVICE = "STOP SERVICE"
-        val START_SERVICE = "START SERVICE"
-        val TOKEN = "token"
-        val AUTH = "Authorization"
-        val USER_ID = "userId"
-        val referralsServerUrl = "https://cmpt373-lockdown.cs.surrey.sfu.ca/api/referral"
+        const val NOTIFICATION_ID = 99
+        const val STOP_SERVICE = "STOP SERVICE"
+        const val START_SERVICE = "START SERVICE"
+        const val TOKEN = "token"
+        const val AUTH = "Authorization"
+        const val USER_ID = "userId"
+        const val referralsServerUrl = "https://cmpt373-lockdown.cs.surrey.sfu.ca/api/referral"
 
         /**
          * https://stackoverflow.com/questions/6452466/how-to-determine-if-an-android-service-is-running-in-the-foreground

@@ -3,7 +3,11 @@ package com.cradle.cradle_vsa_sms_relay.activities
 import android.Manifest
 import android.app.ActivityOptions
 import android.app.AlertDialog
-import android.content.*
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -11,7 +15,11 @@ import android.os.IBinder
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
-import android.widget.*
+import android.widget.Button
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
@@ -21,7 +29,8 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.cradle.cradle_vsa_sms_relay.*
+import com.cradle.cradle_vsa_sms_relay.R
+import com.cradle.cradle_vsa_sms_relay.SmsRecyclerViewAdaper
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradle.cradle_vsa_sms_relay.service.SmsService
@@ -30,6 +39,7 @@ import com.cradle.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
 
+@Suppress("LargeClass", "TooManyFunctions")
 class MainActivity : AppCompatActivity() {
 
     private var isServiceStarted = false
@@ -171,16 +181,16 @@ class MainActivity : AppCompatActivity() {
         if (!serviceStarted) {
             statusTxt.text = getString(R.string.stop_service_status)
             statusTxt.setTextColor(resources.getColor(R.color.redDown))
-            stopButton.alpha = 0.2F
+            stopButton.alpha = ALPHA_LOW
             stopButton.isClickable = false
-            startButton.alpha = 1.0F
+            startButton.alpha = ALPHA_HIGH
             startButton.isClickable = true
         } else {
             statusTxt.text = getString(R.string.start_service_status)
             statusTxt.setTextColor(resources.getColor(R.color.green))
-            startButton.alpha = 0.2F
+            startButton.alpha = ALPHA_LOW
             startButton.isClickable = false
-            stopButton.alpha = 1.0F
+            stopButton.alpha = ALPHA_HIGH
             stopButton.isClickable = true
         }
     }
@@ -205,7 +215,7 @@ class MainActivity : AppCompatActivity() {
                         Manifest.permission.READ_SMS,
                         Manifest.permission.RECEIVE_SMS,
                         Manifest.permission.SEND_SMS
-                    ), 99
+                    ), PERMISSION_REQUEST_CODE
                 )
             } else {
                 ActivityCompat.requestPermissions(
@@ -214,7 +224,7 @@ class MainActivity : AppCompatActivity() {
                         Manifest.permission.READ_SMS,
                         Manifest.permission.RECEIVE_SMS,
                         Manifest.permission.SEND_SMS
-                    ), 99
+                    ), PERMISSION_REQUEST_CODE
                 )
             }
         } else {
@@ -242,7 +252,7 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 99) {
+        if (requestCode == PERMISSION_REQUEST_CODE) {
             // need all the permissions
             grantResults.forEach {
                 if (it == PERMISSION_DENIED)
@@ -268,5 +278,10 @@ class MainActivity : AppCompatActivity() {
 
     interface AdapterClicker {
         fun onClick(referralEntity: SmsReferralEntity)
+    }
+    companion object {
+        const val ALPHA_LOW = 0.2F
+        const val ALPHA_HIGH = 1.0F
+        const val PERMISSION_REQUEST_CODE = 99
     }
 }

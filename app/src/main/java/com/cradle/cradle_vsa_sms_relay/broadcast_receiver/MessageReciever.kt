@@ -20,10 +20,8 @@ import kotlinx.coroutines.launch
 class MessageReciever(val context: Context) : BroadcastReceiver() {
 
         private var meListener: MultiMessageListener? = null
-        private val LAST_RUN_PREF = "sharedPrefLastTimeServiceRun"
-        private val LAST_RUN_TIME = "lastTimeServiceRun"
 
-        fun bindListener(messageListener: MultiMessageListener) {
+    fun bindListener(messageListener: MultiMessageListener) {
             meListener = messageListener
             // dont want to block main thread
             MainScope().launch(Dispatchers.IO) {
@@ -34,8 +32,8 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
         fun unbindListener() {
             meListener = null
             // update time last listened to sms
-            val sharedPreferences = context.getSharedPreferences(LAST_RUN_PREF, Context.MODE_PRIVATE)
-            sharedPreferences.edit().putLong(LAST_RUN_TIME, System.currentTimeMillis()).apply()
+            val sharedPreferences = context.getSharedPreferences(Companion.LAST_RUN_PREF, Context.MODE_PRIVATE)
+            sharedPreferences.edit().putLong(Companion.LAST_RUN_TIME, System.currentTimeMillis()).apply()
         }
 
     override fun onReceive(p0: Context?, p1: Intent?) {
@@ -94,10 +92,10 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
         val columns =
             arrayOf("address", "body", "date")
         // check when we were last listening for the messages
-        val sharedPreferences = context.getSharedPreferences(LAST_RUN_PREF, Context.MODE_PRIVATE)
+        val sharedPreferences = context.getSharedPreferences(Companion.LAST_RUN_PREF, Context.MODE_PRIVATE)
         // if the app is running the first time, we dont want to start sending a large number of text messages
         // for now we ignore all the past messages on login.
-        val lastRunTime = sharedPreferences.getLong(LAST_RUN_TIME, System.currentTimeMillis())
+        val lastRunTime = sharedPreferences.getLong(Companion.LAST_RUN_TIME, System.currentTimeMillis())
         val whereClause = "date >= $lastRunTime"
         val cursor = context.contentResolver.query(smsURI, columns, whereClause, null, null)
 
@@ -107,9 +105,15 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
             val addresses = cursor.getString((cursor.getColumnIndex("address")))
             val time = cursor.getString((cursor.getColumnIndex("date"))).toLong()
             val id = ReferralMessageUtil.getIdFromMessage(body)
-            sms.add(SmsReferralEntity(id, ReferralMessageUtil.getReferralJsonFromMessage(body), time, false, addresses, 0, "", false))
+            sms.add(SmsReferralEntity(id, ReferralMessageUtil.getReferralJsonFromMessage(body),
+                time, false, addresses, 0, "", false))
         }
         cursor?.close()
         return sms.toList()
+    }
+
+    companion object {
+        private const val LAST_RUN_PREF = "sharedPrefLastTimeServiceRun"
+        private const val LAST_RUN_TIME = "lastTimeServiceRun"
     }
 }
