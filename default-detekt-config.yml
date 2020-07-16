@@ -257,7 +257,7 @@ formatting:
     active: true
     autoCorrect: true
   PackageName:
-    active: true
+    active: false
     autoCorrect: true
   ParameterListWrapping:
     active: true
