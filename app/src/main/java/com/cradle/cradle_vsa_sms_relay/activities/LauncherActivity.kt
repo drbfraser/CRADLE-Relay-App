@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.cradle.cradle_vsa_sms_relay.R
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.network.NetworkManager
-import com.cradle.neptune.network.VolleyRequests.Companion.TOKEN
+import com.cradle.cradle_vsa_sms_relay.network.VolleyRequests.Companion.TOKEN
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
 

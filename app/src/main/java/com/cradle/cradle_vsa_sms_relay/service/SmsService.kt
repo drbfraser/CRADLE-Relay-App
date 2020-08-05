@@ -8,7 +8,6 @@ import android.content.SharedPreferences
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
-import android.telephony.SmsManager
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -18,25 +17,19 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.android.volley.AuthFailureError
-import com.android.volley.Request.Method.POST
-import com.android.volley.Response
-import com.android.volley.VolleyError
-import com.android.volley.toolbox.HttpHeaderParser
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.Volley
 import com.cradle.cradle_vsa_sms_relay.R
 import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradle.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
+import com.cradle.cradle_vsa_sms_relay.network.Failure
+import com.cradle.cradle_vsa_sms_relay.network.NetworkManager
+import com.cradle.cradle_vsa_sms_relay.network.Success
 import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
-import java.io.UnsupportedEncodingException
-import java.nio.charset.Charset
+import com.cradle.cradle_vsa_sms_relay.network.VolleyRequests
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlin.collections.HashMap
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -58,6 +51,9 @@ class SmsService : LifecycleService(),
 
     @Inject
     lateinit var sharedPreferences: SharedPreferences
+
+    @Inject
+    lateinit var networkManager: NetworkManager
 
     // maain sms broadcast listner
     private var smsReciver: MessageReciever? = null
@@ -202,12 +198,8 @@ class SmsService : LifecycleService(),
      */
     @Suppress("LongMethod", "ComplexMethod")
     fun sendToServer(smsReferralEntity: SmsReferralEntity) {
-
-        val token = sharedPreferences.getString(TOKEN, "")
-
-        val json: JSONObject?
         try {
-            json = JSONObject(smsReferralEntity.jsonData.toString())
+            JSONObject(smsReferralEntity.jsonData.toString())
         } catch (e: JSONException) {
             smsReferralEntity.errorMessage = "Not a valid JSON format"
             updateDatabase(smsReferralEntity, false)
@@ -215,60 +207,25 @@ class SmsService : LifecycleService(),
             // no need to send it to the server, we know its not a valid json
             return
         }
-        val jsonObjectRequest: JsonObjectRequest = object : JsonObjectRequest(
-            POST,
-            referralsServerUrl, json, Response.Listener { response: JSONObject? ->
-                updateDatabase(smsReferralEntity, true)
-            },
-            Response.ErrorListener { error: VolleyError ->
-                var json: String? = ""
-                try {
-                    if (error.networkResponse != null) {
-                        json = String(
-                            error.networkResponse.data,
-                            Charset.forName(HttpHeaderParser.parseCharset(error.networkResponse.headers))
-                        )
-                        smsReferralEntity.errorMessage = json.toString()
-                    } else {
-                        smsReferralEntity.errorMessage += error.localizedMessage?.toString()
-                    }
-                } catch (e: UnsupportedEncodingException) {
-                    smsReferralEntity.errorMessage =
-                        "No clue whats going on, return message is null"
-                    e.printStackTrace()
+
+        networkManager.uploadReferral(smsReferralEntity){
+            when(it){
+                is Success -> {
+                    updateDatabase(smsReferralEntity, true)
                 }
-                // giving back extra info based on status code
-                if (error.networkResponse != null) {
-                    if (error.networkResponse.statusCode >= UploadReferralWorker.INTERNAL_SERVER_ERROR) {
-                        smsReferralEntity.errorMessage += " Please make sure referral has all the fields"
-                    } else if (error.networkResponse.statusCode >= UploadReferralWorker.CLIENT_ERROR_CODE) {
-                        smsReferralEntity.errorMessage += " Invalid request, make sure you have correct credentials"
-                    }
-                } else {
-                    smsReferralEntity.errorMessage = "Unable to get error message"
+
+                is Failure -> {
+                    smsReferralEntity.errorMessage = VolleyRequests.getServerErrorMessage(it.value)
+                    updateDatabase(smsReferralEntity,false)
                 }
-                updateDatabase(smsReferralEntity, false)
-            }
-        ) {
-            /**
-             * Passing some request headers
-             */
-            @Throws(AuthFailureError::class)
-            override fun getHeaders(): Map<String, String> {
-                val header: MutableMap<String, String> =
-                    HashMap()
-                header[AUTH] = "Bearer $token"
-                return header
             }
         }
-        val queue = Volley.newRequestQueue(this)
-        queue.add(jsonObjectRequest)
     }
 
     /**
      * updates the room database and notifies [singleMessageListener] of the new message
      */
-    fun updateDatabase(smsReferralEntity: SmsReferralEntity, isUploaded: Boolean) {
+    private fun updateDatabase(smsReferralEntity: SmsReferralEntity, isUploaded: Boolean) {
 
         coroutineScope.launch {
             // Use SmsManager to send delivery confirmation

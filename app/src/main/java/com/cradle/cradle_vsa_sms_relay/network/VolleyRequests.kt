@@ -1,15 +1,11 @@
-package com.cradle.neptune.network
+package com.cradle.cradle_vsa_sms_relay.network
 
 import android.content.SharedPreferences
-import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request.Method.GET
 import com.android.volley.Request.Method.POST
 import com.android.volley.Response
 import com.android.volley.VolleyError
 import com.android.volley.toolbox.JsonObjectRequest
-import com.cradle.cradle_vsa_sms_relay.network.Failure
-import com.cradle.cradle_vsa_sms_relay.network.NetworkResult
-import com.cradle.cradle_vsa_sms_relay.network.Success
 import java.net.ConnectException
 import java.net.UnknownHostException
 import org.json.JSONObject
@@ -20,7 +16,6 @@ import org.json.JSONObject
 class VolleyRequests(private val sharedPreferences: SharedPreferences) {
 
     companion object {
-        private const val FETCH_PATIENTS_TIMEOUT_MS = 150000
         private const val UNAUTHORIZED = 401
         private const val BAD_REQUEST = 400
         private const val NOT_FOUND = 404
@@ -107,14 +102,16 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
         val token = sharedPreferences.getString(TOKEN, "")
         return mapOf(Pair(AUTH, "Bearer $token"))
     }
+}
 
-    /**
-     * policy to wait longer for requests, incase of poor connection
-     */
-    fun getRetryPolicy(): DefaultRetryPolicy {
-        return DefaultRetryPolicy(
-            FETCH_PATIENTS_TIMEOUT_MS, DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-            DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-        )
-    }
+object Urls {
+    private const val base = "10.0.2.2:5000/api"
+    private const val protocol = "https://"
+
+    const val authenticationUrl: String = "$protocol$base/user/auth"
+
+    fun getPatientIdUrl(id:String) = "$protocol$base/patients/$id/info"
+
+    const val readingUrl = "$protocol$base/readings/"
+
 }
