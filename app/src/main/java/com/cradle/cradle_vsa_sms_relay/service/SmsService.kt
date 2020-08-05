@@ -273,12 +273,13 @@ class SmsService : LifecycleService(),
         coroutineScope.launch {
             // Use SmsManager to send delivery confirmation
             // todo get delivery confirmation for us as well
-            val smsManager = SmsManager.getDefault()
-            smsManager.sendMultipartTextMessage(
-                smsReferralEntity.phoneNumber, null,
-                smsManager.divideMessage(constructDeliveryMessage(smsReferralEntity)),
-                null, null
-            )
+            //todo add this back on, messing with maa emulator
+//            val smsManager = SmsManager.getDefault()
+//            smsManager.sendMultipartTextMessage(
+//                smsReferralEntity.phoneNumber, null,
+//                smsManager.divideMessage(constructDeliveryMessage(smsReferralEntity)),
+//                null, null
+//            )
             smsReferralEntity.isUploaded = isUploaded
             smsReferralEntity.deliveryReportSent = true
             if (isUploaded) {
@@ -340,9 +341,6 @@ class SmsService : LifecycleService(),
         const val NOTIFICATION_ID = 99
         const val STOP_SERVICE = "STOP SERVICE"
         const val START_SERVICE = "START SERVICE"
-        const val TOKEN = "token"
-        const val AUTH = "Authorization"
-        const val USER_ID = "userId"
         //todo change this
         const val referralsServerUrl = "http://10.0.2.2:5000/api/referral"
 
