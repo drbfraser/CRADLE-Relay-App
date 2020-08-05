@@ -20,7 +20,7 @@ import javax.inject.Inject
 import org.json.JSONObject
 
 class LauncherActivity : AppCompatActivity() {
-    var authServer = "https://cmpt373-lockdown.cs.surrey.sfu.ca/api/user/auth"
+    var authServer = "http://10.0.2.2:5000/api/user/auth"
 
     @Inject
     lateinit var sharedPreferences: SharedPreferences

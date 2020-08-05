@@ -2,6 +2,7 @@ package com.cradle.cradle_vsa_sms_relay.dagger
 
 import com.cradle.cradle_vsa_sms_relay.activities.LauncherActivity
 import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
+import com.cradle.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
 import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.service.SmsService
 import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
@@ -20,4 +21,5 @@ interface AppComponent {
     fun inject(launcherActivity: LauncherActivity)
     fun inject(referralViewModel: ReferralViewModel)
     fun inject(repository: ReferralRepository)
+    fun inject(messageReciever: MessageReciever)
 }

@@ -5,36 +5,35 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.telephony.SmsMessage
-import com.cradle.cradle_vsa_sms_relay.MultiMessageListener
+import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
+import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradle.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * detects messages receives
  */
-class MessageReciever(val context: Context) : BroadcastReceiver() {
+class MessageReciever(private val context: Context) : BroadcastReceiver() {
 
-        private var meListener: MultiMessageListener? = null
+    @Inject
+    lateinit var repository: ReferralRepository
 
-    fun bindListener(messageListener: MultiMessageListener) {
-            meListener = messageListener
-            // dont want to block main thread
-            MainScope().launch(Dispatchers.IO) {
-                meListener?.messageMapReceived(getUnsentSms())
-            }
-        }
+    init {
+        (context.applicationContext as MyApp).component.inject(this)
 
-        fun unbindListener() {
-            meListener = null
-            // update time last listened to sms
-            val sharedPreferences = context.getSharedPreferences(Companion.LAST_RUN_PREF, Context.MODE_PRIVATE)
-            sharedPreferences.edit().putLong(Companion.LAST_RUN_TIME, System.currentTimeMillis()).apply()
-        }
+    }
+
+    fun updateLastRunPref() {
+        // update time last listened to sms
+        val sharedPreferences = context.getSharedPreferences(LAST_RUN_PREF, Context.MODE_PRIVATE)
+        sharedPreferences.edit().putLong(Companion.LAST_RUN_TIME, System.currentTimeMillis()).apply()
+    }
 
     override fun onReceive(p0: Context?, p1: Intent?) {
         val data = p1?.extras
@@ -67,8 +66,8 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
             val currTime = System.currentTimeMillis()
             smsReferralList.add(
                 SmsReferralEntity(
-                    ReferralMessageUtil.getIdFromMessage(entry.value),
-                    ReferralMessageUtil.getReferralJsonFromMessage(entry.value),
+                    ReferralMessageUtil.getIdFromMessage(entry.value.toString()),
+                    ReferralMessageUtil.getReferralJsonFromMessage(entry.value.toString()),
                     currTime,
                     false,
                     entry.key,
@@ -77,39 +76,46 @@ class MessageReciever(val context: Context) : BroadcastReceiver() {
                 )
             )
         }
-
-        // send it to the service to send to the server
-        meListener?.messageMapReceived(smsReferralList)
+        repository.insertAll(smsReferralList)
     }
 
     /**
      * Queries sms depending on the time we were listening for sms
      * //todo need to check for permission
      */
-    private fun getUnsentSms(): List<SmsReferralEntity> {
-        val sms = ArrayList<SmsReferralEntity>()
-        val smsURI = Uri.parse("content://sms/inbox")
-        val columns =
-            arrayOf("address", "body", "date")
-        // check when we were last listening for the messages
-        val sharedPreferences = context.getSharedPreferences(Companion.LAST_RUN_PREF, Context.MODE_PRIVATE)
-        // if the app is running the first time, we dont want to start sending a large number of text messages
-        // for now we ignore all the past messages on login.
-        val lastRunTime = sharedPreferences.getLong(Companion.LAST_RUN_TIME, System.currentTimeMillis())
-        val whereClause = "date >= $lastRunTime"
-        val cursor = context.contentResolver.query(smsURI, columns, whereClause, null, null)
+    fun getUnsentSms() {
+        GlobalScope.launch(Dispatchers.IO) {
 
-        while (cursor != null && cursor.moveToNext()) {
+            val sms = ArrayList<SmsReferralEntity>()
+            val smsURI = Uri.parse("content://sms/inbox")
+            val columns =
+                arrayOf("address", "body", "date")
+            // check when we were last listening for the messages
+            val sharedPreferences =
+                context.getSharedPreferences(Companion.LAST_RUN_PREF, Context.MODE_PRIVATE)
+            // if the app is running the first time, we dont want to start sending a large number of text messages
+            // for now we ignore all the past messages on login.
+            val lastRunTime =
+                sharedPreferences.getLong(Companion.LAST_RUN_TIME, System.currentTimeMillis())
+            val whereClause = "date >= $lastRunTime"
+            val cursor = context.contentResolver.query(smsURI, columns, whereClause, null, null)
 
-            val body = cursor.getString(cursor.getColumnIndex("body"))
-            val addresses = cursor.getString((cursor.getColumnIndex("address")))
-            val time = cursor.getString((cursor.getColumnIndex("date"))).toLong()
-            val id = ReferralMessageUtil.getIdFromMessage(body)
-            sms.add(SmsReferralEntity(id, ReferralMessageUtil.getReferralJsonFromMessage(body),
-                time, false, addresses, 0, "", false))
+            while (cursor != null && cursor.moveToNext()) {
+
+                val body = cursor.getString(cursor.getColumnIndex("body"))
+                val addresses = cursor.getString((cursor.getColumnIndex("address")))
+                val time = cursor.getString((cursor.getColumnIndex("date"))).toLong()
+                val id = ReferralMessageUtil.getIdFromMessage(body)
+                sms.add(
+                    SmsReferralEntity(
+                        id, ReferralMessageUtil.getReferralJsonFromMessage(body),
+                        time, false, addresses, 0, "", false
+                    )
+                )
+            }
+            cursor?.close()
+            repository.insertAll(sms)
         }
-        cursor?.close()
-        return sms.toList()
     }
 
     companion object {

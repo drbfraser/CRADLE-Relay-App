@@ -37,32 +37,34 @@ object ReferralMessageUtil {
         "30" to "date",
         "31" to "referralId")
 
-    val REFERRAL_ID_KEY = "31"
+    private const val REFERRAL_ID_KEY = "referralId"
 
-    fun getReferralJsonFromMessage(message: String?): String {
-        var referralJsonObject: JSONObject
+    fun getReferralJsonFromMessage(message: String): String {
+        val referralJsonObject: JSONObject
         try {
             referralJsonObject = JSONObject(message)
         } catch (e: JSONException) {
-            return message.toString()
+            return message
         }
         // remove referralId
         referralJsonObject.remove(REFERRAL_ID_KEY)
 
         // replace number keys with string keys
-        var newMessage = referralJsonObject.toString()
-        for (key in referralJsonKeys.keys) {
-            newMessage = newMessage.replace("\"$key\":", "\"" + referralJsonKeys[key] + "\":")
-        }
-        return newMessage
+        //for now, we skipping it, todo work with mobile to get numbers encoding working again
+//        var newMessage = referralJsonObject.toString()
+//        for (key in referralJsonKeys.keys) {
+//            newMessage = newMessage.replace("\"$key\":", "\"" + referralJsonKeys[key] + "\":")
+//        }
+//        return newMessage
+        return referralJsonObject.toString()
     }
 
-    fun getIdFromMessage(message: String?): String {
-        try {
+    fun getIdFromMessage(message: String): String {
+        return try {
             val jsonObject = JSONObject(message)
-            return jsonObject.getString(REFERRAL_ID_KEY)
+            jsonObject.getString(REFERRAL_ID_KEY)
         } catch (e: JSONException) {
-            return ""
+            ""
         }
     }
 }

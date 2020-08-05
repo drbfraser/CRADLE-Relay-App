@@ -1,9 +1,6 @@
 package com.cradle.cradle_vsa_sms_relay.service
 
-import android.app.ActivityManager
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -28,7 +25,6 @@ import com.android.volley.VolleyError
 import com.android.volley.toolbox.HttpHeaderParser
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-import com.cradle.cradle_vsa_sms_relay.MultiMessageListener
 import com.cradle.cradle_vsa_sms_relay.R
 import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradle.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
@@ -51,7 +47,6 @@ import org.json.JSONObject
 
 @Suppress("LargeClass", "TooManyFunctions")
 class SmsService : LifecycleService(),
-    MultiMessageListener,
     SharedPreferences.OnSharedPreferenceChangeListener, CoroutineScope {
 
     private val coroutineScope by lazy { CoroutineScope(coroutineContext) }
@@ -73,6 +68,13 @@ class SmsService : LifecycleService(),
     // handles activity to service interactions
     private val mBinder: IBinder = MyBinder()
 
+    private val referralObserver = Observer<List<SmsReferralEntity>> {referralList->
+
+        referralList.forEach {
+            sendToServer(it)
+        }
+    }
+
     override fun onBind(intent: Intent): IBinder? {
         super.onBind(intent)
         return mBinder
@@ -85,45 +87,51 @@ class SmsService : LifecycleService(),
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-
-        if (intent != null) {
-            val action: String? = intent.action
-            if (action.equals(STOP_SERVICE)) {
-                stopForeground(true)
-                smsReciver?.unbindListener()
-                if (smsReciver != null) {
-                    unregisterReceiver(smsReciver)
-                }
-                smsReciver = null
-                this.stopService(intent)
-                this.stopSelf()
-            } else {
-                if (!isMessageRecieverRegistered) {
-                    smsReciver = MessageReciever(this)
-                    val intentFilter = IntentFilter()
-                    intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
-                    registerReceiver(smsReciver, intentFilter)
-                    smsReciver?.bindListener(this)
-                    isMessageRecieverRegistered = true
-                }
-                val input = intent.getStringExtra("inputExtra")
-                createNotificationChannel()
-                val notificationIntent = Intent(
-                    this,
-                    MainActivity::class.java
-                )
-                val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
-                val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-                    .setContentTitle("SMS RELAY SERVICE RUNNING").setContentText(input)
-                    .setSmallIcon(R.mipmap.ic_launcher).setContentIntent(pendingIntent)
-                    .build()
-                startForeground(1, notification)
-                startReuploadingReferralTask()
-                sharedPreferences.registerOnSharedPreferenceChangeListener(this)
+        if (intent == null){
+            return Service.START_STICKY
+        }
+        val action: String? = intent.action
+        if (action.equals(STOP_SERVICE)) {
+            stopForeground(true)
+            smsReciver?.updateLastRunPref()
+            if (smsReciver != null) {
+                unregisterReceiver(smsReciver)
             }
+            smsReciver = null
+            this.stopService(intent)
+            this.stopSelf()
+        }
+        else {
+            if (!isMessageRecieverRegistered) {
+                smsReciver = MessageReciever(this)
+                val intentFilter = IntentFilter()
+                intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
+                registerReceiver(smsReciver, intentFilter)
+                isMessageRecieverRegistered = true
+                referralRepository.referrals.observe(this,referralObserver)
+                // ask the receiver to fetch all the unsent messages since sms service was last
+                //started
+                smsReciver?.getUnsentSms()
+
+            }
+            val input = intent.getStringExtra("inputExtra")
+            createNotificationChannel()
+            val notificationIntent = Intent(
+                this,
+                MainActivity::class.java
+            )
+            val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
+            val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("SMS RELAY SERVICE RUNNING").setContentText(input)
+                .setSmallIcon(R.mipmap.ic_launcher).setContentIntent(pendingIntent)
+                .build()
+            startForeground(1, notification)
+            startReuploadingReferralTask()
+            sharedPreferences.registerOnSharedPreferenceChangeListener(this)
         }
         return START_STICKY
     }
+
 
     /**
      * This function starts the periodic tasks to reupload all the referrals that failed to upload before.
@@ -300,6 +308,7 @@ class SmsService : LifecycleService(),
     override fun stopService(name: Intent?): Boolean {
         super.stopService(name)
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
+        referralRepository.referrals.removeObserver(referralObserver)
         // cancel all the calls
         WorkManager.getInstance(this).cancelAllWork()
         stopSelf()
@@ -334,7 +343,8 @@ class SmsService : LifecycleService(),
         const val TOKEN = "token"
         const val AUTH = "Authorization"
         const val USER_ID = "userId"
-        const val referralsServerUrl = "https://cmpt373-lockdown.cs.surrey.sfu.ca/api/referral"
+        //todo change this
+        const val referralsServerUrl = "http://10.0.2.2:5000/api/referral"
 
         /**
          * https://stackoverflow.com/questions/6452466/how-to-determine-if-an-android-service-is-running-in-the-foreground
@@ -350,16 +360,6 @@ class SmsService : LifecycleService(),
                 }
             }
             return false
-        }
-    }
-
-    /**
-     * inserts the [smsReferralList] into the Database and sends the list to the server
-     */
-    override fun messageMapReceived(smsReferralList: List<SmsReferralEntity>) {
-        referralRepository.insertAll(smsReferralList)
-        smsReferralList.forEach { f ->
-            sendToServer(f)
         }
     }
 
