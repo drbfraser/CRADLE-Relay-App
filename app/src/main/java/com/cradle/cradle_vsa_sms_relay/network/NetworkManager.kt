@@ -64,7 +64,7 @@ class NetworkManager(application: Application) {
      * returns patient information, given the id
      */
     private fun uploadPatient(patientJSONObject: JSONObject, callback: (NetworkResult<JSONObject>) -> Unit) {
-        val request = volleyRequests.postJsonObjectRequest(Urls.patientUrl, patientJSONObject) { result->
+        val request = volleyRequests.postJsonObjectRequest(Urls.patientUrl, patientJSONObject) { result ->
             when (result) {
                 is Success -> {
                     callback(Success(result.value))
@@ -90,7 +90,7 @@ class NetworkManager(application: Application) {
 
         // parse the patient
         val patientJSONObject = JSONObject(smsReferralEntity.jsonData.toString()).getJSONObject("patient")
-        //parse the reading
+        // parse the reading
         val readingJson = patientJSONObject.getJSONArray("readings")[0] as JSONObject
         val request =
             volleyRequests.postJsonObjectRequest(Urls.readingUrl, readingJson) { result ->

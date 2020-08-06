@@ -38,7 +38,7 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun getNetworkManager(app: MultiDexApplication): NetworkManager{
-       return NetworkManager(app)
+    fun getNetworkManager(app: MultiDexApplication): NetworkManager {
+        return NetworkManager(app)
     }
 }

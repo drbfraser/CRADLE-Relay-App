@@ -11,7 +11,7 @@ import android.content.SharedPreferences
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
+import android.telephony.SmsManager
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -69,9 +69,7 @@ class SmsService : LifecycleService(),
     private val mBinder: IBinder = MyBinder()
 
     private val referralObserver = Observer<List<SmsReferralEntity>> { referralList ->
-
         referralList.forEach {
-            Log.d("bugg","sending to server: "+ it.id)
             sendToServer(it)
         }
     }
@@ -199,7 +197,6 @@ class SmsService : LifecycleService(),
      * updates the status of the upload to the database.
      */
     fun sendToServer(smsReferralEntity: SmsReferralEntity) {
-        Log.d("bugg","I am in send to referral")
         try {
             JSONObject(smsReferralEntity.jsonData.toString())
         } catch (e: JSONException) {
@@ -233,12 +230,12 @@ class SmsService : LifecycleService(),
             // Use SmsManager to send delivery confirmation
             // todo get delivery confirmation for us as well
             // todo add this back on, messing with maa emulator
-//            val smsManager = SmsManager.getDefault()
-//            smsManager.sendMultipartTextMessage(
-//                smsReferralEntity.phoneNumber, null,
-//                smsManager.divideMessage(constructDeliveryMessage(smsReferralEntity)),
-//                null, null
-//            )
+            val smsManager = SmsManager.getDefault()
+            smsManager.sendMultipartTextMessage(
+                smsReferralEntity.phoneNumber, null,
+                smsManager.divideMessage(constructDeliveryMessage(smsReferralEntity)),
+                null, null
+            )
             smsReferralEntity.isUploaded = isUploaded
             smsReferralEntity.deliveryReportSent = true
             if (isUploaded) {
