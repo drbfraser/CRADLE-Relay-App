@@ -21,26 +21,19 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.android.volley.AuthFailureError
-import com.android.volley.Request.Method.POST
-import com.android.volley.Response
-import com.android.volley.VolleyError
-import com.android.volley.toolbox.HttpHeaderParser
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.Volley
-import com.cradle.cradle_vsa_sms_relay.MultiMessageListener
 import com.cradle.cradle_vsa_sms_relay.R
 import com.cradle.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradle.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
 import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
+import com.cradle.cradle_vsa_sms_relay.network.Failure
+import com.cradle.cradle_vsa_sms_relay.network.NetworkManager
+import com.cradle.cradle_vsa_sms_relay.network.Success
+import com.cradle.cradle_vsa_sms_relay.network.VolleyRequests
 import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
-import java.io.UnsupportedEncodingException
-import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlin.collections.HashMap
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +44,6 @@ import org.json.JSONObject
 
 @Suppress("LargeClass", "TooManyFunctions")
 class SmsService : LifecycleService(),
-    MultiMessageListener,
     SharedPreferences.OnSharedPreferenceChangeListener, CoroutineScope {
 
     private val coroutineScope by lazy { CoroutineScope(coroutineContext) }
@@ -64,6 +56,9 @@ class SmsService : LifecycleService(),
     @Inject
     lateinit var sharedPreferences: SharedPreferences
 
+    @Inject
+    lateinit var networkManager: NetworkManager
+
     // maain sms broadcast listner
     private var smsReciver: MessageReciever? = null
 
@@ -72,6 +67,12 @@ class SmsService : LifecycleService(),
 
     // handles activity to service interactions
     private val mBinder: IBinder = MyBinder()
+
+    private val referralObserver = Observer<List<SmsReferralEntity>> { referralList ->
+        referralList.forEach {
+            sendToServer(it)
+        }
+    }
 
     override fun onBind(intent: Intent): IBinder? {
         super.onBind(intent)
@@ -85,42 +86,45 @@ class SmsService : LifecycleService(),
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-
-        if (intent != null) {
-            val action: String? = intent.action
-            if (action.equals(STOP_SERVICE)) {
-                stopForeground(true)
-                smsReciver?.unbindListener()
-                if (smsReciver != null) {
-                    unregisterReceiver(smsReciver)
-                }
-                smsReciver = null
-                this.stopService(intent)
-                this.stopSelf()
-            } else {
-                if (!isMessageRecieverRegistered) {
-                    smsReciver = MessageReciever(this)
-                    val intentFilter = IntentFilter()
-                    intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
-                    registerReceiver(smsReciver, intentFilter)
-                    smsReciver?.bindListener(this)
-                    isMessageRecieverRegistered = true
-                }
-                val input = intent.getStringExtra("inputExtra")
-                createNotificationChannel()
-                val notificationIntent = Intent(
-                    this,
-                    MainActivity::class.java
-                )
-                val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
-                val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-                    .setContentTitle("SMS RELAY SERVICE RUNNING").setContentText(input)
-                    .setSmallIcon(R.mipmap.ic_launcher).setContentIntent(pendingIntent)
-                    .build()
-                startForeground(1, notification)
-                startReuploadingReferralTask()
-                sharedPreferences.registerOnSharedPreferenceChangeListener(this)
+        if (intent == null) {
+            return START_STICKY
+        }
+        val action: String? = intent.action
+        if (action.equals(STOP_SERVICE)) {
+            stopForeground(true)
+            smsReciver?.updateLastRunPref()
+            if (smsReciver != null) {
+                unregisterReceiver(smsReciver)
             }
+            smsReciver = null
+            this.stopService(intent)
+            this.stopSelf()
+        } else {
+            if (!isMessageRecieverRegistered) {
+                smsReciver = MessageReciever(this)
+                val intentFilter = IntentFilter()
+                intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
+                registerReceiver(smsReciver, intentFilter)
+                isMessageRecieverRegistered = true
+                referralRepository.getAllUnUploadedLiveListReferral().observe(this, referralObserver)
+                // ask the receiver to fetch all the unsent messages since sms service was last
+                // started
+                smsReciver?.getUnsentSms()
+            }
+            val input = intent.getStringExtra("inputExtra")
+            createNotificationChannel()
+            val notificationIntent = Intent(
+                this,
+                MainActivity::class.java
+            )
+            val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
+            val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("SMS RELAY SERVICE RUNNING").setContentText(input)
+                .setSmallIcon(R.mipmap.ic_launcher).setContentIntent(pendingIntent)
+                .build()
+            startForeground(1, notification)
+            startReuploadingReferralTask()
+            sharedPreferences.registerOnSharedPreferenceChangeListener(this)
         }
         return START_STICKY
     }
@@ -192,14 +196,9 @@ class SmsService : LifecycleService(),
      * uploads [smsReferralEntity] to the server
      * updates the status of the upload to the database.
      */
-    @Suppress("LongMethod", "ComplexMethod")
     fun sendToServer(smsReferralEntity: SmsReferralEntity) {
-
-        val token = sharedPreferences.getString(TOKEN, "")
-
-        val json: JSONObject?
         try {
-            json = JSONObject(smsReferralEntity.jsonData.toString())
+            JSONObject(smsReferralEntity.jsonData.toString())
         } catch (e: JSONException) {
             smsReferralEntity.errorMessage = "Not a valid JSON format"
             updateDatabase(smsReferralEntity, false)
@@ -207,64 +206,30 @@ class SmsService : LifecycleService(),
             // no need to send it to the server, we know its not a valid json
             return
         }
-        val jsonObjectRequest: JsonObjectRequest = object : JsonObjectRequest(
-            POST,
-            referralsServerUrl, json, Response.Listener { response: JSONObject? ->
-                updateDatabase(smsReferralEntity, true)
-            },
-            Response.ErrorListener { error: VolleyError ->
-                var json: String? = ""
-                try {
-                    if (error.networkResponse != null) {
-                        json = String(
-                            error.networkResponse.data,
-                            Charset.forName(HttpHeaderParser.parseCharset(error.networkResponse.headers))
-                        )
-                        smsReferralEntity.errorMessage = json.toString()
-                    } else {
-                        smsReferralEntity.errorMessage += error.localizedMessage?.toString()
-                    }
-                } catch (e: UnsupportedEncodingException) {
-                    smsReferralEntity.errorMessage =
-                        "No clue whats going on, return message is null"
-                    e.printStackTrace()
+
+        networkManager.uploadReferral(smsReferralEntity) {
+            when (it) {
+                is Success -> {
+                    updateDatabase(smsReferralEntity, true)
                 }
-                // giving back extra info based on status code
-                if (error.networkResponse != null) {
-                    if (error.networkResponse.statusCode >= UploadReferralWorker.INTERNAL_SERVER_ERROR) {
-                        smsReferralEntity.errorMessage += " Please make sure referral has all the fields"
-                    } else if (error.networkResponse.statusCode >= UploadReferralWorker.CLIENT_ERROR_CODE) {
-                        smsReferralEntity.errorMessage += " Invalid request, make sure you have correct credentials"
-                    }
-                } else {
-                    smsReferralEntity.errorMessage = "Unable to get error message"
+
+                is Failure -> {
+                    smsReferralEntity.errorMessage = VolleyRequests.getServerErrorMessage(it.value)
+                    updateDatabase(smsReferralEntity, false)
                 }
-                updateDatabase(smsReferralEntity, false)
-            }
-        ) {
-            /**
-             * Passing some request headers
-             */
-            @Throws(AuthFailureError::class)
-            override fun getHeaders(): Map<String, String> {
-                val header: MutableMap<String, String> =
-                    HashMap()
-                header[AUTH] = "Bearer $token"
-                return header
             }
         }
-        val queue = Volley.newRequestQueue(this)
-        queue.add(jsonObjectRequest)
     }
 
     /**
      * updates the room database and notifies [singleMessageListener] of the new message
      */
-    fun updateDatabase(smsReferralEntity: SmsReferralEntity, isUploaded: Boolean) {
+    private fun updateDatabase(smsReferralEntity: SmsReferralEntity, isUploaded: Boolean) {
 
         coroutineScope.launch {
             // Use SmsManager to send delivery confirmation
             // todo get delivery confirmation for us as well
+            // todo add this back on, messing with maa emulator
             val smsManager = SmsManager.getDefault()
             smsManager.sendMultipartTextMessage(
                 smsReferralEntity.phoneNumber, null,
@@ -300,6 +265,7 @@ class SmsService : LifecycleService(),
     override fun stopService(name: Intent?): Boolean {
         super.stopService(name)
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
+        referralRepository.referrals.removeObserver(referralObserver)
         // cancel all the calls
         WorkManager.getInstance(this).cancelAllWork()
         stopSelf()
@@ -331,10 +297,8 @@ class SmsService : LifecycleService(),
         const val NOTIFICATION_ID = 99
         const val STOP_SERVICE = "STOP SERVICE"
         const val START_SERVICE = "START SERVICE"
-        const val TOKEN = "token"
-        const val AUTH = "Authorization"
-        const val USER_ID = "userId"
-        const val referralsServerUrl = "https://cmpt373-lockdown.cs.surrey.sfu.ca/api/referral"
+        // todo change this
+        const val referralsServerUrl = "http://10.0.2.2:5000/api/referral"
 
         /**
          * https://stackoverflow.com/questions/6452466/how-to-determine-if-an-android-service-is-running-in-the-foreground
@@ -350,16 +314,6 @@ class SmsService : LifecycleService(),
                 }
             }
             return false
-        }
-    }
-
-    /**
-     * inserts the [smsReferralList] into the Database and sends the list to the server
-     */
-    override fun messageMapReceived(smsReferralList: List<SmsReferralEntity>) {
-        referralRepository.insertAll(smsReferralList)
-        smsReferralList.forEach { f ->
-            sendToServer(f)
         }
     }
 

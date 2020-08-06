@@ -41,4 +41,8 @@ class ReferralRepository(database: ReferralDatabase) {
     fun getAllUnUploadedReferrals(): List<SmsReferralEntity> {
         return referralDao.getUnUploadedReferral()
     }
+
+    fun getAllUnUploadedLiveListReferral(): LiveData<List<SmsReferralEntity>> {
+        return referralDao.getUnUploadedReferralLive()
+    }
 }

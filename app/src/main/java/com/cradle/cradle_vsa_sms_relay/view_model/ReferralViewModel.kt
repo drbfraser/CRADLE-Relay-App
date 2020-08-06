@@ -8,7 +8,7 @@ import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import javax.inject.Inject
 
-class ReferralViewModel constructor(application: Application) :
+class ReferralViewModel(application: Application) :
     AndroidViewModel(application) {
 
     @Inject
