@@ -1,5 +1,6 @@
 package com.cradle.cradle_vsa_sms_relay.network
 
+import android.accounts.NetworkErrorException
 import com.android.volley.VolleyError
 
 /**
@@ -30,14 +31,14 @@ fun <T, U> NetworkResult<T>.map(f: (T) -> U): NetworkResult<U> = when (this) {
  */
 fun <T> NetworkResult<T>.unwrap(): T = when (this) {
     is Success -> this.value
-    is Failure -> throw RuntimeException("unwrap of failure network result")
+    is Failure -> throw NetworkErrorException("unwrap of failure network result")
 }
 
 /**
  * Extension function to unwrap the [Failure] result
  */
 fun <T> NetworkResult<T>.unwrapFailure(): VolleyError = when (this) {
-    is Success -> throw RuntimeException("unwrap failure of success network result")
+    is Success -> throw NetworkErrorException("unwrap failure of success network result")
     is Failure -> this.value
 }
 

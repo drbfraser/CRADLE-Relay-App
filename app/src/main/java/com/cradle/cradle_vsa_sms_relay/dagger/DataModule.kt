@@ -6,6 +6,7 @@ import androidx.preference.PreferenceManager
 import androidx.room.Room
 import com.cradle.cradle_vsa_sms_relay.database.ReferralDatabase
 import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
+import com.cradle.cradle_vsa_sms_relay.network.NetworkManager
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -33,5 +34,11 @@ class DataModule {
     @Singleton
     fun getReferralRepository(database: ReferralDatabase): ReferralRepository {
         return ReferralRepository(database)
+    }
+
+    @Provides
+    @Singleton
+    fun getNetworkManager(app: MultiDexApplication): NetworkManager{
+       return NetworkManager(app)
     }
 }

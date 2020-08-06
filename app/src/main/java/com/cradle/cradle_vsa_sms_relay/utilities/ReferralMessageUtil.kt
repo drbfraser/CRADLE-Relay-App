@@ -50,7 +50,7 @@ object ReferralMessageUtil {
         referralJsonObject.remove(REFERRAL_ID_KEY)
 
         // replace number keys with string keys
-        //for now, we skipping it, todo work with mobile to get numbers encoding working again
+        // for now, we skipping it, todo work with mobile to get numbers encoding working again
 //        var newMessage = referralJsonObject.toString()
 //        for (key in referralJsonKeys.keys) {
 //            newMessage = newMessage.replace("\"$key\":", "\"" + referralJsonKeys[key] + "\":")

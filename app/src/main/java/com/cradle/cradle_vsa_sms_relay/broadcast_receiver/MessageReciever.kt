@@ -9,12 +9,12 @@ import com.cradle.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradle.cradle_vsa_sms_relay.database.ReferralRepository
 import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradle.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
+import javax.inject.Inject
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
  * detects messages receives
@@ -26,7 +26,6 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
 
     init {
         (context.applicationContext as MyApp).component.inject(this)
-
     }
 
     fun updateLastRunPref() {

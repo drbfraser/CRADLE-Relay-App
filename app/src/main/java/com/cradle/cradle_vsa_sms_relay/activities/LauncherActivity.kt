@@ -47,9 +47,9 @@ class LauncherActivity : AppCompatActivity() {
             progressDialog.show()
 
             networkManager.authenticateTheUser(emailEditText.text.toString(),
-                passwordEdittext.text.toString()){
+                passwordEdittext.text.toString()) {
                 progressDialog.cancel()
-                if (it){
+                if (it) {
                     startActivity()
                 } else {
                     findViewById<TextView>(R.id.invalidLoginText).visibility = View.VISIBLE

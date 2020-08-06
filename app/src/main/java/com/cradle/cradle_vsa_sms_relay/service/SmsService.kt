@@ -1,6 +1,9 @@
 package com.cradle.cradle_vsa_sms_relay.service
 
-import android.app.*
+import android.app.ActivityManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -8,6 +11,7 @@ import android.content.SharedPreferences
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -26,8 +30,8 @@ import com.cradle.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradle.cradle_vsa_sms_relay.network.Failure
 import com.cradle.cradle_vsa_sms_relay.network.NetworkManager
 import com.cradle.cradle_vsa_sms_relay.network.Success
-import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
 import com.cradle.cradle_vsa_sms_relay.network.VolleyRequests
+import com.cradle.cradle_vsa_sms_relay.utilities.UploadReferralWorker
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
@@ -64,9 +68,10 @@ class SmsService : LifecycleService(),
     // handles activity to service interactions
     private val mBinder: IBinder = MyBinder()
 
-    private val referralObserver = Observer<List<SmsReferralEntity>> {referralList->
+    private val referralObserver = Observer<List<SmsReferralEntity>> { referralList ->
 
         referralList.forEach {
+            Log.d("bugg","sending to server: "+ it.id)
             sendToServer(it)
         }
     }
@@ -83,8 +88,8 @@ class SmsService : LifecycleService(),
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        if (intent == null){
-            return Service.START_STICKY
+        if (intent == null) {
+            return START_STICKY
         }
         val action: String? = intent.action
         if (action.equals(STOP_SERVICE)) {
@@ -96,19 +101,17 @@ class SmsService : LifecycleService(),
             smsReciver = null
             this.stopService(intent)
             this.stopSelf()
-        }
-        else {
+        } else {
             if (!isMessageRecieverRegistered) {
                 smsReciver = MessageReciever(this)
                 val intentFilter = IntentFilter()
                 intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
                 registerReceiver(smsReciver, intentFilter)
                 isMessageRecieverRegistered = true
-                referralRepository.referrals.observe(this,referralObserver)
+                referralRepository.getAllUnUploadedLiveListReferral().observe(this, referralObserver)
                 // ask the receiver to fetch all the unsent messages since sms service was last
-                //started
+                // started
                 smsReciver?.getUnsentSms()
-
             }
             val input = intent.getStringExtra("inputExtra")
             createNotificationChannel()
@@ -127,7 +130,6 @@ class SmsService : LifecycleService(),
         }
         return START_STICKY
     }
-
 
     /**
      * This function starts the periodic tasks to reupload all the referrals that failed to upload before.
@@ -196,8 +198,8 @@ class SmsService : LifecycleService(),
      * uploads [smsReferralEntity] to the server
      * updates the status of the upload to the database.
      */
-    @Suppress("LongMethod", "ComplexMethod")
     fun sendToServer(smsReferralEntity: SmsReferralEntity) {
+        Log.d("bugg","I am in send to referral")
         try {
             JSONObject(smsReferralEntity.jsonData.toString())
         } catch (e: JSONException) {
@@ -208,15 +210,15 @@ class SmsService : LifecycleService(),
             return
         }
 
-        networkManager.uploadReferral(smsReferralEntity){
-            when(it){
+        networkManager.uploadReferral(smsReferralEntity) {
+            when (it) {
                 is Success -> {
                     updateDatabase(smsReferralEntity, true)
                 }
 
                 is Failure -> {
                     smsReferralEntity.errorMessage = VolleyRequests.getServerErrorMessage(it.value)
-                    updateDatabase(smsReferralEntity,false)
+                    updateDatabase(smsReferralEntity, false)
                 }
             }
         }
@@ -230,7 +232,7 @@ class SmsService : LifecycleService(),
         coroutineScope.launch {
             // Use SmsManager to send delivery confirmation
             // todo get delivery confirmation for us as well
-            //todo add this back on, messing with maa emulator
+            // todo add this back on, messing with maa emulator
 //            val smsManager = SmsManager.getDefault()
 //            smsManager.sendMultipartTextMessage(
 //                smsReferralEntity.phoneNumber, null,
@@ -298,7 +300,7 @@ class SmsService : LifecycleService(),
         const val NOTIFICATION_ID = 99
         const val STOP_SERVICE = "STOP SERVICE"
         const val START_SERVICE = "START SERVICE"
-        //todo change this
+        // todo change this
         const val referralsServerUrl = "http://10.0.2.2:5000/api/referral"
 
         /**

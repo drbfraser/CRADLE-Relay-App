@@ -26,6 +26,10 @@ interface DaoAccess {
     @Query("SELECT * FROM SmsReferralEntity")
     fun getAllReferrals(): LiveData<List<SmsReferralEntity>>
 
+
+    @Query("SELECT * FROM SmsReferralEntity where numberOfTriesUploaded  == 0")
+    fun getUnUploadedReferralLive(): LiveData<List<SmsReferralEntity>>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertAllReferral(referralList: List<SmsReferralEntity>)
 }

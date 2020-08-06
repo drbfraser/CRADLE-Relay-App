@@ -6,7 +6,7 @@ import com.android.volley.RequestQueue
 import com.android.volley.toolbox.Volley
 
 /**
- * class to hold one instance of the queue throughout the application. used with Dagger
+ * class to hold one instance of the queue throughout the application.
  */
 class VolleyRequestQueue(application: Application) {
 

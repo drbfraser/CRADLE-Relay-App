@@ -23,7 +23,7 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
         const val TOKEN = "token"
         private const val AUTH = "Authorization"
 
-
+        @Suppress("ComplexMethod")
         fun getServerErrorMessage(error: VolleyError): String {
             var message = "Unable to upload to server (network error)"
             when {
@@ -96,8 +96,6 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
         }
     }
 
-
-
     private fun getHttpHeaders(): Map<String, String>? {
         val token = sharedPreferences.getString(TOKEN, "")
         return mapOf(Pair(AUTH, "Bearer $token"))
@@ -106,12 +104,11 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
 
 object Urls {
     private const val base = "10.0.2.2:5000/api"
-    private const val protocol = "https://"
+    private const val protocol = "http://"
 
     const val authenticationUrl: String = "$protocol$base/user/auth"
 
-    fun getPatientIdUrl(id:String) = "$protocol$base/patients/$id/info"
+    const val patientUrl = "$protocol$base/patients"
 
-    const val readingUrl = "$protocol$base/readings/"
-
+    const val readingUrl = "$protocol$base/readings"
 }
