@@ -103,7 +103,7 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
 }
 
 object Urls {
-    private const val base = "10.0.2.2:5000/api"
+    private const val base = "cradle.eastus.cloudapp.azure.com/api"
     private const val protocol = "http://"
 
     const val authenticationUrl: String = "$protocol$base/user/auth"
