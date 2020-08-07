@@ -229,14 +229,13 @@ class SmsService : LifecycleService(),
         coroutineScope.launch {
             // Use SmsManager to send delivery confirmation
             // todo get delivery confirmation for us as well
-            // todo add this back on, messing with maa emulator
+            smsReferralEntity.isUploaded = isUploaded
             val smsManager = SmsManager.getDefault()
             smsManager.sendMultipartTextMessage(
                 smsReferralEntity.phoneNumber, null,
                 smsManager.divideMessage(constructDeliveryMessage(smsReferralEntity)),
                 null, null
             )
-            smsReferralEntity.isUploaded = isUploaded
             smsReferralEntity.deliveryReportSent = true
             if (isUploaded) {
                 // we do not need to show anymore errors for this referral.

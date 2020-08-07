@@ -112,7 +112,9 @@ class NetworkManager(application: Application) {
      * @param callback callback for the caller
      */
     fun uploadReferral(smsReferralEntity: SmsReferralEntity, callback: (NetworkResult<JSONObject>) -> Unit) {
-        val patientJSONObject = JSONObject(smsReferralEntity.jsonData.toString()).getJSONObject("patient")
+        val patientJSONObject = JSONObject(smsReferralEntity.jsonData.toString())
+            .getJSONObject("patient")
+
         uploadPatient(patientJSONObject) { result ->
             when (result) {
                 is Success -> {
