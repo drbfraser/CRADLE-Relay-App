@@ -21,6 +21,10 @@ build:
   tags:
     - build
 
+static_analysis:
+  stage: build
+  script:
+    - ./gradlew detekt
 # Run local unit tests
 test:
   stage: test
