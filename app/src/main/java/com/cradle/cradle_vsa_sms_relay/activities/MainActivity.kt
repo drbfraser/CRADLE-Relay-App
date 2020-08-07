@@ -126,8 +126,7 @@ class MainActivity : AppCompatActivity() {
                 referralAlertDialog.show()
             }
         })
-        referralViewModel =
-            ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application)).get(
+        referralViewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application)).get(
                 ReferralViewModel::class.java
             )
         referralViewModel.getAllReferrals().observe(this, Observer { referrals ->
