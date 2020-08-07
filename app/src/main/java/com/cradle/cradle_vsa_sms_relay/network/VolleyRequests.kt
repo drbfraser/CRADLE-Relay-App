@@ -47,7 +47,7 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
                         NOT_FOUND -> "Server rejected URL; check server URL in settings."
                         CONFLICT -> "The reading or patient might already exists, check global patients"
                         else -> "Server rejected upload; check server URL in settings." +
-                            " Code " + error.networkResponse.statusCode
+                                " Code " + error.networkResponse.statusCode
                     }
                 }
             }

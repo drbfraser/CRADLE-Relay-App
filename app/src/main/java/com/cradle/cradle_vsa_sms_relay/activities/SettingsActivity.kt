@@ -50,7 +50,8 @@ class SettingsActivity : AppCompatActivity() {
             val reuploadSwitchKey = getString(R.string.reuploadSwitchPrefKey)
             val signoutKey = getString(R.string.signout)
             val syncNowkey = getString(R.string.sync_now_key)
-            val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.context)
+            val defaultSharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(this.context)
             // show/ hide pref on default
             val syncNowPref = findPreference<Preference>(syncNowkey)
             syncNowPref?.isVisible = defaultSharedPreferences.getBoolean(reuploadSwitchKey, true)
@@ -76,9 +77,11 @@ class SettingsActivity : AppCompatActivity() {
 
             syncNowPref?.setOnPreferenceClickListener {
                 if (!isServiceRunningInForeground(this.requireContext(), SmsService::class.java)) {
-                    Toast.makeText(this.context,
+                    Toast.makeText(
+                        this.context,
                         getString(R.string.service_not_running_sync_toast),
-                        Toast.LENGTH_LONG).show()
+                        Toast.LENGTH_LONG
+                    ).show()
                 } else {
                     val x = defaultSharedPreferences.getBoolean(syncNowkey, false)
                     // always changing the value so service can listen for sharedpref change
@@ -89,11 +92,15 @@ class SettingsActivity : AppCompatActivity() {
                 true
             }
         }
+
         fun signout() {
             PreferenceManager.getDefaultSharedPreferences(this.context).edit().clear().apply()
             // stop the service if running.
-            if (isServiceRunningInForeground(this.requireContext(),
-                    SmsService::class.java)) {
+            if (isServiceRunningInForeground(
+                    this.requireContext(),
+                    SmsService::class.java
+                )
+            ) {
                 val intent1 = Intent(context, SmsService::class.java)
                 intent1.action = SmsService.STOP_SERVICE
                 context?.let { ContextCompat.startForegroundService(it, intent1) }

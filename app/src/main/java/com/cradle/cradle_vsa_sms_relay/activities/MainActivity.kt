@@ -126,7 +126,8 @@ class MainActivity : AppCompatActivity() {
                 referralAlertDialog.show()
             }
         })
-        referralViewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application)).get(
+        referralViewModel =
+            ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application)).get(
                 ReferralViewModel::class.java
             )
         referralViewModel.getAllReferrals().observe(this, Observer { referrals ->
@@ -278,6 +279,7 @@ class MainActivity : AppCompatActivity() {
     interface AdapterClicker {
         fun onClick(referralEntity: SmsReferralEntity)
     }
+
     companion object {
         const val ALPHA_LOW = 0.2F
         const val ALPHA_HIGH = 1.0F

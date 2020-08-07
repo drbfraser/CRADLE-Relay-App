@@ -34,10 +34,10 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnStopService"
             android:layout_width="0dp"
-            android:alpha=".2"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="16dp"
+            android:alpha=".2"
             android:text="@string/stop_service"
             android:textColor="@color/redDown"
             app:backgroundTint="@color/red_faded"
@@ -75,6 +75,7 @@
             app:layout_constraintEnd_toEndOf="@+id/btnStopService"
             app:layout_constraintStart_toStartOf="@+id/btnStartService"
             app:layout_constraintTop_toBottomOf="@id/btnStartService" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/messageRecyclerview"
             android:layout_width="0dp"

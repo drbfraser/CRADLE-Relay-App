@@ -50,6 +50,7 @@ class SmsService : LifecycleService(),
 
     private var coroutineJob: Job = Job()
     override val coroutineContext: CoroutineContext by lazy { Dispatchers.IO + coroutineJob }
+
     @Inject
     lateinit var referralRepository: ReferralRepository
 
@@ -106,7 +107,8 @@ class SmsService : LifecycleService(),
                 intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
                 registerReceiver(smsReciver, intentFilter)
                 isMessageRecieverRegistered = true
-                referralRepository.getAllUnUploadedLiveListReferral().observe(this, referralObserver)
+                referralRepository.getAllUnUploadedLiveListReferral()
+                    .observe(this, referralObserver)
                 // ask the receiver to fetch all the unsent messages since sms service was last
                 // started
                 smsReciver?.getUnsentSms()
@@ -296,6 +298,7 @@ class SmsService : LifecycleService(),
         const val NOTIFICATION_ID = 99
         const val STOP_SERVICE = "STOP SERVICE"
         const val START_SERVICE = "START SERVICE"
+
         // todo change this
         const val referralsServerUrl = "http://10.0.2.2:5000/api/referral"
 
@@ -322,10 +325,12 @@ class SmsService : LifecycleService(),
         val syncNowKey = getString(R.string.sync_now_key)
         // restart sending service if time to send changes or the decision to send changes.
         if (key.equals(listKey) ||
-            (key.equals(switchkey) && sharedPreferences.getBoolean(switchkey, false))) {
+            (key.equals(switchkey) && sharedPreferences.getBoolean(switchkey, false))
+        ) {
             startReuploadingReferralTask()
         } else if (key.equals(syncNowKey)) {
-            Toast.makeText(this, getString(R.string.service_running_sync_toast), Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.service_running_sync_toast), Toast.LENGTH_LONG)
+                .show()
             startReuploadingReferralTask()
         }
     }
