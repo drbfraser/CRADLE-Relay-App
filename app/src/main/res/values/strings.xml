@@ -34,4 +34,5 @@
     <string name="start_service_status">The service is running, please DO NOT STOP it unless necessary</string>
     <string name="stop_service_dialog_title">Are you sure you want to STOP the service?</string>
     <string name="stop_service_dialog_body">This application will not be able to detect any text messages or uploaded them to the server</string>
+    <string name="click_to_see_full_referral"><u>Click to see full referral</u></string>
 </resources>

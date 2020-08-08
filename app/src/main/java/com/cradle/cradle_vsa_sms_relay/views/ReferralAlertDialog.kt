@@ -26,7 +26,9 @@ class ReferralAlertDialog(context: Context, var smsReferralEntity: SmsReferralEn
         } catch (e: JSONException) {
             smsReferralEntity.jsonData.toString()
         }
-        findViewById<TextView>(R.id.jsonDataAd).text = msg
+        findViewById<TextView>(R.id.jsonDataAd).setOnClickListener {
+            (it as TextView).text = msg
+        }
         findViewById<TextView>(R.id.timeReceivedAd).text =
             DateTimeUtil.convertUnixToTimeString(smsReferralEntity.timeReceived)
         findViewById<TextView>(R.id.numAttemptAd).text =
