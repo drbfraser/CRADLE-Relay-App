@@ -279,6 +279,7 @@ class MainActivity : AppCompatActivity() {
     interface AdapterClicker {
         fun onClick(referralEntity: SmsReferralEntity)
     }
+
     companion object {
         const val ALPHA_LOW = 0.2F
         const val ALPHA_HIGH = 1.0F

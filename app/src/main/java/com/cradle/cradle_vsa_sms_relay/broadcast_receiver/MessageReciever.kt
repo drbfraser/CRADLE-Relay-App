@@ -31,7 +31,8 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
     fun updateLastRunPref() {
         // update time last listened to sms
         val sharedPreferences = context.getSharedPreferences(LAST_RUN_PREF, Context.MODE_PRIVATE)
-        sharedPreferences.edit().putLong(Companion.LAST_RUN_TIME, System.currentTimeMillis()).apply()
+        sharedPreferences.edit().putLong(Companion.LAST_RUN_TIME, System.currentTimeMillis())
+            .apply()
     }
 
     override fun onReceive(p0: Context?, p1: Intent?) {

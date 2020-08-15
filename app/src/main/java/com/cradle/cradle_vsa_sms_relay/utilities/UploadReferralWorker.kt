@@ -30,8 +30,10 @@ class UploadReferralWorker(appContext: Context, workerParams: WorkerParameters) 
 
     @Inject
     lateinit var referralRepository: ReferralRepository
+
     @Inject
     lateinit var sharedPreferences: SharedPreferences
+
     @Inject
     lateinit var networkManager: NetworkManager
 

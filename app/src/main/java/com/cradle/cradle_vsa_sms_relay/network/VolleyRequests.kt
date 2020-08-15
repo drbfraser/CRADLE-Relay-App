@@ -42,12 +42,12 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
                 }
                 error.networkResponse != null -> {
                     message = when (error.networkResponse.statusCode) {
-                        UNAUTHORIZED -> "Server rejected credentials; check they are correct in settings."
-                        BAD_REQUEST -> "Server rejected upload request; check server URL in settings."
-                        NOT_FOUND -> "Server rejected URL; check server URL in settings."
-                        CONFLICT -> "The reading or patient might already exists, check global patients"
-                        else -> "Server rejected upload; check server URL in settings." +
-                            " Code " + error.networkResponse.statusCode
+                        UNAUTHORIZED -> "Server rejected credentials; Log in with correct credentials"
+                        BAD_REQUEST -> "Server rejected upload request; make sure referral is correctly formatted"
+                        NOT_FOUND -> "Server rejected URL; Contact the developers for support"
+                        CONFLICT -> "The referral already exists in the server"
+                        else -> "Server rejected upload; Contact developers." +
+                                " Code " + error.networkResponse.statusCode
                     }
                 }
             }

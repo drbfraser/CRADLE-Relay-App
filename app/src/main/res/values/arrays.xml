@@ -1,11 +1,12 @@
 <resources>
     <!-- Reply Preference -->
-    <string-array name = "syncTimesInMinutes">
+    <string-array name="syncTimesInMinutes">
         <item>15 minutes</item>
         <item>30 minutes</item>
         <item>1 Hour</item>
         <item>2 Hours</item>
-    </string-array>Z
+    </string-array>
+    Z
 
     <string-array name="syncTimeValue">
         <item>15</item>

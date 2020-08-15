@@ -18,6 +18,7 @@ class LauncherActivity : AppCompatActivity() {
 
     @Inject
     lateinit var sharedPreferences: SharedPreferences
+
     @Inject
     lateinit var networkManager: NetworkManager
 
@@ -46,8 +47,10 @@ class LauncherActivity : AppCompatActivity() {
             progressDialog.setCancelable(false)
             progressDialog.show()
 
-            networkManager.authenticateTheUser(emailEditText.text.toString(),
-                passwordEdittext.text.toString()) {
+            networkManager.authenticateTheUser(
+                emailEditText.text.toString(),
+                passwordEdittext.text.toString()
+            ) {
                 progressDialog.cancel()
                 if (it) {
                     startActivity()

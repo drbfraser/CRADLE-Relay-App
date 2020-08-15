@@ -29,7 +29,8 @@ class ReferralRepository(database: ReferralDatabase) {
     }
 
     fun update(smsReferralEntity: SmsReferralEntity) {
-        MainScope().launch(IO) { referralDao.updateSmsReferral(smsReferralEntity)
+        MainScope().launch(IO) {
+            referralDao.updateSmsReferral(smsReferralEntity)
         }
     }
 
@@ -38,6 +39,7 @@ class ReferralRepository(database: ReferralDatabase) {
             referralDao.deleteSmsReferral(smsReferralEntity)
         }
     }
+
     fun getAllUnUploadedReferrals(): List<SmsReferralEntity> {
         return referralDao.getUnUploadedReferral()
     }

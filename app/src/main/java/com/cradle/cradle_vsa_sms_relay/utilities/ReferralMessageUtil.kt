@@ -4,7 +4,8 @@ import org.json.JSONException
 import org.json.JSONObject
 
 object ReferralMessageUtil {
-    val referralJsonKeys = mapOf("0" to "patient",
+    val referralJsonKeys = mapOf(
+        "0" to "patient",
         "1" to "patientId",
         "2" to "patientName",
         "3" to "dob",
@@ -35,7 +36,8 @@ object ReferralMessageUtil {
         "28" to "comment",
         "29" to "healthFacilityName",
         "30" to "date",
-        "31" to "referralId")
+        "31" to "referralId"
+    )
 
     private const val REFERRAL_ID_KEY = "referralId"
 
