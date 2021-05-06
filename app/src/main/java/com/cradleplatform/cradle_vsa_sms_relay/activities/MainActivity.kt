@@ -1,4 +1,4 @@
-package com.cradleplatform.cradle_vsa_sms_relay.activities
+package com.cradleplatform.smsrelay.activities
 
 import android.Manifest
 import android.app.ActivityOptions
@@ -29,13 +29,13 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.cradleplatform.cradle_vsa_sms_relay.R
-import com.cradleplatform.cradle_vsa_sms_relay.SmsRecyclerViewAdaper
-import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
-import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
-import com.cradleplatform.cradle_vsa_sms_relay.view_model.ReferralViewModel
-import com.cradleplatform.cradle_vsa_sms_relay.views.ReferralAlertDialog
+import com.cradleplatform.smsrelay.R
+import com.cradleplatform.smsrelay.SmsRecyclerViewAdaper
+import com.cradleplatform.smsrelay.dagger.MyApp
+import com.cradleplatform.smsrelay.database.SmsReferralEntity
+import com.cradleplatform.smsrelay.service.SmsService
+import com.cradleplatform.smsrelay.view_model.ReferralViewModel
+import com.cradleplatform.smsrelay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
 

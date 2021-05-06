@@ -1,4 +1,4 @@
-package com.cradleplatform.cradle_vsa_sms_relay.utilities
+package com.cradleplatform.smsrelay.utilities
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -6,13 +6,13 @@ import android.os.AsyncTask
 import androidx.work.Data
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.database.ReferralRepository
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
-import com.cradleplatform.cradle_vsa_sms_relay.network.Failure
-import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
-import com.cradleplatform.cradle_vsa_sms_relay.network.Success
-import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests
+import com.cradleplatform.smsrelay.dagger.MyApp
+import com.cradleplatform.smsrelay.database.ReferralRepository
+import com.cradleplatform.smsrelay.database.SmsReferralEntity
+import com.cradleplatform.smsrelay.network.Failure
+import com.cradleplatform.smsrelay.network.NetworkManager
+import com.cradleplatform.smsrelay.network.Success
+import com.cradleplatform.smsrelay.network.VolleyRequests
 import javax.inject.Inject
 import org.json.JSONException
 import org.json.JSONObject

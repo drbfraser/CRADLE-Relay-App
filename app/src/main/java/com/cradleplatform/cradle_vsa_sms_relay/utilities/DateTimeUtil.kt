@@ -1,4 +1,4 @@
-package com.cradleplatform.cradle_vsa_sms_relay.utilities
+package com.cradleplatform.smsrelay.utilities
 
 import java.text.SimpleDateFormat
 import java.util.Calendar

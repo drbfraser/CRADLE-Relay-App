@@ -1,4 +1,4 @@
-package com.cradleplatform.cradle_vsa_sms_relay.dagger
+package com.cradleplatform.smsrelay.dagger
 
 import androidx.multidex.MultiDexApplication
 

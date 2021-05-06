@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:955083530878:android:ec8b905f212e6f2b9d2e2f",
         "android_client_info": {
-          "package_name": "com.cradleplatform.cradle_vsa_sms_relay"
+          "package_name": "com.cradleplatform.smsrelay"
         }
       },
       "oauth_client": [

@@ -1,4 +1,4 @@
-package com.cradleplatform.cradle_vsa_sms_relay.network
+package com.cradleplatform.smsrelay.network
 
 import android.accounts.NetworkErrorException
 import com.android.volley.VolleyError

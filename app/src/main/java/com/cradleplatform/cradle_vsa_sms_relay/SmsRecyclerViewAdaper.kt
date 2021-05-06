@@ -1,4 +1,4 @@
-package com.cradleplatform.cradle_vsa_sms_relay
+package com.cradleplatform.smsrelay
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -10,9 +10,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
-import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
-import com.cradleplatform.cradle_vsa_sms_relay.utilities.DateTimeUtil
+import com.cradleplatform.smsrelay.activities.MainActivity
+import com.cradleplatform.smsrelay.database.SmsReferralEntity
+import com.cradleplatform.smsrelay.utilities.DateTimeUtil
 
 class SmsRecyclerViewAdaper(private val context: Context) :
     RecyclerView.Adapter<SmsRecyclerViewAdaper.SMSViewHolder>() {

@@ -1,4 +1,4 @@
-package com.cradleplatform.cradle_vsa_sms_relay.activities
+package com.cradleplatform.smsrelay.activities
 
 import android.app.ProgressDialog
 import android.content.Intent
@@ -7,10 +7,10 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.cradleplatform.cradle_vsa_sms_relay.R
-import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
-import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests.Companion.TOKEN
+import com.cradleplatform.smsrelay.R
+import com.cradleplatform.smsrelay.dagger.MyApp
+import com.cradleplatform.smsrelay.network.NetworkManager
+import com.cradleplatform.smsrelay.network.VolleyRequests.Companion.TOKEN
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
 

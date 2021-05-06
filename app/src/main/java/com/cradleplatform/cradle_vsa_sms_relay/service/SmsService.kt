@@ -1,4 +1,4 @@
-package com.cradleplatform.cradle_vsa_sms_relay.service
+package com.cradleplatform.smsrelay.service
 
 import android.app.ActivityManager
 import android.app.NotificationChannel
@@ -21,17 +21,17 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.cradleplatform.cradle_vsa_sms_relay.R
-import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
-import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
-import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.database.ReferralRepository
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
-import com.cradleplatform.cradle_vsa_sms_relay.network.Failure
-import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
-import com.cradleplatform.cradle_vsa_sms_relay.network.Success
-import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests
-import com.cradleplatform.cradle_vsa_sms_relay.utilities.UploadReferralWorker
+import com.cradleplatform.smsrelay.R
+import com.cradleplatform.smsrelay.activities.MainActivity
+import com.cradleplatform.smsrelay.broadcast_receiver.MessageReciever
+import com.cradleplatform.smsrelay.dagger.MyApp
+import com.cradleplatform.smsrelay.database.ReferralRepository
+import com.cradleplatform.smsrelay.database.SmsReferralEntity
+import com.cradleplatform.smsrelay.network.Failure
+import com.cradleplatform.smsrelay.network.NetworkManager
+import com.cradleplatform.smsrelay.network.Success
+import com.cradleplatform.smsrelay.network.VolleyRequests
+import com.cradleplatform.smsrelay.utilities.UploadReferralWorker
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext

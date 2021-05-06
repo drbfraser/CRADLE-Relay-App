@@ -1,4 +1,4 @@
-package com.cradleplatform.cradle_vsa_sms_relay.utilities
+package com.cradleplatform.smsrelay.utilities
 
 import org.json.JSONException
 import org.json.JSONObject

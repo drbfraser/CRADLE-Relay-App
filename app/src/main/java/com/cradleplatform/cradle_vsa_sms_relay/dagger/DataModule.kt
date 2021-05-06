@@ -1,12 +1,12 @@
-package com.cradleplatform.cradle_vsa_sms_relay.dagger
+package com.cradleplatform.smsrelay.dagger
 
 import android.content.SharedPreferences
 import androidx.multidex.MultiDexApplication
 import androidx.preference.PreferenceManager
 import androidx.room.Room
-import com.cradleplatform.cradle_vsa_sms_relay.database.ReferralDatabase
-import com.cradleplatform.cradle_vsa_sms_relay.database.ReferralRepository
-import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
+import com.cradleplatform.smsrelay.database.ReferralDatabase
+import com.cradleplatform.smsrelay.database.ReferralRepository
+import com.cradleplatform.smsrelay.network.NetworkManager
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton

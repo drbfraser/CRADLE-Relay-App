@@ -1,11 +1,11 @@
-package com.cradleplatform.cradle_vsa_sms_relay.view_model
+package com.cradleplatform.smsrelay.view_model
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.database.ReferralRepository
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
+import com.cradleplatform.smsrelay.dagger.MyApp
+import com.cradleplatform.smsrelay.database.ReferralRepository
+import com.cradleplatform.smsrelay.database.SmsReferralEntity
 import javax.inject.Inject
 
 class ReferralViewModel(application: Application) :

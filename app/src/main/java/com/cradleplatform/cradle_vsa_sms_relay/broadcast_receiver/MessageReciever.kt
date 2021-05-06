@@ -1,14 +1,14 @@
-package com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver
+package com.cradleplatform.smsrelay.broadcast_receiver
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.telephony.SmsMessage
-import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.database.ReferralRepository
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
-import com.cradleplatform.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
+import com.cradleplatform.smsrelay.dagger.MyApp
+import com.cradleplatform.smsrelay.database.ReferralRepository
+import com.cradleplatform.smsrelay.database.SmsReferralEntity
+import com.cradleplatform.smsrelay.utilities.ReferralMessageUtil
 import javax.inject.Inject
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
