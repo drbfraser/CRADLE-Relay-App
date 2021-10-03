@@ -32,7 +32,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.cradleplatform.smsrelay.R
 import com.cradleplatform.smsrelay.SmsRecyclerViewAdaper
 import com.cradleplatform.smsrelay.dagger.MyApp
-import com.cradleplatform.smsrelay.database.SmsReferralEntity
+import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradleplatform.smsrelay.service.SmsService
 import com.cradleplatform.smsrelay.view_model.ReferralViewModel
 import com.cradleplatform.smsrelay.views.ReferralAlertDialog

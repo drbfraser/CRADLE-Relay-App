@@ -5,9 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.telephony.SmsMessage
+import android.util.Log
 import com.cradleplatform.smsrelay.dagger.MyApp
 import com.cradleplatform.smsrelay.database.ReferralRepository
-import com.cradleplatform.smsrelay.database.SmsReferralEntity
+import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradleplatform.smsrelay.utilities.ReferralMessageUtil
 import javax.inject.Inject
 import kotlin.collections.ArrayList
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
  * detects messages receives
  */
 class MessageReciever(private val context: Context) : BroadcastReceiver() {
+    private val tag = "MESSAGE_RECEIVER"
 
     @Inject
     lateinit var repository: ReferralRepository
@@ -36,6 +38,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
     }
 
     override fun onReceive(p0: Context?, p1: Intent?) {
+        Log.d(tag, "Message Received")
         val data = p1?.extras
         val pdus = data?.get("pdus") as Array<*>
 

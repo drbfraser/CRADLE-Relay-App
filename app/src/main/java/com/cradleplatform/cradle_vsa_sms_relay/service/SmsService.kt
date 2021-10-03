@@ -26,7 +26,7 @@ import com.cradleplatform.smsrelay.activities.MainActivity
 import com.cradleplatform.smsrelay.broadcast_receiver.MessageReciever
 import com.cradleplatform.smsrelay.dagger.MyApp
 import com.cradleplatform.smsrelay.database.ReferralRepository
-import com.cradleplatform.smsrelay.database.SmsReferralEntity
+import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradleplatform.smsrelay.network.Failure
 import com.cradleplatform.smsrelay.network.NetworkManager
 import com.cradleplatform.smsrelay.network.Success
@@ -105,6 +105,7 @@ class SmsService : LifecycleService(),
                 smsReciver = MessageReciever(this)
                 val intentFilter = IntentFilter()
                 intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
+                intentFilter.priority = 2147483647
                 registerReceiver(smsReciver, intentFilter)
                 isMessageRecieverRegistered = true
                 referralRepository.getAllUnUploadedLiveListReferral()

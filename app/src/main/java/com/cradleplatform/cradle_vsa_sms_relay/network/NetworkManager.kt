@@ -3,7 +3,7 @@ package com.cradleplatform.smsrelay.network
 import android.app.Application
 import android.content.SharedPreferences
 import com.cradleplatform.smsrelay.dagger.MyApp
-import com.cradleplatform.smsrelay.database.SmsReferralEntity
+import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradleplatform.smsrelay.network.Urls.authenticationUrl
 import com.cradleplatform.smsrelay.network.VolleyRequests.Companion.TOKEN
 import javax.inject.Inject

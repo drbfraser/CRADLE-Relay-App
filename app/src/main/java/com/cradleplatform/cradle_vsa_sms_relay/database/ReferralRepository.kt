@@ -1,6 +1,7 @@
 package com.cradleplatform.smsrelay.database
 
 import androidx.lifecycle.LiveData
+import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch

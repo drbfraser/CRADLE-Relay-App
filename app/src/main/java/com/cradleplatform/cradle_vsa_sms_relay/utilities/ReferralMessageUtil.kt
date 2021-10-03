@@ -1,7 +1,10 @@
 package com.cradleplatform.smsrelay.utilities
 
+import android.nfc.Tag
+import android.util.Log
 import org.json.JSONException
 import org.json.JSONObject
+import java.util.UUID
 
 object ReferralMessageUtil {
     val referralJsonKeys = mapOf(
@@ -39,6 +42,7 @@ object ReferralMessageUtil {
         "31" to "referralId"
     )
 
+    val tag = "ReferralMessageUtil"
     private const val REFERRAL_ID_KEY = "referralId"
 
     fun getReferralJsonFromMessage(message: String): String {
@@ -62,11 +66,17 @@ object ReferralMessageUtil {
     }
 
     fun getIdFromMessage(message: String): String {
-        return try {
+        var id = ""
+
+        try {
             val jsonObject = JSONObject(message)
-            jsonObject.getString(REFERRAL_ID_KEY)
+            Log.d(tag, jsonObject.toString())
+            id = jsonObject.getString(REFERRAL_ID_KEY)
         } catch (e: JSONException) {
-            ""
+            id = UUID.randomUUID().toString()
+            Log.d(tag, "Error getting id: $e")
         }
+
+        return id
     }
 }
