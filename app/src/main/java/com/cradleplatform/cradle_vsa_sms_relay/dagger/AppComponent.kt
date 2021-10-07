@@ -1,13 +1,13 @@
 package com.cradleplatform.smsrelay.dagger
 
 import com.cradleplatform.smsrelay.activities.LauncherActivity
-import com.cradleplatform.smsrelay.activities.MainActivity
-import com.cradleplatform.smsrelay.broadcast_receiver.MessageReciever
+import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
+import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
 import com.cradleplatform.smsrelay.database.ReferralRepository
-import com.cradleplatform.smsrelay.network.NetworkManager
-import com.cradleplatform.smsrelay.service.SmsService
-import com.cradleplatform.smsrelay.utilities.UploadReferralWorker
-import com.cradleplatform.smsrelay.view_model.ReferralViewModel
+import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
+import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
+import com.cradleplatform.cradle_vsa_sms_relay.utilities.UploadReferralWorker
+import com.cradleplatform.cradle_vsa_sms_relay.view_model.ReferralViewModel
 import dagger.Component
 import javax.inject.Singleton
 

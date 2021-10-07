@@ -1,4 +1,4 @@
-package com.cradleplatform.smsrelay.view_model
+package com.cradleplatform.cradle_vsa_sms_relay.view_model
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

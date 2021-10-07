@@ -1,4 +1,4 @@
-package com.cradleplatform.smsrelay.views
+package com.cradleplatform.cradle_vsa_sms_relay.views
 
 import android.app.AlertDialog
 import android.content.Context

@@ -1,15 +1,16 @@
-package com.cradleplatform.smsrelay.broadcast_receiver
+package com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.telephony.SmsMessage
+import android.util.Base64
 import android.util.Log
 import com.cradleplatform.smsrelay.dagger.MyApp
 import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
-import com.cradleplatform.smsrelay.utilities.ReferralMessageUtil
+import com.cradleplatform.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
 import javax.inject.Inject
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -33,8 +34,12 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
     fun updateLastRunPref() {
         // update time last listened to sms
         val sharedPreferences = context.getSharedPreferences(LAST_RUN_PREF, Context.MODE_PRIVATE)
-        sharedPreferences.edit().putLong(Companion.LAST_RUN_TIME, System.currentTimeMillis())
+        sharedPreferences.edit().putLong(LAST_RUN_TIME, System.currentTimeMillis())
             .apply()
+    }
+
+    private fun decodeBASE64(message: String) : String {
+        return String(Base64.decode(message, Base64.DEFAULT))
     }
 
     override fun onReceive(p0: Context?, p1: Intent?) {
@@ -69,8 +74,8 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
             val currTime = System.currentTimeMillis()
             smsReferralList.add(
                 SmsReferralEntity(
-                    ReferralMessageUtil.getIdFromMessage(entry.value.toString()),
-                    ReferralMessageUtil.getReferralJsonFromMessage(entry.value.toString()),
+                    ReferralMessageUtil.getIdFromMessage(decodeBASE64(entry.value.toString())),
+                    ReferralMessageUtil.getReferralJsonFromMessage(decodeBASE64(entry.value.toString())),
                     currTime,
                     false,
                     entry.key,
@@ -95,17 +100,17 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
                 arrayOf("address", "body", "date")
             // check when we were last listening for the messages
             val sharedPreferences =
-                context.getSharedPreferences(Companion.LAST_RUN_PREF, Context.MODE_PRIVATE)
+                context.getSharedPreferences(LAST_RUN_PREF, Context.MODE_PRIVATE)
             // if the app is running the first time, we dont want to start sending a large number of text messages
             // for now we ignore all the past messages on login.
             val lastRunTime =
-                sharedPreferences.getLong(Companion.LAST_RUN_TIME, System.currentTimeMillis())
+                sharedPreferences.getLong(LAST_RUN_TIME, System.currentTimeMillis())
             val whereClause = "date >= $lastRunTime"
             val cursor = context.contentResolver.query(smsURI, columns, whereClause, null, null)
 
             while (cursor != null && cursor.moveToNext()) {
 
-                val body = cursor.getString(cursor.getColumnIndex("body"))
+                val body = decodeBASE64(cursor.getString(cursor.getColumnIndex("body")))
                 val addresses = cursor.getString((cursor.getColumnIndex("address")))
                 val time = cursor.getString((cursor.getColumnIndex("date"))).toLong()
                 val id = ReferralMessageUtil.getIdFromMessage(body)

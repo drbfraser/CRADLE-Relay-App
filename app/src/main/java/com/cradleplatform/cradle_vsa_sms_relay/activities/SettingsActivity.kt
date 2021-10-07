@@ -13,8 +13,8 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreferenceCompat
 import com.cradleplatform.smsrelay.R
-import com.cradleplatform.smsrelay.service.SmsService
-import com.cradleplatform.smsrelay.service.SmsService.Companion.isServiceRunningInForeground
+import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
+import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService.Companion.isServiceRunningInForeground
 
 class SettingsActivity : AppCompatActivity() {
 
