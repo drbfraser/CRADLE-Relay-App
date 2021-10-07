@@ -20,6 +20,8 @@ test-pattern: # Configure exclusions for test sources
     - 'TooManyFunctions'
     - 'ForEachOnRange'
     - 'FunctionMaxLength'
+    - 'ImportOrdering'
+    - 'NoWildcardImports'
 
 build:
   maxIssues: 0
