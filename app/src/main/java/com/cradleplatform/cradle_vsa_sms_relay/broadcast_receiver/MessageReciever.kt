@@ -38,7 +38,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
             .apply()
     }
 
-    private fun decodeBASE64(message: String) : String {
+    private fun decodeBASE64(message: String): String {
         return String(Base64.decode(message, Base64.DEFAULT))
     }
 
