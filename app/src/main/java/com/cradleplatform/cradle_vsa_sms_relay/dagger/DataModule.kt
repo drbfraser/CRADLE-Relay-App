@@ -6,7 +6,7 @@ import androidx.preference.PreferenceManager
 import androidx.room.Room
 import com.cradleplatform.smsrelay.database.ReferralDatabase
 import com.cradleplatform.smsrelay.database.ReferralRepository
-import com.cradleplatform.smsrelay.network.NetworkManager
+import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton

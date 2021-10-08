@@ -1,4 +1,4 @@
-package com.cradleplatform.smsrelay.database
+package com.cradleplatform.cradle_vsa_sms_relay.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

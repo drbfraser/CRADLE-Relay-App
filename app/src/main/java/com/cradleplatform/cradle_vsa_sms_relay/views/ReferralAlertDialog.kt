@@ -1,4 +1,4 @@
-package com.cradleplatform.smsrelay.views
+package com.cradleplatform.cradle_vsa_sms_relay.views
 
 import android.app.AlertDialog
 import android.content.Context
@@ -7,7 +7,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import com.cradleplatform.smsrelay.R
-import com.cradleplatform.smsrelay.database.SmsReferralEntity
+import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradleplatform.smsrelay.utilities.DateTimeUtil
 import org.json.JSONException
 import org.json.JSONObject

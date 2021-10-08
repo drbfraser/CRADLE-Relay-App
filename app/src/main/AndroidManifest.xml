@@ -32,9 +32,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.MainActivity" />
+        <activity android:name="com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity" />
 
-        <service android:name=".service.SmsService" />
+        <service android:name="com.cradleplatform.cradle_vsa_sms_relay.service.SmsService" />
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
