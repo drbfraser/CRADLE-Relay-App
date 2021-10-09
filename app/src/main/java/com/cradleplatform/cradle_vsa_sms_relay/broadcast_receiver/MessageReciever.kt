@@ -17,6 +17,9 @@ import kotlin.collections.HashMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.lang.IllegalArgumentException
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 /**
  * detects messages receives
@@ -38,8 +41,29 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
             .apply()
     }
 
-    private fun decodeBASE64(message: String): String {
-        return String(Base64.decode(message, Base64.DEFAULT))
+    private fun decodeSMSMessage(message: String): String {
+        var tempMessage = ""
+        val p: Pattern = Pattern.compile("[A-Za-z\\d/+=\n]+")
+        val m: Matcher = p.matcher(message)
+
+        while (m.find()) {
+            m.group(0)?.let {
+                if (it.length > tempMessage.length)
+                    tempMessage = it
+            }
+        }
+
+        // remove the newline characters
+        if (tempMessage.isNotEmpty() && tempMessage[0] == '\n')
+            tempMessage = tempMessage.substring(1, tempMessage.length - 1)
+
+        tempMessage = try {
+            String(Base64.decode(message, Base64.DEFAULT))
+        } catch (e: IllegalArgumentException) {
+            message
+        }
+
+        return tempMessage
     }
 
     override fun onReceive(p0: Context?, p1: Intent?) {
@@ -74,8 +98,8 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
             val currTime = System.currentTimeMillis()
             smsReferralList.add(
                 SmsReferralEntity(
-                    ReferralMessageUtil.getIdFromMessage(decodeBASE64(entry.value.toString())),
-                    ReferralMessageUtil.getReferralJsonFromMessage(decodeBASE64(entry.value.toString())),
+                    ReferralMessageUtil.getIdFromMessage(decodeSMSMessage(entry.value.toString())),
+                    ReferralMessageUtil.getReferralJsonFromMessage(decodeSMSMessage(entry.value.toString())),
                     currTime,
                     false,
                     entry.key,
@@ -110,7 +134,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
 
             while (cursor != null && cursor.moveToNext()) {
 
-                val body = decodeBASE64(cursor.getString(cursor.getColumnIndex("body")))
+                val body = decodeSMSMessage(cursor.getString(cursor.getColumnIndex("body")))
                 val addresses = cursor.getString((cursor.getColumnIndex("address")))
                 val time = cursor.getString((cursor.getColumnIndex("date"))).toLong()
                 val id = ReferralMessageUtil.getIdFromMessage(body)
