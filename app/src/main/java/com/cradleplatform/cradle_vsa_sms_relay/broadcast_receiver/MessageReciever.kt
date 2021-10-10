@@ -58,7 +58,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
             tempMessage = tempMessage.substring(1, tempMessage.length - 1)
 
         tempMessage = try {
-            String(Base64.decode(message, Base64.DEFAULT))
+            String(Base64.decode(tempMessage, Base64.DEFAULT))
         } catch (e: IllegalArgumentException) {
             message
         }
