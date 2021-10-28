@@ -29,6 +29,11 @@ class LauncherActivity : AppCompatActivity() {
         checkForAuthentication()
         setContentView(R.layout.activity_launcher)
         setupLogin()
+        setUpTogglePasswordButton()
+    }
+
+    private fun setUpTogglePasswordButton() {
+        TODO("Not yet implemented")
     }
 
     private fun checkForAuthentication() {
