@@ -158,6 +158,17 @@
                 android:orientation="horizontal"
                 app:layout_constraintGuide_percent=".85" />
 
+            <ImageButton
+                android:id="@+id/imageButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="#00FFFFFF"
+                app:layout_constraintBottom_toBottomOf="@+id/passwordEditText"
+                app:layout_constraintEnd_toEndOf="@+id/passwordEditText"
+                app:srcCompat="@drawable/baseline_visibility_24"
+                tools:ignore="VectorDrawableCompat" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>
 
