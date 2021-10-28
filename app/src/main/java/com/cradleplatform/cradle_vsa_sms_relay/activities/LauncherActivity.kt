@@ -4,6 +4,7 @@ import android.app.ProgressDialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -33,7 +34,7 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     private fun setUpTogglePasswordButton() {
-        TODO("Not yet implemented")
+        Log.d("LauncherActivity", "Setting up togglePasswordButton")
     }
 
     private fun checkForAuthentication() {
