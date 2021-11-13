@@ -12,6 +12,7 @@ android {
 
     defaultConfig {
         applicationId "com.cradleplatform.smsrelay"
+        vectorDrawables.useSupportLibrary = true
         minSdkVersion 17
         targetSdkVersion 29
         multiDexEnabled true

@@ -158,6 +158,18 @@
                 android:orientation="horizontal"
                 app:layout_constraintGuide_percent=".85" />
 
+            <ImageButton
+                android:id="@+id/togglePasswordVisibilityImageButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="#00FFFFFF"
+                android:contentDescription="@string/show_password"
+                app:layout_constraintBottom_toBottomOf="@+id/passwordEditText"
+                app:layout_constraintEnd_toEndOf="@+id/passwordEditText"
+                app:srcCompat="@drawable/baseline_visibility_24" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>
 
