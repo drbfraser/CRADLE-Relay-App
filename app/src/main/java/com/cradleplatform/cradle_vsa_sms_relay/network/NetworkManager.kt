@@ -113,6 +113,35 @@ class NetworkManager(application: Application) {
     }
 
     /**
+     * send a referral to the server and propagates its result down to the client
+     * @param smsReferralEntity the referral entity
+     * @param callback callback for the caller
+     */
+    private fun uploadReferralToTheServer(
+        smsReferralEntity: SmsReferralEntity,
+        callback: (NetworkResult<JSONObject>) -> Unit
+    ) {
+
+        // parse the patient
+        val patientJSONObject =
+            JSONObject(smsReferralEntity.jsonData.toString()).getJSONObject("patient")
+        // parse the referral
+        val referralJson = patientJSONObject.getJSONArray("referrals")[0] as JSONObject
+        val request =
+            volleyRequests.postJsonObjectRequest(Urls.referralUrl, referralJson) { result ->
+                when (result) {
+                    is Success -> {
+                        callback(Success(result.value))
+                    }
+                    is Failure -> {
+                        callback(Failure(result.value))
+                    }
+                }
+            }
+        volleyRequestQueue.addRequest(request)
+    }
+
+    /**
      * uploads a single referral and let the caller know upload status
      * @param smsReferralEntity the patient exists within this entity
      * @param callback callback for the caller
@@ -131,8 +160,12 @@ class NetworkManager(application: Application) {
                     callback(Success(result.value))
                 }
                 is Failure -> {
-                    // upload reading only since patient exists.
-                    uploadReadingToTheServer(smsReferralEntity, callback)
+                    if (patientJSONObject.getJSONArray("readings").length() > 0) {
+                        // upload reading only
+                        uploadReadingToTheServer(smsReferralEntity, callback)
+                    } else {
+                        uploadReferralToTheServer(smsReferralEntity, callback)
+                    }
                 }
             }
         }
