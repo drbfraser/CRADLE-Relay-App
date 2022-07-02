@@ -111,4 +111,6 @@ object Urls {
     const val patientUrl = "$protocol$base/patients"
 
     const val readingUrl = "$protocol$base/readings"
+
+    const val referralUrl = "$protocol$base/referrals"
 }
