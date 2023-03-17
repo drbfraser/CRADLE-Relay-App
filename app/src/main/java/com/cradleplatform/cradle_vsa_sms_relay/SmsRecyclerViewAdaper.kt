@@ -41,7 +41,7 @@ class SmsRecyclerViewAdaper(private val context: Context) :
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
         val smsReferralEntity: SmsReferralEntity = sms[position
         ]
-        holder.smsText.text = smsReferralEntity.jsonData
+        holder.smsText.text = smsReferralEntity.encryptedData
         if (smsReferralEntity.isUploaded) {
             holder.statusImg.setBackgroundResource(R.drawable.ic_check_circle_24dp)
             holder.statusTxt.text = context.getString(R.string.sucess)

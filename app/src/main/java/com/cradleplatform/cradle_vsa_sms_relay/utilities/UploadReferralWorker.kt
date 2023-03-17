@@ -65,7 +65,7 @@ class UploadReferralWorker(appContext: Context, workerParams: WorkerParameters) 
      */
     private fun sendToServer(smsReferralEntity: SmsReferralEntity) {
         try {
-            JSONObject(smsReferralEntity.jsonData.toString())
+            JSONObject(smsReferralEntity.encryptedData.toString())
         } catch (e: JSONException) {
             smsReferralEntity.errorMessage = "Not a valid JSON format"
             updateDatabase(smsReferralEntity, false)

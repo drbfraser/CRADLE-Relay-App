@@ -7,7 +7,7 @@ import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
 /**
  * Access database through [ReferralRepository] for proper use
  */
-@Database(entities = [SmsReferralEntity::class], version = 1, exportSchema = false)
+@Database(entities = [SmsReferralEntity::class], version = 2, exportSchema = false)
 abstract class ReferralDatabase : RoomDatabase() {
 
     abstract fun daoAccess(): DaoAccess

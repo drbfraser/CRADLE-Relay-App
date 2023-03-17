@@ -8,7 +8,7 @@ import java.io.Serializable
 data class SmsReferralEntity(
     @PrimaryKey
     val id: String,
-    val jsonData: String?,
+    val encryptedData: String?,
     // unix stamp
     val timeReceived: Long,
     var isUploaded: Boolean,
