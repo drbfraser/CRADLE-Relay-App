@@ -78,6 +78,33 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
         return tempMessage
     }
 
+    private fun saveSMSReferralEntity(messages: HashMap<String, String>) {
+        val smsReferralList: ArrayList<SmsReferralEntity> = ArrayList()
+
+        messages.entries.forEach { entry ->
+            val currTime = System.currentTimeMillis()
+            val phoneNumber = entry.key
+            val encryptedData = entry.value
+            val requestCounter = phoneNumberToRequestCounter[phoneNumber]!!.requestCounter
+            val fragmentIdx = String.format(
+                "%03d",
+                phoneNumberToRequestCounter[phoneNumber]!!.encryptedFragments.size - 1
+            )
+            smsReferralList.add(
+                SmsReferralEntity(
+                    "$phoneNumber-$requestCounter-$fragmentIdx",
+                    encryptedData,
+                    currTime,
+                    false,
+                    entry.key,
+                    0,
+                    "", false
+                )
+            )
+        }
+        repository.insertAll(smsReferralList)
+    }
+
     override fun onReceive(p0: Context?, p1: Intent?) {
         Log.d(tag, "Message Received")
         val data = p1?.extras
@@ -85,8 +112,20 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
 
         // may recieve multiple messages at the same time from different numbers so
         // we keep track of all the messages from different numbers
-        val messages = HashMap<String, String>()
+        val messages = processSMSMessages(pdus)
 
+        messages.entries.forEach { entry ->
+            if (entry.key.isNotEmpty() && entry.value.isNotEmpty()) {
+                val smsHttpRequest = createSMSHttpRequest(entry.key, entry.value)
+                sendAcknowledgementMessage(smsHttpRequest)
+            }
+        }
+
+        saveSMSReferralEntity(messages)
+    }
+
+    private fun processSMSMessages(pdus: Array<*>): HashMap<String, String> {
+        val messages = HashMap<String, String>()
         for (element in pdus) {
             // if smsMessage is null, we continue to the next one
             val smsMessage = SmsMessage.createFromPdu(element as ByteArray?) ?: continue
@@ -106,84 +145,145 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
                 messages[originatingPhoneNumber] = smsMessage.messageBody
             }
         }
-
-        messages.entries.forEach { entry ->
-
-
-            if(entry.key.isNotEmpty() && entry.value.isNotEmpty()) {
-
-                val ackMessage: String
-                val ackFragmentNumber: String
-                val smsHttpRequest: SMSHttpRequest
-
-                val isFirstFragment = SMSFormatter.isSMSPacketFirstFragment(entry.value)
-                val packetComponents = SMSFormatter.decomposeSMSPacket(entry.value, isFirstFragment)
-
-                if(isFirstFragment) {
-                    val requestCounter = packetComponents[REQUEST_COUNTER_IDX]
-                    val numberOfFragments = packetComponents[NUMBER_OF_FRAGMENTS_IDX].toInt()
-                    smsHttpRequest = SMSHttpRequest(
-                        entry.key,
-                        requestCounter,
-                        numberOfFragments,
-                        mutableListOf(entry.value),
-                        false
-                    )
-                    phoneNumberToRequestCounter[entry.key] = smsHttpRequest
-
-                    ackFragmentNumber = "000"
-                } else {
-                    val fragmentNumber = packetComponents.first()
-                    smsHttpRequest = phoneNumberToRequestCounter[entry.key]!!
-
-                    smsHttpRequest.encryptedFragments.add(entry.value)
-
-                    if(smsHttpRequest.numOfFragments == fragmentNumber.toInt() + 1) {
-                        smsHttpRequest.isReadyToSendToServer = true
-                    }
-
-                    ackFragmentNumber = fragmentNumber
-                }
-
-                ackMessage = """
-                    01
-                    CRADLE
-                    ${smsHttpRequest.requestCounter}
-                    $ackFragmentNumber
-                    ACK""".trimIndent().replace("\n", "-")
-
-                smsManager.sendMultipartTextMessage(
-                    entry.key, null,
-                    smsManager.divideMessage(ackMessage),
-                    null, null
-                )
-            }
-        }
-
-        val smsReferralList: ArrayList<SmsReferralEntity> = ArrayList()
-
-
-        messages.entries.forEach { entry ->
-            val currTime = System.currentTimeMillis()
-            val phoneNumber = entry.key
-            val encryptedData = entry.value
-            val requestCounter = phoneNumberToRequestCounter[phoneNumber]!!.requestCounter
-            val fragmentIdx = String.format("%03d",
-                phoneNumberToRequestCounter[phoneNumber]!!.encryptedFragments.size - 1)
-            smsReferralList.add(
-                SmsReferralEntity(
-                   "${phoneNumber}-${requestCounter}-${fragmentIdx}",
-                    encryptedData,
-                    currTime,
-                    false,
-                    entry.key,
-                    0,
-                    "", false
-                )
-            )
-        }
-        repository.insertAll(smsReferralList)
+        return messages
     }
+
+    private fun createSMSHttpRequest(phoneNumber: String, encryptedValue: String): SMSHttpRequest {
+        val isFirstFragment = SMSFormatter.isSMSPacketFirstFragment(encryptedValue)
+        val packetComponents = SMSFormatter.decomposeSMSPacket(encryptedValue, isFirstFragment)
+
+        return if (isFirstFragment) {
+            val requestCounter = packetComponents[REQUEST_COUNTER_IDX]
+            val numberOfFragments = packetComponents[NUMBER_OF_FRAGMENTS_IDX].toInt()
+            SMSHttpRequest(
+                phoneNumber,
+                requestCounter,
+                numberOfFragments,
+                mutableListOf(encryptedValue),
+                false
+            )
+        } else {
+            val fragmentNumber = packetComponents.first()
+            val smsHttpRequest = phoneNumberToRequestCounter[phoneNumber]!!
+            smsHttpRequest.encryptedFragments.add(encryptedValue)
+
+            if (smsHttpRequest.numOfFragments == fragmentNumber.toInt() + 1) {
+                smsHttpRequest.isReadyToSendToServer = true
+            }
+
+            smsHttpRequest
+        }
+    }
+
+    private fun sendAcknowledgementMessage(smsHttpRequest: SMSHttpRequest) {
+        val phoneNumber = smsHttpRequest.phoneNumber
+        val ackFragmentNumber: String
+        val isFirstFragment = SMSFormatter.isSMSPacketFirstFragment(smsHttpRequest.encryptedFragments.last())
+        val packetComponents = SMSFormatter.decomposeSMSPacket(smsHttpRequest.encryptedFragments.last(), isFirstFragment)
+
+        if (isFirstFragment) {
+            phoneNumberToRequestCounter[phoneNumber] = smsHttpRequest
+            ackFragmentNumber = "000"
+        } else {
+            ackFragmentNumber = packetComponents.first()
+        }
+
+        val ackMessage: String = """
+        01
+        CRADLE
+        ${smsHttpRequest.requestCounter}
+        $ackFragmentNumber
+        ACK""".trimIndent().replace("\n", "-")
+
+        smsManager.sendMultipartTextMessage(
+            phoneNumber, null,
+            smsManager.divideMessage(ackMessage),
+            null, null
+        )
+    }
+
+//    override fun onReceive(p0: Context?, p1: Intent?) {
+//        Log.d(tag, "Message Received")
+//        val data = p1?.extras
+//        val pdus = data?.get("pdus") as Array<*>
+//
+//        // may recieve multiple messages at the same time from different numbers so
+//        // we keep track of all the messages from different numbers
+//        val messages = HashMap<String, String>()
+//
+//        for (element in pdus) {
+//            // if smsMessage is null, we continue to the next one
+//            val smsMessage = SmsMessage.createFromPdu(element as ByteArray?) ?: continue
+//            // one message has length of 153 chars, 7 other chars for user data header
+//
+//            val originatingPhoneNumber = smsMessage.originatingAddress ?: continue
+//
+//            // We are assuming that no one phone can send multiple long messages at ones.
+//            // since there is some user delay in either typing or copy/pasting the message
+//            // or typing 1 char at  a time
+//            if (messages.containsKey(originatingPhoneNumber)) {
+//                // concatenating messages
+//                val newMsg: String = smsMessage.messageBody
+//                val oldMsg: String = messages[originatingPhoneNumber]!!
+//                messages[originatingPhoneNumber] = oldMsg + newMsg
+//            } else {
+//                messages[originatingPhoneNumber] = smsMessage.messageBody
+//            }
+//        }
+//
+//        messages.entries.forEach { entry ->
+//
+//            if (entry.key.isNotEmpty() && entry.value.isNotEmpty()) {
+//                val ackMessage: String
+//                val ackFragmentNumber: String
+//                val smsHttpRequest: SMSHttpRequest
+//
+//                val isFirstFragment = SMSFormatter.isSMSPacketFirstFragment(entry.value)
+//                val packetComponents = SMSFormatter.decomposeSMSPacket(entry.value, isFirstFragment)
+//
+//                if (isFirstFragment) {
+//                    val requestCounter = packetComponents[REQUEST_COUNTER_IDX]
+//                    val numberOfFragments = packetComponents[NUMBER_OF_FRAGMENTS_IDX].toInt()
+//                    smsHttpRequest = SMSHttpRequest(
+//                        entry.key,
+//                        requestCounter,
+//                        numberOfFragments,
+//                        mutableListOf(entry.value),
+//                        false
+//                    )
+//                    phoneNumberToRequestCounter[entry.key] = smsHttpRequest
+//
+//                    ackFragmentNumber = "000"
+//                } else {
+//                    val fragmentNumber = packetComponents.first()
+//                    smsHttpRequest = phoneNumberToRequestCounter[entry.key]!!
+//
+//                    smsHttpRequest.encryptedFragments.add(entry.value)
+//
+//                    if (smsHttpRequest.numOfFragments == fragmentNumber.toInt() + 1) {
+//                        smsHttpRequest.isReadyToSendToServer = true
+//                    }
+//
+//                    ackFragmentNumber = fragmentNumber
+//                }
+//
+//                ackMessage = """
+//                    01
+//                    CRADLE
+//                    ${smsHttpRequest.requestCounter}
+//                    $ackFragmentNumber
+//                    ACK""".trimIndent().replace("\n", "-")
+//
+//                smsManager.sendMultipartTextMessage(
+//                    entry.key, null,
+//                    smsManager.divideMessage(ackMessage),
+//                    null, null
+//                )
+//            }
+//        }
+//
+//        saveSMSReferralEntity(messages)
+//    }
 
     /**
      * Queries sms depending on the time we were listening for sms
