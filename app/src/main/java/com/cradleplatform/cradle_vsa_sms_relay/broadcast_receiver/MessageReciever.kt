@@ -202,7 +202,6 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
         )
     }
 
-
     /**
      * Queries sms depending on the time we were listening for sms
      * //todo need to check for permission
