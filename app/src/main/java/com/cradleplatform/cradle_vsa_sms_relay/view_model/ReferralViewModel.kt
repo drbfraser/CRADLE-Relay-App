@@ -14,6 +14,8 @@ class ReferralViewModel(application: Application) :
     @Inject
     lateinit var repository: ReferralRepository
 
+    val phoneNumbersToRequestCounter = HashMap<String, String>()
+
     private val referrals: LiveData<List<SmsReferralEntity>>
 
     fun insert(smsReferralEntity: SmsReferralEntity) {

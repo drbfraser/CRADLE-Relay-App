@@ -22,9 +22,9 @@ class ReferralAlertDialog(context: Context, var smsReferralEntity: SmsReferralEn
         setContentView(R.layout.referral_alert_dialog)
         findViewById<TextView>(R.id.titleAD).text = smsReferralEntity.id
         val msg: String = try {
-            JSONObject(smsReferralEntity.jsonData.toString()).toString(JSON_INDENT)
+            JSONObject(smsReferralEntity.encryptedData.toString()).toString(JSON_INDENT)
         } catch (e: JSONException) {
-            smsReferralEntity.jsonData.toString()
+            smsReferralEntity.encryptedData.toString()
         }
         findViewById<TextView>(R.id.jsonDataAd).setOnClickListener {
             (it as TextView).text = msg

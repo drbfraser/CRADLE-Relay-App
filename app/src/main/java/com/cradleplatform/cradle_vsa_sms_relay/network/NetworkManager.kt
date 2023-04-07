@@ -95,7 +95,7 @@ class NetworkManager(application: Application) {
 
         // parse the patient
         val patientJSONObject =
-            JSONObject(smsReferralEntity.jsonData.toString()).getJSONObject("patient")
+            JSONObject(smsReferralEntity.encryptedData.toString()).getJSONObject("patient")
         // parse the reading
         val readingJson = patientJSONObject.getJSONArray("readings")[0] as JSONObject
         val request =
@@ -121,7 +121,7 @@ class NetworkManager(application: Application) {
         smsReferralEntity: SmsReferralEntity,
         callback: (NetworkResult<JSONObject>) -> Unit
     ) {
-        val patientJSONObject = JSONObject(smsReferralEntity.jsonData.toString())
+        val patientJSONObject = JSONObject(smsReferralEntity.encryptedData.toString())
             .getJSONObject("patient")
 
         uploadPatient(patientJSONObject) { result ->

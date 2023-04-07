@@ -4,13 +4,16 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.telephony.SmsManager
 import android.telephony.SmsMessage
 import android.util.Base64
 import android.util.Log
 import com.cradleplatform.smsrelay.dagger.MyApp
 import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
+import com.cradleplatform.cradle_vsa_sms_relay.model.SMSHttpRequest
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
+import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
 import javax.inject.Inject
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -18,17 +21,26 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.lang.IllegalArgumentException
+import java.util.*
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 /**
  * detects messages receives
  */
+
+const val REQUEST_COUNTER_IDX = 2
+const val NUMBER_OF_FRAGMENTS_IDX = 3
+
 class MessageReciever(private val context: Context) : BroadcastReceiver() {
     private val tag = "MESSAGE_RECEIVER"
 
     @Inject
     lateinit var repository: ReferralRepository
+
+    private val phoneNumberToRequestCounter = HashMap<String, SMSHttpRequest>()
+
+    private val smsManager = SmsManager.getDefault()
 
     init {
         (context.applicationContext as MyApp).component.inject(this)
@@ -66,40 +78,22 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
         return tempMessage
     }
 
-    override fun onReceive(p0: Context?, p1: Intent?) {
-        Log.d(tag, "Message Received")
-        val data = p1?.extras
-        val pdus = data?.get("pdus") as Array<*>
-
-        // may recieve multiple messages at the same time from different numbers so
-        // we keep track of all the messages from different numbers
-        val messages = HashMap<String?, String?>()
-
-        for (element in pdus) {
-            // if smsMessage is null, we continue to the next one
-            val smsMessage = SmsMessage.createFromPdu(element as ByteArray?) ?: continue
-            // one message has length of 153 chars, 7 other chars for user data header
-
-            // We are assuming that no one phone can send multiple long messages at ones.
-            // since there is some user delay in either typing or copy/pasting the message
-            // or typing 1 char at  a time
-            if (messages.containsKey(smsMessage.originatingAddress)) {
-                // concatenating messages
-                val newMsg: String = smsMessage.messageBody
-                val oldMsg: String? = messages[smsMessage.originatingAddress]
-                messages[smsMessage.originatingAddress] = oldMsg + newMsg
-            } else {
-                messages[smsMessage.originatingAddress] = smsMessage.messageBody
-            }
-        }
+    private fun saveSMSReferralEntity(messages: HashMap<String, String>) {
         val smsReferralList: ArrayList<SmsReferralEntity> = ArrayList()
 
         messages.entries.forEach { entry ->
             val currTime = System.currentTimeMillis()
+            val phoneNumber = entry.key
+            val encryptedData = entry.value
+            val requestCounter = phoneNumberToRequestCounter[phoneNumber]!!.requestCounter
+            val fragmentIdx = String.format(
+                "%03d",
+                phoneNumberToRequestCounter[phoneNumber]!!.encryptedFragments.size - 1
+            )
             smsReferralList.add(
                 SmsReferralEntity(
-                    ReferralMessageUtil.getIdFromMessage(decodeSMSMessage(entry.value.toString())),
-                    ReferralMessageUtil.getReferralJsonFromMessage(decodeSMSMessage(entry.value.toString())),
+                    "$phoneNumber-$requestCounter-$fragmentIdx",
+                    encryptedData,
                     currTime,
                     false,
                     entry.key,
@@ -109,6 +103,103 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
             )
         }
         repository.insertAll(smsReferralList)
+    }
+
+    override fun onReceive(p0: Context?, p1: Intent?) {
+        Log.d(tag, "Message Received")
+        val data = p1?.extras
+        val pdus = data?.get("pdus") as Array<*>
+
+        // may recieve multiple messages at the same time from different numbers so
+        // we keep track of all the messages from different numbers
+        val messages = processSMSMessages(pdus)
+
+        messages.entries.forEach { entry ->
+            if (entry.key.isNotEmpty() && entry.value.isNotEmpty()) {
+                val smsHttpRequest = createSMSHttpRequest(entry.key, entry.value)
+                sendAcknowledgementMessage(smsHttpRequest)
+            }
+        }
+
+        saveSMSReferralEntity(messages)
+    }
+
+    private fun processSMSMessages(pdus: Array<*>): HashMap<String, String> {
+        val messages = HashMap<String, String>()
+        for (element in pdus) {
+            // if smsMessage is null, we continue to the next one
+            val smsMessage = SmsMessage.createFromPdu(element as ByteArray?) ?: continue
+            // one message has length of 153 chars, 7 other chars for user data header
+
+            val originatingPhoneNumber = smsMessage.originatingAddress ?: continue
+
+            // We are assuming that no one phone can send multiple long messages at ones.
+            // since there is some user delay in either typing or copy/pasting the message
+            // or typing 1 char at  a time
+            if (messages.containsKey(originatingPhoneNumber)) {
+                // concatenating messages
+                val newMsg: String = smsMessage.messageBody
+                val oldMsg: String = messages[originatingPhoneNumber]!!
+                messages[originatingPhoneNumber] = oldMsg + newMsg
+            } else {
+                messages[originatingPhoneNumber] = smsMessage.messageBody
+            }
+        }
+        return messages
+    }
+
+    private fun createSMSHttpRequest(phoneNumber: String, encryptedValue: String): SMSHttpRequest {
+        val isFirstFragment = SMSFormatter.isSMSPacketFirstFragment(encryptedValue)
+        val packetComponents = SMSFormatter.decomposeSMSPacket(encryptedValue, isFirstFragment)
+
+        return if (isFirstFragment) {
+            val requestCounter = packetComponents[REQUEST_COUNTER_IDX]
+            val numberOfFragments = packetComponents[NUMBER_OF_FRAGMENTS_IDX].toInt()
+            SMSHttpRequest(
+                phoneNumber,
+                requestCounter,
+                numberOfFragments,
+                mutableListOf(encryptedValue),
+                false
+            )
+        } else {
+            val fragmentNumber = packetComponents.first()
+            val smsHttpRequest = phoneNumberToRequestCounter[phoneNumber]!!
+            smsHttpRequest.encryptedFragments.add(encryptedValue)
+
+            if (smsHttpRequest.numOfFragments == fragmentNumber.toInt() + 1) {
+                smsHttpRequest.isReadyToSendToServer = true
+            }
+
+            smsHttpRequest
+        }
+    }
+
+    private fun sendAcknowledgementMessage(smsHttpRequest: SMSHttpRequest) {
+        val phoneNumber = smsHttpRequest.phoneNumber
+        val ackFragmentNumber: String
+        val isFirstFragment = SMSFormatter.isSMSPacketFirstFragment(smsHttpRequest.encryptedFragments.last())
+        val packetComponents = SMSFormatter.decomposeSMSPacket(smsHttpRequest.encryptedFragments.last(), isFirstFragment)
+
+        if (isFirstFragment) {
+            phoneNumberToRequestCounter[phoneNumber] = smsHttpRequest
+            ackFragmentNumber = "000"
+        } else {
+            ackFragmentNumber = packetComponents.first()
+        }
+
+        val ackMessage: String = """
+        01
+        CRADLE
+        ${smsHttpRequest.requestCounter}
+        $ackFragmentNumber
+        ACK""".trimIndent().replace("\n", "-")
+
+        smsManager.sendMultipartTextMessage(
+            phoneNumber, null,
+            smsManager.divideMessage(ackMessage),
+            null, null
+        )
     }
 
     /**
