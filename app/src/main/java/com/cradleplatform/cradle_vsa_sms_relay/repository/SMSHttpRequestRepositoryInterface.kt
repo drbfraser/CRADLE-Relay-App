@@ -6,5 +6,4 @@ import retrofit2.Call
 
 interface SMSHttpRequestRepositoryInterface {
     fun sendSMSHttpRequestToServer(smsHttpRequest: SMSHttpRequest): Call<HTTPSResponse>
-
 }

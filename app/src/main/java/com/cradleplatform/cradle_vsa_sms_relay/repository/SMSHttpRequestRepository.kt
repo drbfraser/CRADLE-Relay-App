@@ -1,21 +1,15 @@
 package com.cradleplatform.cradle_vsa_sms_relay.repository
 
-import android.content.SharedPreferences
-import androidx.lifecycle.LiveData
 import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSResponse
 import com.cradleplatform.cradle_vsa_sms_relay.model.SMSHttpRequest
 import com.cradleplatform.cradle_vsa_sms_relay.service.SMSRelayService
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
-import com.cradleplatform.smsrelay.network.VolleyRequests
-import com.cradleplatform.smsrelay.network.VolleyRequests.Companion.TOKEN
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import retrofit2.Call
-import retrofit2.Callback
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import javax.inject.Inject
 
 class AuthInterceptor(private val token: String) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -28,7 +22,7 @@ class AuthInterceptor(private val token: String) : Interceptor {
 
 class SMSHttpRequestRepository(
     token: String
-): SMSHttpRequestRepositoryInterface {
+) : SMSHttpRequestRepositoryInterface {
 
     private val baseUrl = "http://10.0.2.2:5000/"
 
@@ -48,5 +42,4 @@ class SMSHttpRequestRepository(
         val httpsRequest = SMSFormatter.convertSMSHttpRequestToHttpsRequest(smsHttpRequest)
         return smsRelayService.postSMSRelay(httpsRequest)
     }
-
 }

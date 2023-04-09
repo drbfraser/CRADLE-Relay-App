@@ -68,7 +68,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
     private lateinit var referralViewModel: ReferralViewModel
-//    private lateinit var smsHttpRequestViewModel: SMSHttpRequestViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -110,7 +109,6 @@ class MainActivity : AppCompatActivity() {
                 referralAlertDialog.setOnSendToServerListener(View.OnClickListener {
                     if (isServiceStarted) {
                         if (!referralEntity.isUploaded) {
-//                            mService?.sendToServer(referralEntity)
                             Toast.makeText(
                                 this@MainActivity, "Uploading the referral to the server",
                                 Toast.LENGTH_SHORT
@@ -136,12 +134,6 @@ class MainActivity : AppCompatActivity() {
             ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application)).get(
                 ReferralViewModel::class.java
             )
-
-//        smsHttpRequestViewModel =
-//            ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application))
-//                .get(SMSHttpRequestViewModel::class.java)
-
-//        smsHttpRequestViewModel.test()
 
         referralViewModel.getAllReferrals().observe(this, Observer { referrals ->
             // update the recyclerview on updating

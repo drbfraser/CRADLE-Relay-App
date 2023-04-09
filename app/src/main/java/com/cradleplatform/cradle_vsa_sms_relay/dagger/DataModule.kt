@@ -1,7 +1,6 @@
 package com.cradleplatform.smsrelay.dagger
 
 import android.content.SharedPreferences
-import androidx.lifecycle.ViewModelProvider
 import androidx.multidex.MultiDexApplication
 import androidx.preference.PreferenceManager
 import androidx.room.Room

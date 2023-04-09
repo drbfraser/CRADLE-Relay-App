@@ -14,7 +14,7 @@ import retrofit2.Callback
 
 class SMSHttpRequestViewModel(
     private val repository: SMSHttpRequestRepository
-): ViewModel() {
+) : ViewModel() {
 
     private val httpsResponses = MutableLiveData<List<HTTPSResponse>>()
     val phoneNumberToRequestCounter = HashMap<String, SMSHttpRequest>()
@@ -48,17 +48,14 @@ class SMSHttpRequestViewModel(
                                         }
                                     }
                                 }
-
                             }
                         }
 
                         override fun onFailure(call: Call<HTTPSResponse>, t: Throwable) {
                             TODO("Not yet implemented")
                         }
-
                     })
             }
         }
     }
-
 }

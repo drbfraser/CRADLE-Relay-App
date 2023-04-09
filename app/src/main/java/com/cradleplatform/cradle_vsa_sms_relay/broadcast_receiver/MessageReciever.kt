@@ -42,8 +42,6 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
     @Inject
     lateinit var smsHttpRequestViewModel: SMSHttpRequestViewModel
 
-//    private val phoneNumberToRequestCounter = HashMap<String, SMSHttpRequest>()
-
     private val smsManager = SmsManager.getDefault()
 
     init {
@@ -123,7 +121,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
                 val smsHttpRequest = createSMSHttpRequest(entry.key, entry.value)
                 sendAcknowledgementMessage(smsHttpRequest)
 
-                if (smsHttpRequest.isReadyToSendToServer){
+                if (smsHttpRequest.isReadyToSendToServer) {
                     smsHttpRequestViewModel.sendSMSHttpRequestToServer(smsHttpRequest)
                 }
             }

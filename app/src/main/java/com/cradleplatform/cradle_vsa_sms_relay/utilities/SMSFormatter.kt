@@ -27,8 +27,7 @@ class SMSFormatter {
         }
 
         fun convertSMSHttpRequestToHttpsRequest(smsHttpRequest: SMSHttpRequest): HTTPSRequest {
-//            return HTTPSRequest(smsHttpRequest.phoneNumber, smsHttpRequest.encryptedFragments.joinToString())
-            //TODO currently use admin number for now
+            // TODO currently use admin number for now
             return HTTPSRequest("+1-123-456-7890", smsHttpRequest.encryptedFragments.joinToString(""))
         }
     }
