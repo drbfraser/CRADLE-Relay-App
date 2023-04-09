@@ -32,6 +32,7 @@ import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
 import com.cradleplatform.smsrelay.network.Success
 import com.cradleplatform.smsrelay.network.VolleyRequests
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.UploadReferralWorker
+import com.cradleplatform.cradle_vsa_sms_relay.view_model.SMSHttpRequestViewModel
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
@@ -60,6 +61,9 @@ class SmsService : LifecycleService(),
     @Inject
     lateinit var networkManager: NetworkManager
 
+    @Inject
+    lateinit var smsHttpRequestViewModel: SMSHttpRequestViewModel
+
     // maain sms broadcast listner
     private var smsReciver: MessageReciever? = null
 
@@ -71,7 +75,7 @@ class SmsService : LifecycleService(),
 
     private val referralObserver = Observer<List<SmsReferralEntity>> { referralList ->
         referralList.forEach {
-            sendToServer(it)
+//            sendToServer(it)
         }
     }
 

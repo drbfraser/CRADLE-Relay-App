@@ -1,5 +1,7 @@
 package com.cradleplatform.cradle_vsa_sms_relay.utilities
 
+import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSRequest
+import com.cradleplatform.cradle_vsa_sms_relay.model.SMSHttpRequest
 import com.google.firebase.crashlytics.internal.model.ImmutableList
 
 private const val PROTOCOL_VERSION = "01"
@@ -22,6 +24,12 @@ class SMSFormatter {
                 packetMessage.split('-', limit = NUM_OF_NON_FIRST_PACKET_COMPONENTS)
             }
             return ImmutableList.from(packetComponents)
+        }
+
+        fun convertSMSHttpRequestToHttpsRequest(smsHttpRequest: SMSHttpRequest): HTTPSRequest {
+//            return HTTPSRequest(smsHttpRequest.phoneNumber, smsHttpRequest.encryptedFragments.joinToString())
+            //TODO currently use admin number for now
+            return HTTPSRequest("+1-123-456-7890", smsHttpRequest.encryptedFragments.joinToString(""))
         }
     }
 }
