@@ -14,6 +14,7 @@ import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradleplatform.cradle_vsa_sms_relay.model.SMSHttpRequest
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
+import com.cradleplatform.cradle_vsa_sms_relay.view_model.SMSHttpRequestViewModel
 import javax.inject.Inject
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -38,7 +39,8 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
     @Inject
     lateinit var repository: ReferralRepository
 
-    private val phoneNumberToRequestCounter = HashMap<String, SMSHttpRequest>()
+    @Inject
+    lateinit var smsHttpRequestViewModel: SMSHttpRequestViewModel
 
     private val smsManager = SmsManager.getDefault()
 
@@ -85,10 +87,10 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
             val currTime = System.currentTimeMillis()
             val phoneNumber = entry.key
             val encryptedData = entry.value
-            val requestCounter = phoneNumberToRequestCounter[phoneNumber]!!.requestCounter
+            val requestCounter = smsHttpRequestViewModel.phoneNumberToRequestCounter[phoneNumber]!!.requestCounter
             val fragmentIdx = String.format(
                 "%03d",
-                phoneNumberToRequestCounter[phoneNumber]!!.encryptedFragments.size - 1
+                smsHttpRequestViewModel.phoneNumberToRequestCounter[phoneNumber]!!.encryptedFragments.size - 1
             )
             smsReferralList.add(
                 SmsReferralEntity(
@@ -118,6 +120,10 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
             if (entry.key.isNotEmpty() && entry.value.isNotEmpty()) {
                 val smsHttpRequest = createSMSHttpRequest(entry.key, entry.value)
                 sendAcknowledgementMessage(smsHttpRequest)
+
+                if (smsHttpRequest.isReadyToSendToServer) {
+                    smsHttpRequestViewModel.sendSMSHttpRequestToServer(smsHttpRequest)
+                }
             }
         }
 
@@ -159,13 +165,13 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
                 phoneNumber,
                 requestCounter,
                 numberOfFragments,
-                mutableListOf(encryptedValue),
+                mutableListOf(packetComponents.last()),
                 false
             )
         } else {
             val fragmentNumber = packetComponents.first()
-            val smsHttpRequest = phoneNumberToRequestCounter[phoneNumber]!!
-            smsHttpRequest.encryptedFragments.add(encryptedValue)
+            val smsHttpRequest = smsHttpRequestViewModel.phoneNumberToRequestCounter[phoneNumber]!!
+            smsHttpRequest.encryptedFragments.add(packetComponents.last())
 
             if (smsHttpRequest.numOfFragments == fragmentNumber.toInt() + 1) {
                 smsHttpRequest.isReadyToSendToServer = true
@@ -178,14 +184,16 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
     private fun sendAcknowledgementMessage(smsHttpRequest: SMSHttpRequest) {
         val phoneNumber = smsHttpRequest.phoneNumber
         val ackFragmentNumber: String
-        val isFirstFragment = SMSFormatter.isSMSPacketFirstFragment(smsHttpRequest.encryptedFragments.last())
-        val packetComponents = SMSFormatter.decomposeSMSPacket(smsHttpRequest.encryptedFragments.last(), isFirstFragment)
+        val isFirstFragment = smsHttpRequest.encryptedFragments.size == 1
 
         if (isFirstFragment) {
-            phoneNumberToRequestCounter[phoneNumber] = smsHttpRequest
+            smsHttpRequestViewModel.phoneNumberToRequestCounter[phoneNumber] = smsHttpRequest
             ackFragmentNumber = "000"
         } else {
-            ackFragmentNumber = packetComponents.first()
+            ackFragmentNumber = String.format(
+                "%03d",
+                smsHttpRequestViewModel.phoneNumberToRequestCounter[phoneNumber]!!.encryptedFragments.size - 1
+            )
         }
 
         val ackMessage: String = """
