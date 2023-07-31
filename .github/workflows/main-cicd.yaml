@@ -53,7 +53,7 @@ jobs:
 
   static_analysis:
     name: Code Analysis
-    runs-on: [self-hosted, dokcer]
+    runs-on: [self-hosted, docker]
     container: 
       image: cangol/android-gradle
     steps:
