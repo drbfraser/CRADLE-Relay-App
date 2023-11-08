@@ -32,4 +32,7 @@ interface DaoAccess {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertAllReferral(referralList: List<SmsReferralEntity>)
+
+    @Query("SELECT * FROM SmsReferralEntity WHERE id == :key")
+    fun getReferral(key: String): SmsReferralEntity
 }

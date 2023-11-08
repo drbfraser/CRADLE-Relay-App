@@ -2,9 +2,11 @@ package com.cradleplatform.smsrelay.database
 
 import androidx.lifecycle.LiveData
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Main interface for interacting with the database for all classes.
@@ -47,5 +49,11 @@ class ReferralRepository(database: ReferralDatabase) {
 
     fun getAllUnUploadedLiveListReferral(): LiveData<List<SmsReferralEntity>> {
         return referralDao.getUnUploadedReferralLive()
+    }
+
+    suspend fun getSMSReferralEntity(id: String): SmsReferralEntity? {
+        return withContext(IO) {
+            referralDao.getReferral(id)
+        }
     }
 }
