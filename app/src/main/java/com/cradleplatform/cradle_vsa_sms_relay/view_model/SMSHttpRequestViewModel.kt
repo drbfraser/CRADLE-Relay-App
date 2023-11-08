@@ -35,6 +35,23 @@ class SMSHttpRequestViewModel(
         }
     }
 
+    private fun updateSMSReferralRepository(smsHttpRequest: SMSHttpRequest, isResponseSuccessful: Boolean){
+        val phoneNumber: String = smsHttpRequest.phoneNumber
+        val requestCounter: String = smsHttpRequest.requestCounter
+        val numMessages: Int = smsHttpRequest.numOfFragments
+        viewModelScope.launch {
+            for (i in 0 until numMessages) {
+                var fragmentIdx = String.format("%03d", i)
+                var referralEntity =
+                    referralRepository.getSMSReferralEntity("$phoneNumber-$requestCounter-$fragmentIdx")
+                referralEntity?.numberOfTriesUploaded = referralEntity!!.numberOfTriesUploaded + 1
+                referralEntity?.isUploaded = isResponseSuccessful
+                referralRepository.update(referralEntity!!)
+            }
+        }
+
+    }
+
     // figure out how to change isUploaded for SMSReferral Entity for successful request
     // update database via ReferralRepository
     // everything else id potentially done
@@ -48,38 +65,25 @@ class SMSHttpRequestViewModel(
                             call: Call<HTTPSResponse>,
                             response: retrofit2.Response<HTTPSResponse>
                         ) {
-                            // check if smsHTTPRequest is available in here
-                            val phoneNumber: String = smsHttpRequest.phoneNumber
-                            val requestCounter: String = smsHttpRequest.requestCounter
-                            val numMessages: Int = smsHttpRequest.numOfFragments
-                            // loop over 0:numMessages to update all
-                            if (response.isSuccessful) {
-                                viewModelScope.launch {
-                                    for (i in 0 until numMessages) {
-                                        var fragmentIdx = String.format("%03d", i)
-                                        var referralEntity =
-                                            referralRepository.getSMSReferralEntity("$phoneNumber-$requestCounter-$fragmentIdx")
-                                        if (referralEntity != null) {
-                                            referralEntity.isUploaded = true
-                                            referralRepository.update(referralEntity)
-                                        }
-                                    }
-                                }
-                                synchronized(this@SMSHttpRequestViewModel) {
-                                    val httpsResponse = response.body()
-                                    if (httpsResponse != null) {
-                                        httpsResponses.value?.toMutableList()?.let {
+                            var isResponseSuccessful = response.isSuccessful
+                            if (isResponseSuccessful) {
+                                val httpsResponse = response.body()
+                                if (httpsResponse != null) {
+                                    synchronized(this@SMSHttpRequestViewModel) {
+                                    httpsResponses.value?.toMutableList()?.let {
                                             httpsResponses.value = it + listOf(httpsResponse)
                                         }
                                     }
                                 }
+                                else {
+                                    isResponseSuccessful = false
+                                }
                             }
+                            updateSMSReferralRepository(smsHttpRequest, isResponseSuccessful)
                         }
 
                         override fun onFailure(call: Call<HTTPSResponse>, t: Throwable){
-                            // always a failure on both 200 and 201 responses
-                            // failing because response was encrypted
-                            Log.d("Failure for api call", call.request().toString())
+                            updateSMSReferralRepository(smsHttpRequest, false)
                         }
                     })
             }
