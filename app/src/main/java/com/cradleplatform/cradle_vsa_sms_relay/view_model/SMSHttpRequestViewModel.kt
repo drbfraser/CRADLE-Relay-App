@@ -44,8 +44,8 @@ class SMSHttpRequestViewModel(
                 var fragmentIdx = String.format("%03d", i)
                 var referralEntity =
                     referralRepository.getSMSReferralEntity("$phoneNumber-$requestCounter-$fragmentIdx")
-                referralEntity?.numberOfTriesUploaded = referralEntity!!.numberOfTriesUploaded + 1
-                referralEntity?.isUploaded = isResponseSuccessful
+                referralEntity!!.numberOfTriesUploaded =+ 1
+                referralEntity!!.isUploaded = isResponseSuccessful
                 referralRepository.update(referralEntity!!)
             }
         }
