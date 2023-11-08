@@ -34,10 +34,6 @@ class ReferralViewModel(application: Application) :
         return repository.referrals
     }
 
-//    fun getReferral(id: String): SmsReferralEntity{
-//        return repository.getSMSReferralEntity(id)
-//    }
-
     init {
         (application as MyApp).component.inject(this)
         referrals = repository.referrals

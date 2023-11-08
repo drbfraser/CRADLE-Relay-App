@@ -30,7 +30,7 @@ import java.util.regex.Pattern
  * detects messages receives
  */
 
-//
+// used to get the request number from the message
 const val REQUEST_COUNTER_IDX = 2
 // index of num fragments after encrypted message is split
 const val NUMBER_OF_FRAGMENTS_IDX = 3
