@@ -32,7 +32,7 @@ import java.util.regex.Pattern
 
 //
 const val REQUEST_COUNTER_IDX = 2
-//index of num fragments after encrypted message is split
+// index of num fragments after encrypted message is split
 const val NUMBER_OF_FRAGMENTS_IDX = 3
 
 class MessageReciever(private val context: Context) : BroadcastReceiver() {

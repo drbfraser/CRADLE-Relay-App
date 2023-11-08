@@ -1,15 +1,12 @@
 package com.cradleplatform.cradle_vsa_sms_relay.view_model
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSResponse
 import com.cradleplatform.cradle_vsa_sms_relay.model.SMSHttpRequest
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SMSHttpRequestRepository
 import com.cradleplatform.smsrelay.database.ReferralRepository
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,7 +32,7 @@ class SMSHttpRequestViewModel(
         }
     }
 
-    private fun updateSMSReferralRepository(smsHttpRequest: SMSHttpRequest, isResponseSuccessful: Boolean){
+    private fun updateSMSReferralRepository(smsHttpRequest: SMSHttpRequest, isResponseSuccessful: Boolean) {
         val phoneNumber: String = smsHttpRequest.phoneNumber
         val requestCounter: String = smsHttpRequest.requestCounter
         val numMessages: Int = smsHttpRequest.numOfFragments
@@ -44,18 +41,13 @@ class SMSHttpRequestViewModel(
                 var fragmentIdx = String.format("%03d", i)
                 var referralEntity =
                     referralRepository.getSMSReferralEntity("$phoneNumber-$requestCounter-$fragmentIdx")
-                referralEntity!!.numberOfTriesUploaded =+ 1
-                referralEntity!!.isUploaded = isResponseSuccessful
+                referralEntity?.numberOfTriesUploaded = 1
+                referralEntity?.isUploaded = isResponseSuccessful
                 referralRepository.update(referralEntity!!)
             }
         }
-
     }
 
-    // figure out how to change isUploaded for SMSReferral Entity for successful request
-    // update database via ReferralRepository
-    // everything else id potentially done
-    // repeat for failures
     fun sendSMSHttpRequestToServer(smsHttpRequest: SMSHttpRequest) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
@@ -74,15 +66,13 @@ class SMSHttpRequestViewModel(
                                             httpsResponses.value = it + listOf(httpsResponse)
                                         }
                                     }
-                                }
-                                else {
+                                } else {
                                     isResponseSuccessful = false
                                 }
                             }
                             updateSMSReferralRepository(smsHttpRequest, isResponseSuccessful)
                         }
-
-                        override fun onFailure(call: Call<HTTPSResponse>, t: Throwable){
+                        override fun onFailure(call: Call<HTTPSResponse>, t: Throwable) {
                             updateSMSReferralRepository(smsHttpRequest, false)
                         }
                     })
