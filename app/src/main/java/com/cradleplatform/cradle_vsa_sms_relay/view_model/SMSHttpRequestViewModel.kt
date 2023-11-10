@@ -61,8 +61,10 @@ class SMSHttpRequestViewModel(
                                 val httpsResponse = response.body()
                                 if (httpsResponse != null) {
                                     synchronized(this@SMSHttpRequestViewModel) {
-                                        // Storing HTTP responses to update UI later - This functionality will be added later
-                                        // Update UI from here instead of using updateSMSReferralRepository, this will help add detailed error messages
+                                        // TO-DO: Storing HTTP responses to update UI later
+                                        // This functionality will be added later
+                                        // Update UI from here instead of using updateSMSReferralRepository
+                                        // This will help add detailed error messages
                                         httpsResponses.value?.toMutableList()?.let {
                                             httpsResponses.value = it + listOf(httpsResponse)
                                         }
