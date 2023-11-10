@@ -57,20 +57,19 @@ class SMSHttpRequestViewModel(
                             call: Call<HTTPSResponse>,
                             response: retrofit2.Response<HTTPSResponse>
                         ) {
-                            var isResponseSuccessful = response.isSuccessful
-                            if (isResponseSuccessful) {
+                            if (response.isSuccessful) {
                                 val httpsResponse = response.body()
                                 if (httpsResponse != null) {
                                     synchronized(this@SMSHttpRequestViewModel) {
-                                    httpsResponses.value?.toMutableList()?.let {
+                                        // Storing HTTP responses to update UI later - This functionality will be added later
+                                        // Update UI from here instead of using updateSMSReferralRepository, this will help add detailed error messages
+                                        httpsResponses.value?.toMutableList()?.let {
                                             httpsResponses.value = it + listOf(httpsResponse)
                                         }
                                     }
-                                } else {
-                                    isResponseSuccessful = false
                                 }
                             }
-                            updateSMSReferralRepository(smsHttpRequest, isResponseSuccessful)
+                            updateSMSReferralRepository(smsHttpRequest, response.isSuccessful)
                         }
                         override fun onFailure(call: Call<HTTPSResponse>, t: Throwable) {
                             updateSMSReferralRepository(smsHttpRequest, false)
