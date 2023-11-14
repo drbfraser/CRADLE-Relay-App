@@ -4,7 +4,7 @@ import android.content.SharedPreferences
 import androidx.multidex.MultiDexApplication
 import androidx.preference.PreferenceManager
 import androidx.room.Room
-import com.cradleplatform.cradle_vsa_sms_relay.database.SMSSenderDatabase
+import com.cradleplatform.cradle_vsa_sms_relay.database.SmsSenderDatabase
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsSenderRepository
 import com.cradleplatform.smsrelay.database.ReferralDatabase
 import com.cradleplatform.smsrelay.database.ReferralRepository
@@ -31,10 +31,10 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun getSmsSenderDatabase(app: MultiDexApplication): SMSSenderDatabase {
+    fun getSmsSenderDatabase(app: MultiDexApplication): SmsSenderDatabase {
         // todo create a migration class
         return Room.databaseBuilder(
-            app.applicationContext, SMSSenderDatabase::class.java,
+            app.applicationContext, SmsSenderDatabase::class.java,
             "sms_sender-DB"
         ).fallbackToDestructiveMigration().build()
     }
@@ -53,7 +53,7 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun getSmsSenderRepository(database: SMSSenderDatabase): SmsSenderRepository {
+    fun getSmsSenderRepository(database: SmsSenderDatabase): SmsSenderRepository {
         return SmsSenderRepository(database)
     }
 

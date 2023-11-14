@@ -6,11 +6,11 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Update
 
 @Dao
-interface SMSSenderDao {
+interface SmsSenderDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insertSmsSender(smsSenderEntity: SMSSenderEntity)
+    fun insertSmsSender(smsSenderEntity: SmsSenderEntity)
 
     @Update
-    fun updateSmsSender(smsSenderEntity: SMSSenderEntity)
+    fun updateSmsSender(smsSenderEntity: SmsSenderEntity)
 
 }

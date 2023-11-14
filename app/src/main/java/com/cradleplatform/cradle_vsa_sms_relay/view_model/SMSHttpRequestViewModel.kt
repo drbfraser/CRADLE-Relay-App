@@ -3,7 +3,7 @@ package com.cradleplatform.cradle_vsa_sms_relay.view_model
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cradleplatform.cradle_vsa_sms_relay.database.SMSSenderEntity
+import com.cradleplatform.cradle_vsa_sms_relay.database.SmsSenderEntity
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsSenderRepository
 import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSResponse
 import com.cradleplatform.cradle_vsa_sms_relay.model.SMSHttpRequest
@@ -74,6 +74,21 @@ class SMSHttpRequestViewModel(
                                         httpsResponses.value?.toMutableList()?.let {
                                             httpsResponses.value = it + listOf(httpsResponse)
                                         }
+                                        val phoneNumber: String = smsHttpRequest.phoneNumber
+                                        val requestCounter: String = smsHttpRequest.requestCounter
+                                        // calculate this based on the length of string
+                                        val numMessages: Int = 4
+                                        val smsSenderEntity = SmsSenderEntity("$phoneNumber-$requestCounter",
+                                            httpsResponse.body,
+                                            httpsResponse.code.toString(),
+                                            phoneNumber,
+                                            System.currentTimeMillis(),
+                                            numMessages,
+                                            0)
+                                        smsSenderRepository.insert(smsSenderEntity)
+
+                                        // send first message
+                                        // increment number of messages sent here by 1
                                     }
                                 }
                             }

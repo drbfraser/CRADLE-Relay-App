@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 import java.io.Serializable
 
 @Entity
-data class SMSSenderEntity(
+data class SmsSenderEntity(
     @PrimaryKey
     //phonenumber-requestcounter
     val id: String,
@@ -14,8 +14,8 @@ data class SMSSenderEntity(
     val phoneNumber: String?,
     // unix stamp for when the callback was completed
     val timeReceived: Long,
-    var numMessagesSent: Int = 0,
-    val totalMessages: Int
+    val totalMessages: Int,
+    var numMessagesSent: Int
     ) : Serializable, Comparable<SmsReferralEntity> {
 
     override fun compareTo(other: SmsReferralEntity): Int {
