@@ -11,6 +11,7 @@ import android.util.Log
 import com.cradleplatform.smsrelay.dagger.MyApp
 import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
+import com.cradleplatform.cradle_vsa_sms_relay.database.SmsSenderRepository
 import com.cradleplatform.cradle_vsa_sms_relay.model.SMSHttpRequest
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
@@ -43,6 +44,9 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
 
     @Inject
     lateinit var smsHttpRequestViewModel: SMSHttpRequestViewModel
+
+    @Inject
+    lateinit var senderRepository: SmsSenderRepository
 
     private val smsManager = SmsManager.getDefault()
 

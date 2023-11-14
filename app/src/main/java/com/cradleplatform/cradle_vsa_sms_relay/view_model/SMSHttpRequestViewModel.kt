@@ -3,6 +3,8 @@ package com.cradleplatform.cradle_vsa_sms_relay.view_model
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cradleplatform.cradle_vsa_sms_relay.database.SMSSenderEntity
+import com.cradleplatform.cradle_vsa_sms_relay.database.SmsSenderRepository
 import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSResponse
 import com.cradleplatform.cradle_vsa_sms_relay.model.SMSHttpRequest
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SMSHttpRequestRepository
@@ -12,10 +14,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
+import javax.inject.Inject
 
 class SMSHttpRequestViewModel(
     private val repository: SMSHttpRequestRepository
 ) : ViewModel() {
+
+    @Inject
+    lateinit var smsSenderRepository: SmsSenderRepository
 
     private val httpsResponses = MutableLiveData<List<HTTPSResponse>>()
     val phoneNumberToRequestCounter = HashMap<String, SMSHttpRequest>()
