@@ -30,7 +30,9 @@ import java.util.regex.Pattern
  * detects messages receives
  */
 
+// used to get the request number from the message
 const val REQUEST_COUNTER_IDX = 2
+// index of num fragments after encrypted message is split
 const val NUMBER_OF_FRAGMENTS_IDX = 3
 
 class MessageReciever(private val context: Context) : BroadcastReceiver() {
@@ -122,6 +124,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
                 sendAcknowledgementMessage(smsHttpRequest)
 
                 if (smsHttpRequest.isReadyToSendToServer) {
+                    smsHttpRequestViewModel.referralRepository = repository
                     smsHttpRequestViewModel.sendSMSHttpRequestToServer(smsHttpRequest)
                 }
             }
@@ -165,6 +168,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
                 phoneNumber,
                 requestCounter,
                 numberOfFragments,
+                // list of encrypted messages
                 mutableListOf(packetComponents.last()),
                 false
             )
