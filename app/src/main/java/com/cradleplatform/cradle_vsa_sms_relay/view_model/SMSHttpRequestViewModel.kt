@@ -1,5 +1,6 @@
 package com.cradleplatform.cradle_vsa_sms_relay.view_model
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,20 +9,21 @@ import com.cradleplatform.cradle_vsa_sms_relay.database.SmsSenderRepository
 import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSResponse
 import com.cradleplatform.cradle_vsa_sms_relay.model.SMSHttpRequest
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SMSHttpRequestRepository
+import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
 import com.cradleplatform.smsrelay.database.ReferralRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
-import javax.inject.Inject
 
 class SMSHttpRequestViewModel(
     private val repository: SMSHttpRequestRepository
 ) : ViewModel() {
 
-    @Inject
     lateinit var smsSenderRepository: SmsSenderRepository
+
+    private val smsFormatter: SMSFormatter = SMSFormatter()
 
     private val httpsResponses = MutableLiveData<List<HTTPSResponse>>()
     val phoneNumberToRequestCounter = HashMap<String, SMSHttpRequest>()
@@ -74,17 +76,24 @@ class SMSHttpRequestViewModel(
                                         httpsResponses.value?.toMutableList()?.let {
                                             httpsResponses.value = it + listOf(httpsResponse)
                                         }
+
                                         val phoneNumber: String = smsHttpRequest.phoneNumber
                                         val requestCounter: String = smsHttpRequest.requestCounter
-                                        // calculate this based on the length of string
-                                        val numMessages: Int = 4
+
+                                        val smsMessages = smsFormatter.formatSMS(httpsResponse.body, requestCounter.toLong())
+                                        val collapsedEncryptedMessages = smsMessages.joinToString(separator = ",")
+
                                         val smsSenderEntity = SmsSenderEntity("$phoneNumber-$requestCounter",
-                                            httpsResponse.body,
+                                            collapsedEncryptedMessages,
                                             httpsResponse.code.toString(),
                                             phoneNumber,
                                             System.currentTimeMillis(),
-                                            numMessages,
+                                            smsMessages.size,
                                             0)
+
+                                        Log.d("hello hello", httpsResponse.body)
+                                        Log.d("hello hello", httpsResponse.code.toString())
+
                                         smsSenderRepository.insert(smsSenderEntity)
 
                                         // send first message

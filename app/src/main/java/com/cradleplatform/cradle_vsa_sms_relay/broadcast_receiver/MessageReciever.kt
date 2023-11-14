@@ -43,6 +43,9 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
     lateinit var repository: ReferralRepository
 
     @Inject
+    lateinit var smsSenderRepository: SmsSenderRepository
+
+    @Inject
     lateinit var smsHttpRequestViewModel: SMSHttpRequestViewModel
 
     @Inject
@@ -131,7 +134,9 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
                 sendAcknowledgementMessage(smsHttpRequest)
 
                 if (smsHttpRequest.isReadyToSendToServer) {
+                    // move assignments out of here
                     smsHttpRequestViewModel.referralRepository = repository
+                    smsHttpRequestViewModel.smsSenderRepository = smsSenderRepository
                     smsHttpRequestViewModel.sendSMSHttpRequestToServer(smsHttpRequest)
                 }
             }
