@@ -121,7 +121,9 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
         val data = p1?.extras
         val pdus = data?.get("pdus") as Array<*>
 
-        // may recieve multiple messages at the same time from different numbers so
+        smsHttpRequestViewModel.smsManager = smsManager
+
+        // may receive multiple messages at the same time from different numbers so
         // we keep track of all the messages from different numbers
         val messages = processSMSMessages(pdus)
 
