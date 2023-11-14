@@ -120,6 +120,9 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
 
         messages.entries.forEach { entry ->
             if (entry.key.isNotEmpty() && entry.value.isNotEmpty()) {
+
+                // check if message is ack here
+
                 val smsHttpRequest = createSMSHttpRequest(entry.key, entry.value)
                 sendAcknowledgementMessage(smsHttpRequest)
 
@@ -130,6 +133,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
             }
         }
 
+        // add different things to different dbs
         saveSMSReferralEntity(messages)
     }
 
