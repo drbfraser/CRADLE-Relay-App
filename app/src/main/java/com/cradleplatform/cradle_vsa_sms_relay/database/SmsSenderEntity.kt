@@ -16,9 +16,5 @@ data class SmsSenderEntity(
     val timeReceived: Long,
     val totalMessages: Int,
     var numMessagesSent: Int
-    ) : Serializable, Comparable<SmsReferralEntity> {
-
-    override fun compareTo(other: SmsReferralEntity): Int {
-        return (this.timeReceived - other.timeReceived).toInt()
-    }
+    ) : Serializable {
 }

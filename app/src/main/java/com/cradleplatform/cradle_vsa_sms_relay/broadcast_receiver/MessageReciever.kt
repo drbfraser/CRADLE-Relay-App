@@ -36,6 +36,10 @@ const val REQUEST_COUNTER_IDX = 2
 // index of num fragments after encrypted message is split
 const val NUMBER_OF_FRAGMENTS_IDX = 3
 
+private val ackRegexPattern = Regex("^01-CRADLE-(\\d{6})-(\\d{3})-ACK$")
+private val firstRegexPattern = Regex("^01-CRADLE-(\\d{6})-(\\d{3})-(.+)")
+private val restRegexPattern = Regex("^(\\d{3})-(.+)")
+
 class MessageReciever(private val context: Context) : BroadcastReceiver() {
     private val tag = "MESSAGE_RECEIVER"
 
@@ -127,25 +131,51 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
         // we keep track of all the messages from different numbers
         val messages = processSMSMessages(pdus)
 
+        val dataMessages = HashMap<String, String>()
+        val ackMessages = HashMap<String, String>()
+
         messages.entries.forEach { entry ->
             if (entry.key.isNotEmpty() && entry.value.isNotEmpty()) {
 
-                // check if message is ack here
+                if(entry.value matches(firstRegexPattern) || entry.value.matches(restRegexPattern)){
+                    val smsHttpRequest = createSMSHttpRequest(entry.key, entry.value)
+                    sendAcknowledgementMessage(smsHttpRequest)
 
-                val smsHttpRequest = createSMSHttpRequest(entry.key, entry.value)
-                sendAcknowledgementMessage(smsHttpRequest)
+                    if (smsHttpRequest.isReadyToSendToServer) {
+                        // move assignments out of here and use dagger
+                        smsHttpRequestViewModel.referralRepository = repository
+                        smsHttpRequestViewModel.smsSenderRepository = smsSenderRepository
+                        smsHttpRequestViewModel.sendSMSHttpRequestToServer(smsHttpRequest)
+                    }
 
-                if (smsHttpRequest.isReadyToSendToServer) {
-                    // move assignments out of here
-                    smsHttpRequestViewModel.referralRepository = repository
-                    smsHttpRequestViewModel.smsSenderRepository = smsSenderRepository
-                    smsHttpRequestViewModel.sendSMSHttpRequestToServer(smsHttpRequest)
+                    dataMessages[entry.key] = entry.value
+                }
+
+                else if(entry.value.matches(ackRegexPattern)){
+
+                    // get next message from repository
+                    // remove from string
+                    // update db with numSent and new str
+
+                    ackMessages[entry.key] = entry.value
                 }
             }
         }
 
         // add different things to different dbs
-        saveSMSReferralEntity(messages)
+        saveSMSReferralEntity(dataMessages)
+    }
+
+    private fun sendNextDataMessage(phoneNumber: String, smsMessage: String){
+
+    }
+
+    private fun getAckRequestIdentifier(ackMessage: String): String{
+        return ackRegexPattern.find(ackMessage)?.groupValues!![1]
+    }
+
+    private fun getAckFragmentNumber(ackMessage: String): Int{
+        return ackRegexPattern.find(ackMessage)?.groupValues!![2].toInt()
     }
 
     private fun processSMSMessages(pdus: Array<*>): HashMap<String, String> {

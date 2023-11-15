@@ -30,6 +30,8 @@ class SMSHttpRequestViewModel(
     lateinit var smsSenderRepository: SmsSenderRepository
     lateinit var smsManager: SmsManager
 
+    var smsSenderTrackerHashMap = HashMap<String, SmsSenderEntity>()
+
 
     fun removeSMSHttpResponse(smsHTTPSResponse: HTTPSResponse) {
         synchronized(this@SMSHttpRequestViewModel) {
@@ -96,17 +98,18 @@ class SMSHttpRequestViewModel(
                                         val firstMessage = smsMessages.removeAt(0)
                                         val collapsedEncryptedMessages = smsMessages.joinToString(separator = ",")
 
+                                        val smsSenderEntityId  = "$phoneNumber-$requestCounter"
+
                                         val smsSenderEntity = SmsSenderEntity(
-                                            "$phoneNumber-$requestCounter",
+                                            smsSenderEntityId,
                                             collapsedEncryptedMessages,
                                             httpsResponse.code.toString(),
                                             phoneNumber,
                                             System.currentTimeMillis(),
                                             smsMessages.size,
-                                            //se
                                             1)
 
-                                        smsSenderRepository.insert(smsSenderEntity)
+                                        smsSenderTrackerHashMap[smsSenderEntityId] = smsSenderEntity
 
                                         sendCallBackResponse(phoneNumber, firstMessage)
                                     }
