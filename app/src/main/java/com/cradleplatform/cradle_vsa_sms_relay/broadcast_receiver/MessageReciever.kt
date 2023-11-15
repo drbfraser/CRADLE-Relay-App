@@ -129,17 +129,21 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
         messages.entries.forEach { entry ->
             if (entry.key.isNotEmpty() && entry.value.isNotEmpty()) {
 
+                var chk1 = entry.value.matches(ackRegexPattern)
+
                 if(entry.value.matches(ackRegexPattern)){
 
-                    val id = "${entry.key}${getAckRequestIdentifier(entry.value)}"
+                    val id = "${entry.key}-${getAckRequestIdentifier(entry.value)}"
                     val smsSenderEntity = smsHttpRequestViewModel.smsSenderTrackerHashMap[id]
-
                     val encryptedPacketList = smsSenderEntity?.encryptedData
                     if (!encryptedPacketList.isNullOrEmpty()){
                         val encryptedPacket = encryptedPacketList.removeAt(0)
                         sendNextDataMessage(entry.key, encryptedPacket!!)
                         smsSenderEntity?.numMessagesSent  = smsSenderEntity!!.numMessagesSent + 1
                         smsHttpRequestViewModel.smsSenderTrackerHashMap[id] = smsSenderEntity
+                    }
+                    else{
+                        smsHttpRequestViewModel.smsSenderTrackerHashMap.remove(id)
                     }
                 }
 
