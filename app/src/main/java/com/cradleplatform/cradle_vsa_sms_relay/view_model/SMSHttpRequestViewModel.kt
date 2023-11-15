@@ -1,12 +1,10 @@
 package com.cradleplatform.cradle_vsa_sms_relay.view_model
 
 import android.telephony.SmsManager
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsSenderEntity
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsSenderRepository
 import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSResponse
 import com.cradleplatform.cradle_vsa_sms_relay.model.SMSHttpRequest
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SMSHttpRequestRepository
@@ -27,7 +25,6 @@ class SMSHttpRequestViewModel(
     val phoneNumberToRequestCounter = HashMap<String, SMSHttpRequest>()
 
     lateinit var referralRepository: ReferralRepository
-    lateinit var smsSenderRepository: SmsSenderRepository
     lateinit var smsManager: SmsManager
 
     var smsSenderTrackerHashMap = HashMap<String, SmsSenderEntity>()
@@ -96,13 +93,12 @@ class SMSHttpRequestViewModel(
 
                                         val smsMessages = smsFormatter.formatSMS(httpsResponse.body, requestCounter.toLong())
                                         val firstMessage = smsMessages.removeAt(0)
-                                        val collapsedEncryptedMessages = smsMessages.joinToString(separator = ",")
 
                                         val smsSenderEntityId  = "$phoneNumber-$requestCounter"
 
                                         val smsSenderEntity = SmsSenderEntity(
                                             smsSenderEntityId,
-                                            collapsedEncryptedMessages,
+                                            smsMessages,
                                             httpsResponse.code.toString(),
                                             phoneNumber,
                                             System.currentTimeMillis(),

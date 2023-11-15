@@ -4,12 +4,10 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.io.Serializable
 
-@Entity
 data class SmsSenderEntity(
-    @PrimaryKey
     //phonenumber-requestcounter
     val id: String,
-    val encryptedData: String?,
+    val encryptedData: MutableList<String>?,
     val responseCode: String?,
     val phoneNumber: String?,
     // unix stamp for when the callback was completed

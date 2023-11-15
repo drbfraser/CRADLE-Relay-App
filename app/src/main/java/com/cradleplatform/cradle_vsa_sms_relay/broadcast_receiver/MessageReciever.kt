@@ -11,7 +11,6 @@ import android.util.Log
 import com.cradleplatform.smsrelay.dagger.MyApp
 import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsSenderRepository
 import com.cradleplatform.cradle_vsa_sms_relay.model.SMSHttpRequest
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
@@ -47,13 +46,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
     lateinit var repository: ReferralRepository
 
     @Inject
-    lateinit var smsSenderRepository: SmsSenderRepository
-
-    @Inject
     lateinit var smsHttpRequestViewModel: SMSHttpRequestViewModel
-
-    @Inject
-    lateinit var senderRepository: SmsSenderRepository
 
     private val smsManager = SmsManager.getDefault()
 
@@ -132,42 +125,48 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
         val messages = processSMSMessages(pdus)
 
         val dataMessages = HashMap<String, String>()
-        val ackMessages = HashMap<String, String>()
 
         messages.entries.forEach { entry ->
             if (entry.key.isNotEmpty() && entry.value.isNotEmpty()) {
 
-                if(entry.value matches(firstRegexPattern) || entry.value.matches(restRegexPattern)){
+                if(entry.value.matches(ackRegexPattern)){
+
+                    val id = "${entry.key}${getAckRequestIdentifier(entry.value)}"
+                    val smsSenderEntity = smsHttpRequestViewModel.smsSenderTrackerHashMap[id]
+
+                    val encryptedPacketList = smsSenderEntity?.encryptedData
+                    if (!encryptedPacketList.isNullOrEmpty()){
+                        val encryptedPacket = encryptedPacketList.removeAt(0)
+                        sendNextDataMessage(entry.key, encryptedPacket!!)
+                        smsSenderEntity?.numMessagesSent  = smsSenderEntity!!.numMessagesSent + 1
+                        smsHttpRequestViewModel.smsSenderTrackerHashMap[id] = smsSenderEntity
+                    }
+                }
+
+                else if(entry.value matches(firstRegexPattern) || entry.value.matches(restRegexPattern)){
                     val smsHttpRequest = createSMSHttpRequest(entry.key, entry.value)
                     sendAcknowledgementMessage(smsHttpRequest)
 
                     if (smsHttpRequest.isReadyToSendToServer) {
                         // move assignments out of here and use dagger
                         smsHttpRequestViewModel.referralRepository = repository
-                        smsHttpRequestViewModel.smsSenderRepository = smsSenderRepository
                         smsHttpRequestViewModel.sendSMSHttpRequestToServer(smsHttpRequest)
                     }
 
                     dataMessages[entry.key] = entry.value
                 }
-
-                else if(entry.value.matches(ackRegexPattern)){
-
-                    // get next message from repository
-                    // remove from string
-                    // update db with numSent and new str
-
-                    ackMessages[entry.key] = entry.value
-                }
             }
         }
 
-        // add different things to different dbs
         saveSMSReferralEntity(dataMessages)
     }
 
     private fun sendNextDataMessage(phoneNumber: String, smsMessage: String){
-
+        smsManager.sendMultipartTextMessage(
+            phoneNumber, null,
+            smsManager.divideMessage(smsMessage),
+            null, null
+        )
     }
 
     private fun getAckRequestIdentifier(ackMessage: String): String{
