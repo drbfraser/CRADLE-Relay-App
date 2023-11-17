@@ -29,7 +29,6 @@ class SMSHttpRequestViewModel(
 
     var smsSenderTrackerHashMap = HashMap<String, SmsSenderEntity>()
 
-
     fun removeSMSHttpResponse(smsHTTPSResponse: HTTPSResponse) {
         synchronized(this@SMSHttpRequestViewModel) {
             httpsResponses.value?.toMutableList()?.let {
@@ -41,8 +40,11 @@ class SMSHttpRequestViewModel(
         }
     }
 
-   // This function os only to update UI should be changed
-    private fun updateSMSReferralRepository(smsHttpRequest: SMSHttpRequest, isResponseSuccessful: Boolean) {
+    // This function os only to update UI should be changed
+    private fun updateSMSReferralRepository(
+        smsHttpRequest: SMSHttpRequest,
+        isResponseSuccessful: Boolean
+    ) {
         val phoneNumber: String = smsHttpRequest.phoneNumber
         val requestCounter: String = smsHttpRequest.requestCounter
         val numMessages: Int = smsHttpRequest.numOfFragments
@@ -66,7 +68,6 @@ class SMSHttpRequestViewModel(
             null, null
         )
     }
-
 
     fun sendSMSHttpRequestToServer(smsHttpRequest: SMSHttpRequest) {
         viewModelScope.launch {
@@ -92,10 +93,11 @@ class SMSHttpRequestViewModel(
                                         val phoneNumber: String = smsHttpRequest.phoneNumber
                                         val requestCounter: String = smsHttpRequest.requestCounter
 
-                                        val smsMessages = smsFormatter.formatSMS(httpsResponse.body, requestCounter.toLong())
+                                        val smsMessages = smsFormatter.formatSMS(httpsResponse.body,
+                                            requestCounter.toLong())
                                         val firstMessage = smsMessages.removeAt(0)
 
-                                        val smsSenderEntityId  = "$phoneNumber-$requestCounter"
+                                        val smsSenderEntityId = "$phoneNumber-$requestCounter"
 
                                         val smsSenderEntity = SmsSenderEntity(
                                             smsSenderEntityId,

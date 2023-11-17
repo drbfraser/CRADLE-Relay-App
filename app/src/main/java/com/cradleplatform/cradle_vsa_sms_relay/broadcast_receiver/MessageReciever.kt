@@ -131,24 +131,21 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
 
             if (message.isNotEmpty() && phoneNumber.isNotEmpty()) {
 
-                if(smsFormatter.isAckMessage(message)){
+                if (smsFormatter.isAckMessage(message)) {
 
-                    val id = "${phoneNumber}-${smsFormatter.getAckRequestIdentifier(message)}"
+                    val id = "$phoneNumber-${smsFormatter.getAckRequestIdentifier(message)}"
                     val smsSenderEntity = smsHttpRequestViewModel.smsSenderTrackerHashMap[id]
                     val encryptedPacketList = smsSenderEntity?.encryptedData
-                    if (!encryptedPacketList.isNullOrEmpty()){
+                    if (!encryptedPacketList.isNullOrEmpty()) {
                         val encryptedPacket = encryptedPacketList.removeAt(0)
                         sendNextDataMessage(entry.key, encryptedPacket!!)
-                        smsSenderEntity?.numMessagesSent  = smsSenderEntity!!.numMessagesSent + 1
+                        smsSenderEntity?.numMessagesSent = smsSenderEntity!!.numMessagesSent + 1
                         smsHttpRequestViewModel.smsSenderTrackerHashMap[id] = smsSenderEntity
-                    }
-                    else{
+                    } else {
                         smsHttpRequestViewModel.smsSenderTrackerHashMap.remove(id)
                     }
-                }
-
-                else if(smsFormatter.isFirstMessage(message) ||
-                    smsFormatter.isRestMessage(message)){
+                } else if (smsFormatter.isFirstMessage(message) ||
+                    smsFormatter.isRestMessage(message)) {
                     val smsHttpRequest = createSMSHttpRequest(phoneNumber, message)
                     sendAcknowledgementMessage(smsHttpRequest)
 
@@ -166,7 +163,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
         saveSMSReferralEntity(dataMessages)
     }
 
-    private fun sendNextDataMessage(phoneNumber: String, smsMessage: String){
+    private fun sendNextDataMessage(phoneNumber: String, smsMessage: String) {
         smsManager.sendMultipartTextMessage(
             phoneNumber, null,
             smsManager.divideMessage(smsMessage),
