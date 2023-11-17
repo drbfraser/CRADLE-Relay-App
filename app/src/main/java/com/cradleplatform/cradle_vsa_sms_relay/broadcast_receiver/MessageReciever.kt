@@ -35,10 +35,6 @@ const val REQUEST_COUNTER_IDX = 2
 // index of num fragments after encrypted message is split
 const val NUMBER_OF_FRAGMENTS_IDX = 3
 
-private val ackRegexPattern = Regex("^01-CRADLE-(\\d{6})-(\\d{3})-ACK$")
-private val firstRegexPattern = Regex("^01-CRADLE-(\\d{6})-(\\d{3})-(.+)")
-private val restRegexPattern = Regex("^(\\d{3})-(.+)")
-
 class MessageReciever(private val context: Context) : BroadcastReceiver() {
     private val tag = "MESSAGE_RECEIVER"
 
@@ -49,6 +45,8 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
     lateinit var smsHttpRequestViewModel: SMSHttpRequestViewModel
 
     private val smsManager = SmsManager.getDefault()
+
+    private val smsFormatter: SMSFormatter = SMSFormatter()
 
     init {
         (context.applicationContext as MyApp).component.inject(this)
@@ -127,13 +125,15 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
         val dataMessages = HashMap<String, String>()
 
         messages.entries.forEach { entry ->
-            if (entry.key.isNotEmpty() && entry.value.isNotEmpty()) {
 
-                var chk1 = entry.value.matches(ackRegexPattern)
+            val message = entry.value
+            val phoneNumber = entry.key
 
-                if(entry.value.matches(ackRegexPattern)){
+            if (message.isNotEmpty() && phoneNumber.isNotEmpty()) {
 
-                    val id = "${entry.key}-${getAckRequestIdentifier(entry.value)}"
+                if(smsFormatter.isAckMessage(message)){
+
+                    val id = "${phoneNumber}-${smsFormatter.getAckRequestIdentifier(message)}"
                     val smsSenderEntity = smsHttpRequestViewModel.smsSenderTrackerHashMap[id]
                     val encryptedPacketList = smsSenderEntity?.encryptedData
                     if (!encryptedPacketList.isNullOrEmpty()){
@@ -147,8 +147,9 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
                     }
                 }
 
-                else if(entry.value matches(firstRegexPattern) || entry.value.matches(restRegexPattern)){
-                    val smsHttpRequest = createSMSHttpRequest(entry.key, entry.value)
+                else if(smsFormatter.isFirstMessage(message) ||
+                    smsFormatter.isRestMessage(message)){
+                    val smsHttpRequest = createSMSHttpRequest(phoneNumber, message)
                     sendAcknowledgementMessage(smsHttpRequest)
 
                     if (smsHttpRequest.isReadyToSendToServer) {
@@ -157,7 +158,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
                         smsHttpRequestViewModel.sendSMSHttpRequestToServer(smsHttpRequest)
                     }
 
-                    dataMessages[entry.key] = entry.value
+                    dataMessages[phoneNumber] = message
                 }
             }
         }
@@ -171,14 +172,6 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
             smsManager.divideMessage(smsMessage),
             null, null
         )
-    }
-
-    private fun getAckRequestIdentifier(ackMessage: String): String{
-        return ackRegexPattern.find(ackMessage)?.groupValues!![1]
-    }
-
-    private fun getAckFragmentNumber(ackMessage: String): Int{
-        return ackRegexPattern.find(ackMessage)?.groupValues!![2].toInt()
     }
 
     private fun processSMSMessages(pdus: Array<*>): HashMap<String, String> {

@@ -41,6 +41,7 @@ class SMSHttpRequestViewModel(
         }
     }
 
+   // This function os only to update UI should be changed
     private fun updateSMSReferralRepository(smsHttpRequest: SMSHttpRequest, isResponseSuccessful: Boolean) {
         val phoneNumber: String = smsHttpRequest.phoneNumber
         val requestCounter: String = smsHttpRequest.requestCounter

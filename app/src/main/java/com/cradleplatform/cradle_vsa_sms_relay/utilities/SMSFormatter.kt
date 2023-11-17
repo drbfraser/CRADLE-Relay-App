@@ -16,6 +16,10 @@ private const val MAGIC_STRING = "CRADLE"
 private const val FRAGMENT_HEADER_LENGTH = 3
 private const val REQUEST_NUMBER_LENGTH = 6
 
+private val ackRegexPattern = Regex("^${SMS_TUNNEL_PROTOCOL_VERSION}-${MAGIC_STRING}-(\\d{6})-(\\d{3})-ACK$")
+private val firstRegexPattern = Regex("^${SMS_TUNNEL_PROTOCOL_VERSION}-${MAGIC_STRING}-(\\d{6})-(\\d{3})-(.+)")
+private val restRegexPattern = Regex("^(\\d{3})-(.+)")
+
 class SMSFormatter {
 
     companion object {
@@ -98,6 +102,26 @@ class SMSFormatter {
         }
 
         return packets
+    }
+
+    fun getAckRequestIdentifier(ackMessage: String): String{
+        return ackRegexPattern.find(ackMessage)?.groupValues!![1]
+    }
+
+    fun getAckFragmentNumber(ackMessage: String): Int{
+        return ackRegexPattern.find(ackMessage)?.groupValues!![2].toInt()
+    }
+
+    fun isFirstMessage(message: String): Boolean{
+        return firstRegexPattern.matches(message)
+    }
+
+    fun isAckMessage(message: String): Boolean {
+        return ackRegexPattern.matches(message)
+    }
+
+    fun isRestMessage(message: String): Boolean{
+        return restRegexPattern.matches(message)
     }
 
 }
