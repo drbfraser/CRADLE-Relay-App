@@ -60,15 +60,6 @@ class SMSHttpRequestViewModel(
         }
     }
 
-    private fun sendCallBackResponse(phoneNumber: String, encryptedMessage: String) {
-        // sends the first part of the encrypted response back to the user
-        smsManager.sendMultipartTextMessage(
-            phoneNumber, null,
-            smsManager.divideMessage(encryptedMessage),
-            null, null
-        )
-    }
-
     fun sendSMSHttpRequestToServer(smsHttpRequest: SMSHttpRequest) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
@@ -110,7 +101,7 @@ class SMSHttpRequestViewModel(
 
                                         smsSenderTrackerHashMap[smsSenderEntityId] = smsSenderEntity
 
-                                        sendCallBackResponse(phoneNumber, firstMessage)
+                                        smsFormatter.sendMessage(smsManager, phoneNumber, firstMessage)
                                     }
                                 }
                             }

@@ -1,5 +1,6 @@
 package com.cradleplatform.cradle_vsa_sms_relay.utilities
 
+import android.telephony.SmsManager
 import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSRequest
 import com.cradleplatform.cradle_vsa_sms_relay.model.SMSHttpRequest
 import com.google.firebase.crashlytics.internal.model.ImmutableList
@@ -122,5 +123,13 @@ class SMSFormatter {
 
     fun isRestMessage(message: String): Boolean {
         return restRegexPattern.matches(message)
+    }
+
+     fun sendMessage(smsManager: SmsManager, phoneNumber: String, smsMessage: String) {
+        smsManager.sendMultipartTextMessage(
+            phoneNumber, null,
+            smsManager.divideMessage(smsMessage),
+            null, null
+        )
     }
 }

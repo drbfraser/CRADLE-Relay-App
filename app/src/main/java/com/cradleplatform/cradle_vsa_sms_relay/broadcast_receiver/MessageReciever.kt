@@ -44,9 +44,10 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
     @Inject
     lateinit var smsHttpRequestViewModel: SMSHttpRequestViewModel
 
-    private val smsManager = SmsManager.getDefault()
+    @Inject
+    lateinit var smsFormatter: SMSFormatter
 
-    private val smsFormatter: SMSFormatter = SMSFormatter()
+    private val smsManager = SmsManager.getDefault()
 
     init {
         (context.applicationContext as MyApp).component.inject(this)
@@ -138,7 +139,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
                     val encryptedPacketList = smsSenderEntity?.encryptedData
                     if (!encryptedPacketList.isNullOrEmpty()) {
                         val encryptedPacket = encryptedPacketList.removeAt(0)
-                        sendNextDataMessage(entry.key, encryptedPacket!!)
+                        smsFormatter.sendMessage(smsManager, phoneNumber, encryptedPacket!!)
                         smsSenderEntity?.numMessagesSent = smsSenderEntity!!.numMessagesSent + 1
                         smsHttpRequestViewModel.smsSenderTrackerHashMap[id] = smsSenderEntity
                     } else {
@@ -161,14 +162,6 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
         }
 
         saveSMSReferralEntity(dataMessages)
-    }
-
-    private fun sendNextDataMessage(phoneNumber: String, smsMessage: String) {
-        smsManager.sendMultipartTextMessage(
-            phoneNumber, null,
-            smsManager.divideMessage(smsMessage),
-            null, null
-        )
     }
 
     private fun processSMSMessages(pdus: Array<*>): HashMap<String, String> {
