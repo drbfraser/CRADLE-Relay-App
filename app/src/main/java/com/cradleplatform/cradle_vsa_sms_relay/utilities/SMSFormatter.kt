@@ -127,9 +127,11 @@ class SMSFormatter {
 
      fun sendMessage(smsManager: SmsManager, phoneNumber: String, smsMessage: String) {
         smsManager.sendMultipartTextMessage(
-            phoneNumber, null,
+            phoneNumber,
+            null,
             smsManager.divideMessage(smsMessage),
-            null, null
+            null,
+            null
         )
     }
 }
