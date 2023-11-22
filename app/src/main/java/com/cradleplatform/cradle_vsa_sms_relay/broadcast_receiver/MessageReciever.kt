@@ -123,6 +123,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
         // we keep track of all the messages from different numbers
         val messages = processSMSMessages(pdus)
 
+        // HashMap to track data messages, ack messages are not saved here
         val dataMessages = HashMap<String, String>()
 
         messages.entries.forEach { entry ->
@@ -137,6 +138,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
                     val id = "$phoneNumber-${smsFormatter.getAckRequestIdentifier(message)}"
                     val smsSenderEntity = smsHttpRequestViewModel.smsSenderTrackerHashMap[id]
                     val encryptedPacketList = smsSenderEntity?.encryptedData
+
                     if (!encryptedPacketList.isNullOrEmpty()) {
                         val encryptedPacket = encryptedPacketList.removeAt(0)
                         smsFormatter.sendMessage(smsManager, phoneNumber, encryptedPacket!!)
@@ -147,6 +149,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
                     }
                 } else if (smsFormatter.isFirstMessage(message) ||
                     smsFormatter.isRestMessage(message)) {
+
                     val smsHttpRequest = createSMSHttpRequest(phoneNumber, message)
                     sendAcknowledgementMessage(smsHttpRequest)
 
@@ -160,6 +163,7 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
             }
         }
 
+        // saving request messages to repository
         saveSMSReferralEntity(dataMessages)
     }
 

@@ -53,9 +53,11 @@ class DataModule {
         referralRepository: ReferralRepository,
         smsFormatter: SMSFormatter
     ): SMSHttpRequestViewModel {
-        return SMSHttpRequestViewModel(repository,
+        return SMSHttpRequestViewModel(
+            repository,
             referralRepository,
-            smsFormatter)
+            smsFormatter
+        )
     }
 
     @Provides

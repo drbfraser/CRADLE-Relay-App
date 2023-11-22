@@ -7,7 +7,6 @@ import com.google.firebase.crashlytics.internal.model.ImmutableList
 import kotlin.math.min
 
 private const val PROTOCOL_VERSION = "01"
-// private val FIRST_FRAGMENT_REGEX_PATTERN = Regex("^${PROTOCOL_VERSION}-CRADLE-\\d{6}-\\d{3}.*")
 private const val NUM_OF_FIRST_PACKET_COMPONENTS = 5
 private const val NUM_OF_NON_FIRST_PACKET_COMPONENTS = 2
 
@@ -55,6 +54,7 @@ class SMSFormatter {
         return baseHeaderContent.fold(0) { acc, i -> acc + i + 1 }
     }
 
+    // Format the input message into SMS packets
     fun formatSMS(
         msg: String,
         currentRequestCounter: Long
@@ -65,7 +65,10 @@ class SMSFormatter {
         var msgIdx = 0
         var currentFragmentSize = 0
 
-        // first compute the number of fragment required for the input message
+        // Compute the string packets with request headers for sending via SMS
+        // Each packet will be sent individually
+
+        // Computes the size of the first message header
         val headerSize = computeRequestHeaderLength()
 
         if (PACKET_SIZE < msg.length + headerSize) {
@@ -75,8 +78,9 @@ class SMSFormatter {
             ).toInt()
         }
 
+        // creating a list of messages with their headers
         while (msgIdx < msg.length) {
-            // first fragment needs special header
+            // First fragment needs a special header
             val requestHeader: String = if (msgIdx == 0) {
                 val currentRequestCounterPadded =
                     currentRequestCounter.toString().padStart(REQUEST_NUMBER_LENGTH, '0')
@@ -89,15 +93,23 @@ class SMSFormatter {
                     $fragmentCountPadded-
                     """.trimIndent().replace("\n", "")
             } else {
+                // creating header for consequent messages
                 val fragmentNumber =
                     currentFragmentSize.toString().padStart(FRAGMENT_HEADER_LENGTH, '0')
                 "$fragmentNumber-"
             }
+
+            // calculating how remaining space after the header is added
             val remainingSpace = PACKET_SIZE - requestHeader.length
+
+            // getting sms string for current fragment based on how much space is remaining
             val currentFragment =
                 requestHeader + msg.substring(msgIdx, min(msgIdx + remainingSpace, msg.length))
+
+            // updating msgIdx for next iteration of the loop
             msgIdx = min(msgIdx + remainingSpace, msg.length)
 
+            // add to the list of SMS packets
             packets.add(currentFragment)
             currentFragmentSize += 1
         }
@@ -105,26 +117,32 @@ class SMSFormatter {
         return packets
     }
 
+    // Extract the request identifier from an acknowledgment message
     fun getAckRequestIdentifier(ackMessage: String): String {
         return ackRegexPattern.find(ackMessage)?.groupValues!![1]
     }
 
+    // Extract the fragment number from an acknowledgment message
     fun getAckFragmentNumber(ackMessage: String): Int {
         return ackRegexPattern.find(ackMessage)?.groupValues!![2].toInt()
     }
 
+    // Check if a message is the first fragment
     fun isFirstMessage(message: String): Boolean {
         return firstRegexPattern.matches(message)
     }
 
+    // Check if a message is an acknowledgment message
     fun isAckMessage(message: String): Boolean {
         return ackRegexPattern.matches(message)
     }
 
+    // Check if a message is a non-first fragment
     fun isRestMessage(message: String): Boolean {
         return restRegexPattern.matches(message)
     }
 
+    // Send a multipart SMS message
     fun sendMessage(smsManager: SmsManager, phoneNumber: String, smsMessage: String) {
         smsManager.sendMultipartTextMessage(
             phoneNumber,
