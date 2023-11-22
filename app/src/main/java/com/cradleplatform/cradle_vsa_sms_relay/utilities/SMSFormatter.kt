@@ -125,7 +125,7 @@ class SMSFormatter {
         return restRegexPattern.matches(message)
     }
 
-     fun sendMessage(smsManager: SmsManager, phoneNumber: String, smsMessage: String) {
+    fun sendMessage(smsManager: SmsManager, phoneNumber: String, smsMessage: String) {
         smsManager.sendMultipartTextMessage(
             phoneNumber,
             null,
