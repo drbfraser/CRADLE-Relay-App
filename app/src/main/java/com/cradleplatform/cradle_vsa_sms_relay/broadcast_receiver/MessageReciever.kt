@@ -152,7 +152,6 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
 
                     if (smsHttpRequest.isReadyToSendToServer) {
                         // move assignments out of here and use dagger
-                        smsHttpRequestViewModel.referralRepository = repository
                         smsHttpRequestViewModel.sendSMSHttpRequestToServer(smsHttpRequest)
                     }
 

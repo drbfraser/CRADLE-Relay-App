@@ -48,8 +48,14 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun getSMSHttpRequestViewModel(repository: SMSHttpRequestRepository): SMSHttpRequestViewModel {
-        return SMSHttpRequestViewModel(repository)
+    fun getSMSHttpRequestViewModel(
+        repository: SMSHttpRequestRepository,
+        referralRepository: ReferralRepository,
+        smsFormatter: SMSFormatter
+    ): SMSHttpRequestViewModel {
+        return SMSHttpRequestViewModel(repository,
+            referralRepository,
+            smsFormatter)
     }
 
     @Provides

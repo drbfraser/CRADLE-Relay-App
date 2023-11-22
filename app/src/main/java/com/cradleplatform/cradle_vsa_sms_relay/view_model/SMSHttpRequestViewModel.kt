@@ -17,14 +17,14 @@ import retrofit2.Call
 import retrofit2.Callback
 
 class SMSHttpRequestViewModel(
-    private val repository: SMSHttpRequestRepository
+    private val repository: SMSHttpRequestRepository,
+    private val referralRepository: ReferralRepository,
+    private val smsFormatter: SMSFormatter
 ) : ViewModel() {
 
-    private val smsFormatter: SMSFormatter = SMSFormatter()
     private val httpsResponses = MutableLiveData<List<HTTPSResponse>>()
     val phoneNumberToRequestCounter = HashMap<String, SMSHttpRequest>()
 
-    lateinit var referralRepository: ReferralRepository
     lateinit var smsManager: SmsManager
 
     var smsSenderTrackerHashMap = HashMap<String, SmsSenderEntity>()
