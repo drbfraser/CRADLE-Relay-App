@@ -8,6 +8,7 @@ import android.telephony.SmsManager
 import android.telephony.SmsMessage
 import android.util.Base64
 import android.util.Log
+import android.widget.Toast
 import com.cradleplatform.smsrelay.dagger.MyApp
 import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
@@ -129,36 +130,52 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
             val message = entry.value
             val phoneNumber = entry.key
+            // Exceptions. Escape forEach and show error message.
+            if (message.isEmpty()) {
+                Log.w(tag, "message is empty")
+                Toast.makeText(
+                    context,
+                    "Warning: received a message that is empty.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@forEach
+            }
+            if (phoneNumber.isEmpty()) {
+                Log.w(tag, "phone number is empty")
+                Toast.makeText(
+                    context,
+                    "Warning: received a message without a phone number.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@forEach
+            }
+            // Process SMS
+            if (smsFormatter.isAckMessage(message)) {
 
-            if (message.isNotEmpty() && phoneNumber.isNotEmpty()) {
+                val id = "$phoneNumber-${smsFormatter.getAckRequestIdentifier(message)}"
+                val smsSenderEntity = smsHttpRequestViewModel.smsSenderTrackerHashMap[id]
+                val encryptedPacketList = smsSenderEntity?.encryptedData
 
-                if (smsFormatter.isAckMessage(message)) {
-
-                    val id = "$phoneNumber-${smsFormatter.getAckRequestIdentifier(message)}"
-                    val smsSenderEntity = smsHttpRequestViewModel.smsSenderTrackerHashMap[id]
-                    val encryptedPacketList = smsSenderEntity?.encryptedData
-
-                    if (!encryptedPacketList.isNullOrEmpty()) {
-                        val encryptedPacket = encryptedPacketList.removeAt(0)
-                        smsFormatter.sendMessage(smsManager, phoneNumber, encryptedPacket!!)
-                        smsSenderEntity?.numMessagesSent = smsSenderEntity!!.numMessagesSent + 1
-                        smsHttpRequestViewModel.smsSenderTrackerHashMap[id] = smsSenderEntity
-                    } else {
-                        smsHttpRequestViewModel.smsSenderTrackerHashMap.remove(id)
-                    }
-                } else if (smsFormatter.isFirstMessage(message) ||
-                    smsFormatter.isRestMessage(message)) {
-
-                    val smsHttpRequest = createSMSHttpRequest(phoneNumber, message)
-                    sendAcknowledgementMessage(smsHttpRequest)
-
-                    if (smsHttpRequest.isReadyToSendToServer) {
-                        // move assignments out of here and use dagger
-                        smsHttpRequestViewModel.sendSMSHttpRequestToServer(smsHttpRequest)
-                    }
-
-                    dataMessages[phoneNumber] = message
+                if (encryptedPacketList.isNullOrEmpty()) {
+                    smsHttpRequestViewModel.smsSenderTrackerHashMap.remove(id)
+                } else {
+                    val encryptedPacket = encryptedPacketList.removeAt(0)
+                    smsFormatter.sendMessage(smsManager, phoneNumber, encryptedPacket!!)
+                    smsSenderEntity?.numMessagesSent = smsSenderEntity!!.numMessagesSent + 1
+                    smsHttpRequestViewModel.smsSenderTrackerHashMap[id] = smsSenderEntity
                 }
+            } else if (smsFormatter.isFirstMessage(message) ||
+                smsFormatter.isRestMessage(message)) {
+
+                val smsHttpRequest = createSMSHttpRequest(phoneNumber, message)
+                sendAcknowledgementMessage(smsHttpRequest)
+
+                if (smsHttpRequest.isReadyToSendToServer) {
+                    // move assignments out of here and use dagger
+                    smsHttpRequestViewModel.sendSMSHttpRequestToServer(smsHttpRequest)
+                }
+
+                dataMessages[phoneNumber] = message
             }
         }
 
