@@ -68,7 +68,7 @@ class SmsService : LifecycleService(),
     private var smsReceiver: MessageReceiver? = null
 
     // to make sure we dont keep registering listerners
-    private var isMessageRecieverRegistered = false
+    private var isMessageReceiverRegistered = false
 
     // handles activity to service interactions
     private val mBinder: IBinder = MyBinder()
@@ -105,13 +105,13 @@ class SmsService : LifecycleService(),
             this.stopService(intent)
             this.stopSelf()
         } else {
-            if (!isMessageRecieverRegistered) {
+            if (!isMessageReceiverRegistered) {
                 smsReceiver = MessageReceiver(this)
                 val intentFilter = IntentFilter()
                 intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
                 intentFilter.priority = Int.MAX_VALUE
                 registerReceiver(smsReceiver, intentFilter)
-                isMessageRecieverRegistered = true
+                isMessageReceiverRegistered = true
                 referralRepository.getAllUnUploadedLiveListReferral()
                     .observe(this, referralObserver)
                 // ask the receiver to fetch all the unsent messages since sms service was last
