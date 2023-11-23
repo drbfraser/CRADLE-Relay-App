@@ -305,7 +305,7 @@ class SmsService : LifecycleService(),
         const val START_SERVICE = "START SERVICE"
 
         // todo change this
-        const val referralsServerUrl = "http://10.0.2.2:5000/api/referral"
+        const val referralsServerUrl = "http://10.0.2.2:5001/api/referral"
 
         /**
          * https://stackoverflow.com/questions/6452466/how-to-determine-if-an-android-service-is-running-in-the-foreground
