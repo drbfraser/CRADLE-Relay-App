@@ -23,7 +23,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.cradleplatform.smsrelay.R
 import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
-import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReciever
+import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReceiver
 import com.cradleplatform.smsrelay.dagger.MyApp
 import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
@@ -65,10 +65,10 @@ class SmsService : LifecycleService(),
     lateinit var smsHttpRequestViewModel: SMSHttpRequestViewModel
 
     // maain sms broadcast listner
-    private var smsReciver: MessageReciever? = null
+    private var smsReceiver: MessageReceiver? = null
 
     // to make sure we dont keep registering listerners
-    private var isMessageRecieverRegistered = false
+    private var isMessageReceiverRegistered = false
 
     // handles activity to service interactions
     private val mBinder: IBinder = MyBinder()
@@ -97,26 +97,26 @@ class SmsService : LifecycleService(),
         val action: String? = intent.action
         if (action.equals(STOP_SERVICE)) {
             stopForeground(true)
-            smsReciver?.updateLastRunPref()
-            if (smsReciver != null) {
-                unregisterReceiver(smsReciver)
+            smsReceiver?.updateLastRunPref()
+            if (smsReceiver != null) {
+                unregisterReceiver(smsReceiver)
             }
-            smsReciver = null
+            smsReceiver = null
             this.stopService(intent)
             this.stopSelf()
         } else {
-            if (!isMessageRecieverRegistered) {
-                smsReciver = MessageReciever(this)
+            if (!isMessageReceiverRegistered) {
+                smsReceiver = MessageReceiver(this)
                 val intentFilter = IntentFilter()
                 intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
                 intentFilter.priority = Int.MAX_VALUE
-                registerReceiver(smsReciver, intentFilter)
-                isMessageRecieverRegistered = true
+                registerReceiver(smsReceiver, intentFilter)
+                isMessageReceiverRegistered = true
                 referralRepository.getAllUnUploadedLiveListReferral()
                     .observe(this, referralObserver)
                 // ask the receiver to fetch all the unsent messages since sms service was last
                 // started
-                smsReciver?.getUnsentSms()
+                smsReceiver?.getUnsentSms()
             }
             val input = intent.getStringExtra("inputExtra")
             createNotificationChannel()

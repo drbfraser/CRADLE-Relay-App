@@ -8,6 +8,7 @@ import android.telephony.SmsManager
 import android.telephony.SmsMessage
 import android.util.Base64
 import android.util.Log
+import android.widget.Toast
 import com.cradleplatform.smsrelay.dagger.MyApp
 import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
@@ -22,7 +23,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.lang.IllegalArgumentException
-import java.util.*
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -35,7 +35,7 @@ const val REQUEST_COUNTER_IDX = 2
 // index of num fragments after encrypted message is split
 const val NUMBER_OF_FRAGMENTS_IDX = 3
 
-class MessageReciever(private val context: Context) : BroadcastReceiver() {
+class MessageReceiver(private val context: Context) : BroadcastReceiver() {
     private val tag = "MESSAGE_RECEIVER"
 
     @Inject
@@ -43,6 +43,9 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
 
     @Inject
     lateinit var smsHttpRequestViewModel: SMSHttpRequestViewModel
+
+    @Inject
+    lateinit var smsFormatter: SMSFormatter
 
     private val smsManager = SmsManager.getDefault()
 
@@ -114,23 +117,70 @@ class MessageReciever(private val context: Context) : BroadcastReceiver() {
         val data = p1?.extras
         val pdus = data?.get("pdus") as Array<*>
 
-        // may recieve multiple messages at the same time from different numbers so
+        smsHttpRequestViewModel.smsManager = smsManager
+
+        // may receive multiple messages at the same time from different numbers so
         // we keep track of all the messages from different numbers
         val messages = processSMSMessages(pdus)
 
+        // HashMap to track data messages, ack messages are not saved here
+        val dataMessages = HashMap<String, String>()
+
         messages.entries.forEach { entry ->
-            if (entry.key.isNotEmpty() && entry.value.isNotEmpty()) {
-                val smsHttpRequest = createSMSHttpRequest(entry.key, entry.value)
+
+            val message = entry.value
+            val phoneNumber = entry.key
+            // Exceptions. Escape forEach and show error message.
+            if (message.isEmpty()) {
+                Log.w(tag, "message is empty")
+                Toast.makeText(
+                    context,
+                    "Warning: received a message that is empty.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@forEach
+            }
+            if (phoneNumber.isEmpty()) {
+                Log.w(tag, "phone number is empty")
+                Toast.makeText(
+                    context,
+                    "Warning: received a message without a phone number.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@forEach
+            }
+            // Process SMS
+            if (smsFormatter.isAckMessage(message)) {
+
+                val id = "$phoneNumber-${smsFormatter.getAckRequestIdentifier(message)}"
+                val smsSenderEntity = smsHttpRequestViewModel.smsSenderTrackerHashMap[id]
+                val encryptedPacketList = smsSenderEntity?.encryptedData
+
+                if (encryptedPacketList.isNullOrEmpty()) {
+                    smsHttpRequestViewModel.smsSenderTrackerHashMap.remove(id)
+                } else {
+                    val encryptedPacket = encryptedPacketList.removeAt(0)
+                    smsFormatter.sendMessage(smsManager, phoneNumber, encryptedPacket!!)
+                    smsSenderEntity?.numMessagesSent = smsSenderEntity!!.numMessagesSent + 1
+                    smsHttpRequestViewModel.smsSenderTrackerHashMap[id] = smsSenderEntity
+                }
+            } else if (smsFormatter.isFirstMessage(message) ||
+                smsFormatter.isRestMessage(message)) {
+
+                val smsHttpRequest = createSMSHttpRequest(phoneNumber, message)
                 sendAcknowledgementMessage(smsHttpRequest)
 
                 if (smsHttpRequest.isReadyToSendToServer) {
-                    smsHttpRequestViewModel.referralRepository = repository
+                    // move assignments out of here and use dagger
                     smsHttpRequestViewModel.sendSMSHttpRequestToServer(smsHttpRequest)
                 }
+
+                dataMessages[phoneNumber] = message
             }
         }
 
-        saveSMSReferralEntity(messages)
+        // saving request messages to repository
+        saveSMSReferralEntity(dataMessages)
     }
 
     private fun processSMSMessages(pdus: Array<*>): HashMap<String, String> {

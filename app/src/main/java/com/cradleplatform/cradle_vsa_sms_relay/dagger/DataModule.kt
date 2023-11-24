@@ -8,6 +8,7 @@ import com.cradleplatform.smsrelay.database.ReferralDatabase
 import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SMSHttpRequestRepository
+import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.SMSHttpRequestViewModel
 import com.cradleplatform.smsrelay.network.VolleyRequests
 import dagger.Module
@@ -47,8 +48,16 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun getSMSHttpRequestViewModel(repository: SMSHttpRequestRepository): SMSHttpRequestViewModel {
-        return SMSHttpRequestViewModel(repository)
+    fun getSMSHttpRequestViewModel(
+        repository: SMSHttpRequestRepository,
+        referralRepository: ReferralRepository,
+        smsFormatter: SMSFormatter
+    ): SMSHttpRequestViewModel {
+        return SMSHttpRequestViewModel(
+            repository,
+            referralRepository,
+            smsFormatter
+        )
     }
 
     @Provides
@@ -56,5 +65,11 @@ class DataModule {
     fun getSMSHttpRequestRepository(sharedPreference: SharedPreferences): SMSHttpRequestRepository {
         val token = sharedPreference.getString(VolleyRequests.TOKEN, "") ?: ""
         return SMSHttpRequestRepository(token)
+    }
+
+    @Provides
+    @Singleton
+    fun getSMSFormatter(): SMSFormatter {
+        return SMSFormatter()
     }
 }
