@@ -93,10 +93,9 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
             val phoneNumber = entry.key
             val encryptedData = entry.value
             val msg = entry.value
-            if (smsFormatter.isFirstMessage(msg)){
+            if (smsFormatter.isFirstMessage(msg)) {
                 // create sms relay entity from scratch because it is the first message received
-            }
-            else if (smsFormatter.isRestMessage(msg)){
+            } else if (smsFormatter.isRestMessage(msg)) {
                 // update sms relay entity
             }
 

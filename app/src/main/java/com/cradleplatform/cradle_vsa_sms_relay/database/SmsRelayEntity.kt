@@ -15,6 +15,6 @@ data class SmsRelayEntity(
 ) : Serializable, Comparable<SmsRelayEntity> {
 
     override fun compareTo(other: SmsRelayEntity): Int {
-        return (this.timeReceived - other.timeReceived ).toInt()
+        return (this.timeReceived - other.timeReceived).toInt()
     }
 }
