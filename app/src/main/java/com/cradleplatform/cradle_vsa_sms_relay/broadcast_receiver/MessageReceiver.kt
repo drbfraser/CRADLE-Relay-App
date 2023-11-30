@@ -92,22 +92,36 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
             val currTime = System.currentTimeMillis()
             val phoneNumber = entry.key
             val encryptedData = entry.value
-            val requestCounter = smsHttpRequestViewModel.phoneNumberToRequestCounter[phoneNumber]!!.requestCounter
-            val fragmentIdx = String.format(
-                "%03d",
-                smsHttpRequestViewModel.phoneNumberToRequestCounter[phoneNumber]!!.encryptedFragments.size - 1
-            )
-            smsReferralList.add(
-                SmsReferralEntity(
-                    "$phoneNumber-$requestCounter-$fragmentIdx",
-                    encryptedData,
-                    currTime,
-                    false,
-                    entry.key,
-                    0,
-                    "", false
-                )
-            )
+            val msg = entry.value
+            if (smsFormatter.isFirstMessage(msg)){
+                // create sms relay entity from scratch because it is the first message received
+            }
+            else if (smsFormatter.isRestMessage(msg)){
+                // update sms relay entity
+            }
+
+//            val currTime = System.currentTimeMillis()
+//            val phoneNumber = entry.key
+//            val encryptedData = entry.value
+//            val requestCounter = smsHttpRequestViewModel.phoneNumberToRequestCounter[phoneNumber]!!.requestCounter
+//            val fragmentIdx = String.format(
+//                "%03d",
+//                smsHttpRequestViewModel.phoneNumberToRequestCounter[phoneNumber]!!.encryptedFragments.size - 1
+//            )
+//            smsReferralList.add(
+//                SmsReferralEntity(
+//                    "$phoneNumber-$requestCounter-$fragmentIdx",
+//                    encryptedData,
+//                    null,
+//                    null,
+//                    currTime,
+//
+//                    false,
+//                    entry.key,
+//                    0,
+//                    "", false
+//                )
+//            )
         }
         repository.insertAll(smsReferralList)
     }

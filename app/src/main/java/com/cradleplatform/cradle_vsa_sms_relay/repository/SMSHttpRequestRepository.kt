@@ -24,6 +24,7 @@ class SMSHttpRequestRepository(
     token: String
 ) : SMSHttpRequestRepositoryInterface {
 
+    //Todo remove hardcoding for base url
     private val baseUrl = "http://10.0.2.2:5000/"
 
     private val okHttpClient = OkHttpClient.Builder()
