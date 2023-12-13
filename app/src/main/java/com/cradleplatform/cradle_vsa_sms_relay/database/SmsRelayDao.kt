@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 
 @Dao
 interface SmsRelayDao {
@@ -12,5 +13,11 @@ interface SmsRelayDao {
     fun insertSmsRelayEntity(smsRelayEntity: SmsRelayEntity)
 
     @Query("SELECT * FROM SmsRelayEntity")
-    fun getAllRelayEntities(): LiveData<List<SmsRelayEntity>>
+    fun getAllSmsRelayEntities(): LiveData<List<SmsRelayEntity>>
+
+    @Query("SELECT * FROM SmsRelayEntity WHERE id = :id LIMIT 1")
+    fun getReferral(id: String): SmsRelayEntity?
+
+    @Update
+    fun updateSmsRelayEntity(smsRelayEntity: SmsRelayEntity)
 }

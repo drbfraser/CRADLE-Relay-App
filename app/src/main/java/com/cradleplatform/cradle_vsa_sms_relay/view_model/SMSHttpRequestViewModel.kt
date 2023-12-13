@@ -101,7 +101,7 @@ class SMSHttpRequestViewModel(
 
                                         smsSenderTrackerHashMap[smsSenderEntityId] = smsSenderEntity
 
-                                        smsFormatter.sendMessage(smsManager, phoneNumber, firstMessage)
+                                        smsFormatter.sendMessage(phoneNumber, firstMessage)
                                     }
                                 }
                             }

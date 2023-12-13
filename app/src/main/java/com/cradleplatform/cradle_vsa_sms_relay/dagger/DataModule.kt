@@ -4,6 +4,8 @@ import android.content.SharedPreferences
 import androidx.multidex.MultiDexApplication
 import androidx.preference.PreferenceManager
 import androidx.room.Room
+import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayDatabase
+import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayRepository
 import com.cradleplatform.smsrelay.database.ReferralDatabase
 import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
@@ -30,6 +32,16 @@ class DataModule {
 
     @Provides
     @Singleton
+    fun getSmsDatabase(app: MultiDexApplication): SmsRelayDatabase {
+        // todo create a migration class
+        return Room.databaseBuilder(
+            app.applicationContext, SmsRelayDatabase::class.java,
+            "referral-DB"
+        ).fallbackToDestructiveMigration().build()
+    }
+
+    @Provides
+    @Singleton
     fun getSharedPref(app: MultiDexApplication): SharedPreferences {
         return PreferenceManager.getDefaultSharedPreferences(app)
     }
@@ -38,6 +50,12 @@ class DataModule {
     @Singleton
     fun getReferralRepository(database: ReferralDatabase): ReferralRepository {
         return ReferralRepository(database)
+    }
+
+    @Provides
+    @Singleton
+    fun getSmsRelayRepository(database: SmsRelayDatabase): SmsRelayRepository {
+        return SmsRelayRepository(database)
     }
 
     @Provides
