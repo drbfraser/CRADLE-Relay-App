@@ -1,6 +1,6 @@
 package com.cradleplatform.cradle_vsa_sms_relay.repository
 
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayEntity
+import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSRequest
 import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSResponse
 import com.cradleplatform.cradle_vsa_sms_relay.service.SMSRelayService
@@ -12,9 +12,8 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import javax.inject.Inject
 
-class AuthInterceptor(private val token: String) : Interceptor {
+private class AuthInterceptor(private val token: String) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request().newBuilder()
             .addHeader("Authorization", "Bearer $token")
@@ -25,7 +24,8 @@ class AuthInterceptor(private val token: String) : Interceptor {
 
 class HttpsRequestRepository(
     token: String,
-    private val smsFormatter: SMSFormatter
+    private val smsFormatter: SMSFormatter,
+    private val smsRelayRepository: SmsRelayRepository
 ) {
     // Todo remove hardcoding for base url
     private val baseUrl = "http://10.0.2.2:5000/"
@@ -83,6 +83,15 @@ class HttpsRequestRepository(
         val smsMessages = smsFormatter.formatSMS(httpsResponse.body,
             requestCounter.toLong())
         val firstMessage = smsMessages.removeAt(0)
+
+        smsRelayEntity.isServerError = false
+        smsRelayEntity.isServerResponseReceived = true
+        smsRelayEntity.smsPackets = smsMessages
+        smsRelayEntity.totalFragmentsFromMobile = smsMessages.size + 1
+        smsRelayEntity.numFragmentsSentToMobile = 1
+        smsRelayEntity.timeLastDataMessageSent = System.currentTimeMillis()
+
+        smsRelayRepository.updateBlocking(smsRelayEntity)
 
         smsFormatter.sendMessage(phoneNumber, firstMessage)
     }

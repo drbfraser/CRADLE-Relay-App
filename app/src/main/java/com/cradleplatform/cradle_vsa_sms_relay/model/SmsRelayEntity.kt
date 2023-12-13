@@ -1,8 +1,9 @@
-package com.cradleplatform.cradle_vsa_sms_relay.database
+package com.cradleplatform.cradle_vsa_sms_relay.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
+import com.cradleplatform.cradle_vsa_sms_relay.type_converters.SmsListConverter
 import java.io.Serializable
 
 @Entity

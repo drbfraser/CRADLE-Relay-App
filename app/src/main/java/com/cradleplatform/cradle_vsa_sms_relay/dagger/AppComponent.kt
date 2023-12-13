@@ -3,8 +3,7 @@ package com.cradleplatform.smsrelay.dagger
 import com.cradleplatform.smsrelay.activities.LauncherActivity
 import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReceiver
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayDatabase
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayRepository
+import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
@@ -12,6 +11,7 @@ import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.UploadReferralWorker
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.ReferralViewModel
+import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
 import dagger.Component
 import javax.inject.Singleton
 
@@ -31,4 +31,5 @@ interface AppComponent {
     fun inject(smsFormatter: SMSFormatter)
     fun inject(smsRelayRepository: SmsRelayRepository)
     fun inject(httpsRequestRepository: HttpsRequestRepository)
+    fun inject(smsRelayViewModel: SmsRelayViewModel)
 }

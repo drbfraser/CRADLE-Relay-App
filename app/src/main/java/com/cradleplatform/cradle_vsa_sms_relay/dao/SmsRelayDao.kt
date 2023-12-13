@@ -1,4 +1,4 @@
-package com.cradleplatform.cradle_vsa_sms_relay.database
+package com.cradleplatform.cradle_vsa_sms_relay.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 
 @Dao
 interface SmsRelayDao {

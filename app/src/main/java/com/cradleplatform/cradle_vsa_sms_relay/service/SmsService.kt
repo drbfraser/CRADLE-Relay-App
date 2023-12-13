@@ -32,7 +32,6 @@ import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
 import com.cradleplatform.smsrelay.network.Success
 import com.cradleplatform.smsrelay.network.VolleyRequests
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.UploadReferralWorker
-import com.cradleplatform.cradle_vsa_sms_relay.view_model.SMSHttpRequestViewModel
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
@@ -61,13 +60,10 @@ class SmsService : LifecycleService(),
     @Inject
     lateinit var networkManager: NetworkManager
 
-    @Inject
-    lateinit var smsHttpRequestViewModel: SMSHttpRequestViewModel
-
-    // maain sms broadcast listner
+    // main sms broadcast listener
     private var smsReceiver: MessageReceiver? = null
 
-    // to make sure we dont keep registering listerners
+    // to make sure we don't keep registering listeners
     private var isMessageReceiverRegistered = false
 
     // handles activity to service interactions

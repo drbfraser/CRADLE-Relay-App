@@ -1,9 +1,7 @@
 package com.cradleplatform.cradle_vsa_sms_relay.utilities
 
 import android.telephony.SmsManager
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayEntity
-import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSRequest
-import com.cradleplatform.cradle_vsa_sms_relay.model.SMSHttpRequest
+import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.google.firebase.crashlytics.internal.model.ImmutableList
 import kotlin.math.min
 

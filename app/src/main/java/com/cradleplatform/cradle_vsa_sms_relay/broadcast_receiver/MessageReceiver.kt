@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.telephony.SmsManager
 import android.telephony.SmsMessage
 import android.util.Base64
 import android.util.Log
@@ -12,21 +11,17 @@ import android.widget.Toast
 import com.cradleplatform.smsrelay.dagger.MyApp
 import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayEntity
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayRepository
-import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSRequest
-import com.cradleplatform.cradle_vsa_sms_relay.model.SMSHttpRequest
+import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
+import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
-import com.cradleplatform.cradle_vsa_sms_relay.view_model.SMSHttpRequestViewModel
 import javax.inject.Inject
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.lang.IllegalArgumentException
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -35,19 +30,11 @@ import java.util.regex.Pattern
  * detects messages receives
  */
 
-// used to get the request number from the message
-const val REQUEST_COUNTER_IDX = 2
-// index of num fragments after encrypted message is split
-const val NUMBER_OF_FRAGMENTS_IDX = 3
-
 class MessageReceiver(private val context: Context) : BroadcastReceiver() {
     private val tag = "MESSAGE_RECEIVER"
 
     @Inject
     lateinit var repository: ReferralRepository
-
-    @Inject
-    lateinit var smsHttpRequestViewModel: SMSHttpRequestViewModel
 
     @Inject
     lateinit var smsFormatter: SMSFormatter
@@ -57,8 +44,6 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
     @Inject
     lateinit var httpsRequestRepository: HttpsRequestRepository
-
-    private val smsManager = SmsManager.getDefault()
 
     private val hash: HashMap<String, String> = hashMapOf()
 
@@ -103,8 +88,6 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
         val data = p1?.extras
         val pdus = data?.get("pdus") as Array<*>
 
-        smsHttpRequestViewModel.smsManager = smsManager
-
         // may receive multiple messages at the same time from different numbers so
         // we keep track of all the messages from different numbers
         val messages = processSMSMessages(pdus)
@@ -138,18 +121,19 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
             // Process SMS
             if (smsFormatter.isAckMessage(message)) {
 
-                val id = "$phoneNumber-${smsFormatter.getAckRequestIdentifier(message)}"
-                val smsSenderEntity = smsHttpRequestViewModel.smsSenderTrackerHashMap[id]
-                val encryptedPacketList = smsSenderEntity?.encryptedData
+                val requestIdentifier = smsFormatter.getAckRequestIdentifier(message)
+                val id = "${phoneNumber}-${requestIdentifier}"
 
-                if (encryptedPacketList.isNullOrEmpty()) {
-                    smsHttpRequestViewModel.smsSenderTrackerHashMap.remove(id)
-                } else {
-                    val encryptedPacket = encryptedPacketList.removeAt(0)
-                    smsFormatter.sendMessage(phoneNumber, encryptedPacket!!)
-                    smsSenderEntity?.numMessagesSent = smsSenderEntity!!.numMessagesSent + 1
-                    smsHttpRequestViewModel.smsSenderTrackerHashMap[id] = smsSenderEntity
+                val relayEntity = smsRelayRepository.getReferralBlocking(id)
+
+                // ignore ACK message if there are no more packets to send
+                if (relayEntity!!.smsPackets.isNotEmpty()) {
+                    val encryptedPacket = relayEntity.smsPackets.removeAt(0)
+                    relayEntity.numFragmentsSentToMobile = relayEntity.numFragmentsSentToMobile!! + 1
+                    smsRelayRepository.updateBlocking(relayEntity)
+                    smsFormatter.sendMessage(phoneNumber, encryptedPacket)
                 }
+
             } else if (smsFormatter.isFirstMessage(message)) {
                 // create new relay entity
                 Thread {
@@ -165,6 +149,12 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                         currentTime,
                         currentTime,
                         null,
+                        false,
+                        false,
+                        null,
+                        mutableListOf(),
+                        null,
+                        null,
                         0,
                         false
                     )
@@ -174,7 +164,9 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
                     hash[phoneNumber] = requestIdentifier
 
-                    // add conditional to send http request if all data is received
+                    if(newRelayEntity.numFragmentsReceived == newRelayEntity.totalFragmentsFromMobile){
+                        httpsRequestRepository.sendToServer(newRelayEntity)
+                    }
                 }.start()
             } else if (smsFormatter.isRestMessage(message)) {
 
@@ -214,7 +206,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
             val originatingPhoneNumber = smsMessage.originatingAddress ?: continue
 
-            // We are assuming that no one phone can send multiple long messages at ones.
+            // We are ./gradlew clean --stacktraceassuming that no one phone can send multiple long messages at ones.
             // since there is some user delay in either typing or copy/pasting the message
             // or typing 1 char at  a time
             if (messages.containsKey(originatingPhoneNumber)) {

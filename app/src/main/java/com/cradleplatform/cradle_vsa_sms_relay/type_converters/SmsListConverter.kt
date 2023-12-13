@@ -1,4 +1,4 @@
-package com.cradleplatform.cradle_vsa_sms_relay.database
+package com.cradleplatform.cradle_vsa_sms_relay.type_converters
 
 import androidx.room.TypeConverter
 import com.google.gson.Gson

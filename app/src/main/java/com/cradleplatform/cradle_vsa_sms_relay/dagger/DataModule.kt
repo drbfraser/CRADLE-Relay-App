@@ -4,14 +4,14 @@ import android.content.SharedPreferences
 import androidx.multidex.MultiDexApplication
 import androidx.preference.PreferenceManager
 import androidx.room.Room
+import com.cradleplatform.cradle_vsa_sms_relay.type_converters.SmsListConverter
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayDatabase
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayRepository
+import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.smsrelay.database.ReferralDatabase
 import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
-import com.cradleplatform.cradle_vsa_sms_relay.view_model.SMSHttpRequestViewModel
 import com.cradleplatform.smsrelay.network.VolleyRequests
 import dagger.Module
 import dagger.Provides
@@ -66,29 +66,24 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun getSMSHttpRequestViewModel(
-        referralRepository: ReferralRepository,
-        smsFormatter: SMSFormatter
-    ): SMSHttpRequestViewModel {
-        return SMSHttpRequestViewModel(
-            referralRepository,
-            smsFormatter
-        )
-    }
-
-    @Provides
-    @Singleton
     fun getHttpsRequestRepository(
         sharedPreference: SharedPreferences,
-        smsFormatter: SMSFormatter
+        smsFormatter: SMSFormatter,
+        smsRelayRepository: SmsRelayRepository
     ): HttpsRequestRepository {
         val token = sharedPreference.getString(VolleyRequests.TOKEN, "") ?: ""
-        return HttpsRequestRepository(token, smsFormatter)
+        return HttpsRequestRepository(token, smsFormatter, smsRelayRepository)
     }
 
     @Provides
     @Singleton
     fun getSMSFormatter(): SMSFormatter {
         return SMSFormatter()
+    }
+
+    @Singleton
+    @Provides
+    fun provideStringListConverter(): SmsListConverter {
+        return SmsListConverter()
     }
 }

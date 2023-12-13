@@ -36,7 +36,6 @@ import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.smsrelay.activities.SettingsActivity
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.ReferralViewModel
-import com.cradleplatform.cradle_vsa_sms_relay.view_model.SMSHttpRequestViewModel
 import com.cradleplatform.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
@@ -51,9 +50,6 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var sharedPreferences: SharedPreferences
-
-    @Inject
-    lateinit var smsHttpRequestViewModel: SMSHttpRequestViewModel
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceDisconnected(p0: ComponentName?) {
