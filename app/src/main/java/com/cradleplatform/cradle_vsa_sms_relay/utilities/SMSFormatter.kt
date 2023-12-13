@@ -23,26 +23,6 @@ private val restRegexPattern = Regex("^(\\d{3})-(.+)")
 
 class SMSFormatter {
 
-    companion object {
-
-        fun isSMSPacketFirstFragment(packetMessage: String): Boolean {
-            return packetMessage.startsWith("$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING")
-        }
-
-        fun decomposeSMSPacket(packetMessage: String, isFirstPacket: Boolean): ImmutableList<String> {
-            val packetComponents: List<String> = if (isFirstPacket) {
-                packetMessage.split('-', limit = NUM_OF_FIRST_PACKET_COMPONENTS)
-            } else {
-                packetMessage.split('-', limit = NUM_OF_NON_FIRST_PACKET_COMPONENTS)
-            }
-            return ImmutableList.from(packetComponents)
-        }
-
-        fun convertSMSHttpRequestToHttpsRequest(smsHttpRequest: SMSHttpRequest): HTTPSRequest {
-            return HTTPSRequest(smsHttpRequest.phoneNumber, smsHttpRequest.encryptedFragments.joinToString(""))
-        }
-    }
-
     private val smsManager = SmsManager.getDefault()
 
     private fun computeRequestHeaderLength(): Int {

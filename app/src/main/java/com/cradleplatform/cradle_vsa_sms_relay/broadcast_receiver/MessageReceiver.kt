@@ -14,7 +14,9 @@ import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayRepository
+import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSRequest
 import com.cradleplatform.cradle_vsa_sms_relay.model.SMSHttpRequest
+import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.ReferralMessageUtil
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.SMSHttpRequestViewModel
@@ -24,6 +26,7 @@ import kotlin.collections.HashMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.lang.IllegalArgumentException
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -51,6 +54,9 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
     @Inject
     lateinit var smsRelayRepository: SmsRelayRepository
+
+    @Inject
+    lateinit var httpsRequestRepository: HttpsRequestRepository
 
     private val smsManager = SmsManager.getDefault()
 
@@ -91,46 +97,6 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
         return tempMessage
     }
-
-//    private fun saveSMSReferralEntity(messages: HashMap<String, String>) {
-//        val smsReferralList: ArrayList<SmsReferralEntity> = ArrayList()
-//
-//        messages.entries.forEach { entry ->
-//            val currTime = System.currentTimeMillis()
-//            val phoneNumber = entry.key
-//            val encryptedData = entry.value
-//            val msg = entry.value
-//            if (smsFormatter.isFirstMessage(msg)) {
-//                // create sms relay entity from scratch because it is the first message received
-//            } else if (smsFormatter.isRestMessage(msg)) {
-//                // update sms relay entity
-//            }
-//
-////            val currTime = System.currentTimeMillis()
-////            val phoneNumber = entry.key
-////            val encryptedData = entry.value
-////            val requestCounter = smsHttpRequestViewModel.phoneNumberToRequestCounter[phoneNumber]!!.requestCounter
-////            val fragmentIdx = String.format(
-////                "%03d",
-////                smsHttpRequestViewModel.phoneNumberToRequestCounter[phoneNumber]!!.encryptedFragments.size - 1
-////            )
-////            smsReferralList.add(
-////                SmsReferralEntity(
-////                    "$phoneNumber-$requestCounter-$fragmentIdx",
-////                    encryptedData,
-////                    null,
-////                    null,
-////                    currTime,
-////
-////                    false,
-////                    entry.key,
-////                    0,
-////                    "", false
-////                )
-////            )
-//        }
-//        repository.insertAll(smsReferralList)
-//    }
 
     override fun onReceive(p0: Context?, p1: Intent?) {
         Log.d(tag, "Message Received")
@@ -184,7 +150,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                     smsSenderEntity?.numMessagesSent = smsSenderEntity!!.numMessagesSent + 1
                     smsHttpRequestViewModel.smsSenderTrackerHashMap[id] = smsSenderEntity
                 }
-            } else if (smsFormatter.isFirstMessage(message)){
+            } else if (smsFormatter.isFirstMessage(message)) {
                 // create new relay entity
                 Thread {
                     val requestIdentifier = smsFormatter.getNewRequestIdentifier(message)
@@ -210,8 +176,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
                     // add conditional to send http request if all data is received
                 }.start()
-            }
-            else if(smsFormatter.isRestMessage(message)) {
+            } else if (smsFormatter.isRestMessage(message)) {
 
                 Thread {
 //                    val requestIdentifier = smsFormatter.getRequestIdentifier(message)
@@ -222,30 +187,22 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
                     //update required fields
                     relayEntity!!.timeLastDataMessageReceived = currentTime
-                    relayEntity.encryptedDataFromMobile = relayEntity.encryptedDataFromMobile + smsFormatter.getEncryptedDataFromMessage(message)
+                    relayEntity.encryptedDataFromMobile =
+                        relayEntity.encryptedDataFromMobile + smsFormatter.getEncryptedDataFromMessage(
+                            message
+                        )
                     relayEntity.numFragmentsReceived += 1
 
                     smsRelayRepository.updateBlocking(relayEntity)
 
                     smsFormatter.sendAckMessage(relayEntity)
 
-                    // send data to server if ready
+                    if (relayEntity.numFragmentsReceived == relayEntity.totalFragmentsFromMobile) {
+                        httpsRequestRepository.sendToServer(relayEntity)
+                    }
                 }.start()
-
-//                val smsHttpRequest = createSMSHttpRequest(phoneNumber, message)
-//                sendAcknowledgementMessage(smsHttpRequest)
-//
-//                if (smsHttpRequest.isReadyToSendToServer) {
-//                    // move assignments out of here and use dagger
-//                    smsHttpRequestViewModel.sendSMSHttpRequestToServer(smsHttpRequest)
-//                }
-//
-//                dataMessages[phoneNumber] = message
             }
         }
-
-//        // saving request messages to repository
-//        saveSMSReferralEntity(dataMessages)
     }
 
     private fun processSMSMessages(pdus: Array<*>): HashMap<String, String> {
@@ -270,34 +227,6 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
             }
         }
         return messages
-    }
-
-    private fun createSMSHttpRequest(phoneNumber: String, encryptedValue: String): SMSHttpRequest {
-        val isFirstFragment = SMSFormatter.isSMSPacketFirstFragment(encryptedValue)
-        val packetComponents = SMSFormatter.decomposeSMSPacket(encryptedValue, isFirstFragment)
-
-        return if (isFirstFragment) {
-            val requestCounter = packetComponents[REQUEST_COUNTER_IDX]
-            val numberOfFragments = packetComponents[NUMBER_OF_FRAGMENTS_IDX].toInt()
-            SMSHttpRequest(
-                phoneNumber,
-                requestCounter,
-                numberOfFragments,
-                // list of encrypted messages
-                mutableListOf(packetComponents.last()),
-                false
-            )
-        } else {
-            val fragmentNumber = packetComponents.first()
-            val smsHttpRequest = smsHttpRequestViewModel.phoneNumberToRequestCounter[phoneNumber]!!
-            smsHttpRequest.encryptedFragments.add(packetComponents.last())
-
-            if (smsHttpRequest.numOfFragments == fragmentNumber.toInt() + 1) {
-                smsHttpRequest.isReadyToSendToServer = true
-            }
-
-            smsHttpRequest
-        }
     }
 
     /**

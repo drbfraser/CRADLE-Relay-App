@@ -7,6 +7,7 @@ import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayDatabase
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayRepository
 import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
+import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.UploadReferralWorker
@@ -29,4 +30,5 @@ interface AppComponent {
     fun inject(networkManager: NetworkManager)
     fun inject(smsFormatter: SMSFormatter)
     fun inject(smsRelayRepository: SmsRelayRepository)
+    fun inject(httpsRequestRepository: HttpsRequestRepository)
 }
