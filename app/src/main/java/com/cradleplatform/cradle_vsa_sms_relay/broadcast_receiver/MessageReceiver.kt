@@ -88,6 +88,8 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
         val data = p1?.extras
         val pdus = data?.get("pdus") as Array<*>
 
+        val requestIdentifier = "000003"
+
         // may receive multiple messages at the same time from different numbers so
         // we keep track of all the messages from different numbers
         val messages = processSMSMessages(pdus)
@@ -137,7 +139,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
             } else if (smsFormatter.isFirstMessage(message)) {
                 // create new relay entity
                 Thread {
-                    val requestIdentifier = smsFormatter.getNewRequestIdentifier(message)
+//                    val requestIdentifier = smsFormatter.getNewRequestIdentifier(message)
                     val id = "${phoneNumber}-${requestIdentifier}"
                     val totalFragments = smsFormatter.getTotalNumOfFragments(message)
                     val currentTime = System.currentTimeMillis()
@@ -172,7 +174,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
                 Thread {
 //                    val requestIdentifier = smsFormatter.getRequestIdentifier(message)
-                    val requestIdentifier = hash[phoneNumber]
+//                    val requestIdentifier = hash[phoneNumber]
                     val id = "${phoneNumber}-${requestIdentifier}"
                     val currentTime = System.currentTimeMillis()
                     val relayEntity = smsRelayRepository.getReferralBlocking(id)

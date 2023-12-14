@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:padding="16dp">
 
     <androidx.cardview.widget.CardView
@@ -9,14 +9,25 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:cardCornerRadius="8dp"
-        android:cardElevation="4dp"
         android:padding="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/phone"
+                android:layout_width="match_parent"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/requestCounter"
+                android:layout_width="match_parent"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"/>
+
 
             <!-- TextView 1 with CheckBox -->
             <LinearLayout
@@ -29,8 +40,7 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:hint="Text 1"
-                    android:inputType="text" />
+                    android:text="Received from mobile"/>
 
                 <CheckBox
                     android:id="@+id/checkBox1"
@@ -49,8 +59,7 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:hint="Text 2"
-                    android:inputType="text" />
+                    android:text="Uploaded to server" />
 
                 <CheckBox
                     android:id="@+id/checkBox2"
@@ -69,8 +78,7 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:hint="Text 3"
-                    android:inputType="text" />
+                    android:text="Received from server" />
 
                 <CheckBox
                     android:id="@+id/checkBox3"
@@ -89,8 +97,7 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:hint="Text 4"
-                    android:inputType="text" />
+                    android:text="Sent to Mobile"/>
 
                 <CheckBox
                     android:id="@+id/checkBox4"

@@ -36,7 +36,6 @@ import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.smsrelay.activities.SettingsActivity
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
-import com.cradleplatform.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
 
@@ -74,7 +73,7 @@ class MainActivity : AppCompatActivity() {
         setupToolBar()
         setupStartService()
         setupStopService()
-        setuprecyclerview()
+        setupRecyclerView()
     }
 
     private fun setupToolBar() {
@@ -91,7 +90,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setuprecyclerview() {
+    private fun setupRecyclerView() {
 
         val emptyImageView: ImageView = findViewById(R.id.emptyRecyclerView)
         val smsRecyclerView: RecyclerView = findViewById(R.id.messageRecyclerview)
@@ -101,30 +100,7 @@ class MainActivity : AppCompatActivity() {
         smsRecyclerView.layoutManager = layout
         adapter.onCLickList.add(object : AdapterClicker {
             override fun onClick(referralEntity: SmsReferralEntity) {
-                val referralAlertDialog = ReferralAlertDialog(this@MainActivity, referralEntity)
-
-                referralAlertDialog.setOnSendToServerListener(View.OnClickListener {
-                    if (isServiceStarted) {
-                        if (!referralEntity.isUploaded) {
-                            Toast.makeText(
-                                this@MainActivity, "Uploading the referral to the server",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            Toast.makeText(
-                                this@MainActivity, "Referral is already uploaded to the server ",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                        referralAlertDialog.cancel()
-                    } else {
-                        Toast.makeText(
-                            this@MainActivity, "Unable to send to the server, " +
-                                    "Make sure service is running.", Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                })
-                referralAlertDialog.show()
+                // TODO Show dialog box here
             }
         })
         smsRelayViewModel =
@@ -141,6 +117,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             adapter.setReferralList(relayEntities.sortedByDescending { it.timeRequestInitiated })
+            adapter.notifyDataSetChanged()
         })
     }
 
@@ -200,13 +177,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupStartService() {
         findViewById<MaterialButton>(R.id.btnStartService).setOnClickListener {
-            checkpermissions()
+            checkPermissions()
         }
         // start the service initially
-        checkpermissions()
+        checkPermissions()
     }
 
-    private fun checkpermissions() {
+    private fun checkPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
             != PackageManager.PERMISSION_GRANTED
         ) {
