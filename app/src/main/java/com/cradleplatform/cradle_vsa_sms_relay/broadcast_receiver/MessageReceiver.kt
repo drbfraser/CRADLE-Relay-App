@@ -88,7 +88,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
         val data = p1?.extras
         val pdus = data?.get("pdus") as Array<*>
 
-        val requestIdentifier = "000003"
+        val requestIdentifier = "000005"
 
         // may receive multiple messages at the same time from different numbers so
         // we keep track of all the messages from different numbers
@@ -123,7 +123,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
             // Process SMS
             if (smsFormatter.isAckMessage(message)) {
 
-                val requestIdentifier = smsFormatter.getAckRequestIdentifier(message)
+//                val requestIdentifier = smsFormatter.getAckRequestIdentifier(message)
                 val id = "${phoneNumber}-${requestIdentifier}"
 
                 val relayEntity = smsRelayRepository.getReferralBlocking(id)
@@ -160,6 +160,11 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                         0,
                         false
                     )
+
+                    if(newRelayEntity.numFragmentsReceived == newRelayEntity.totalFragmentsFromMobile){
+                        newRelayEntity.numberOfTriesUploaded = 1
+                    }
+
                     smsRelayRepository.insertBlocking(newRelayEntity)
 
                     smsFormatter.sendAckMessage(newRelayEntity)
@@ -174,7 +179,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
                 Thread {
 //                    val requestIdentifier = smsFormatter.getRequestIdentifier(message)
-//                    val requestIdentifier = hash[phoneNumber]
+                    val requestIdentifier = hash[phoneNumber]
                     val id = "${phoneNumber}-${requestIdentifier}"
                     val currentTime = System.currentTimeMillis()
                     val relayEntity = smsRelayRepository.getReferralBlocking(id)
@@ -186,6 +191,10 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                             message
                         )
                     relayEntity.numFragmentsReceived += 1
+
+                    if(relayEntity.numFragmentsReceived == relayEntity.totalFragmentsFromMobile){
+                        relayEntity.numberOfTriesUploaded = 1
+                    }
 
                     smsRelayRepository.updateBlocking(relayEntity)
 

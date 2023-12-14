@@ -31,8 +31,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.cradleplatform.smsrelay.R
 import com.cradleplatform.cradle_vsa_sms_relay.adapters.MainRecyclerViewAdapter
+import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.smsrelay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.smsrelay.activities.SettingsActivity
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
@@ -98,11 +98,7 @@ class MainActivity : AppCompatActivity() {
         smsRecyclerView.adapter = adapter
         val layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
         smsRecyclerView.layoutManager = layout
-        adapter.onCLickList.add(object : AdapterClicker {
-            override fun onClick(referralEntity: SmsReferralEntity) {
-                // TODO Show dialog box here
-            }
-        })
+
         smsRelayViewModel =
             ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application)).get(
                 SmsRelayViewModel::class.java
@@ -256,9 +252,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    interface AdapterClicker {
-        fun onClick(referralEntity: SmsReferralEntity)
-    }
 
     companion object {
         const val ALPHA_LOW = 0.2F

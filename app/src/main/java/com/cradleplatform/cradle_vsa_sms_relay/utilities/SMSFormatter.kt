@@ -12,6 +12,8 @@ private const val PACKET_SIZE = 153 * 2
 private const val SMS_TUNNEL_PROTOCOL_VERSION = "01"
 private const val SMS_ACK_SUFFIX = "ACK"
 private const val MAGIC_STRING = "CRADLE"
+private const val REPLY_SUCCESS = "REPLY"
+private const val REPLY_ERROR = "REPLY_ERROR"
 private const val FRAGMENT_HEADER_LENGTH = 3
 private const val REQUEST_NUMBER_LENGTH = 6
 
@@ -23,14 +25,21 @@ class SMSFormatter {
 
     private val smsManager = SmsManager.getDefault()
 
-    private fun computeRequestHeaderLength(): Int {
-
-        val baseHeaderContent: ImmutableList<Int> = ImmutableList.from(
+    // function to calculate the size of the first reply packet
+    private fun computeRequestHeaderLength(isSuccessful: Boolean): Int {
+        val baseHeaderContent: MutableList<Int> = mutableListOf(
             SMS_TUNNEL_PROTOCOL_VERSION.length,
             MAGIC_STRING.length,
             REQUEST_NUMBER_LENGTH,
             FRAGMENT_HEADER_LENGTH
         )
+
+        // Add the correct header to the list based on whether the HTTP request was successful or not
+        if(isSuccessful)
+            baseHeaderContent.add(0, REPLY_SUCCESS.length)
+        else
+            baseHeaderContent.add(0, REPLY_ERROR.length)
+
 
         return baseHeaderContent.fold(0) { acc, i -> acc + i + 1 }
     }
@@ -38,7 +47,8 @@ class SMSFormatter {
     // Format the input message into SMS packets
     fun formatSMS(
         msg: String,
-        currentRequestCounter: Long
+        currentRequestCounter: Long,
+        isSuccessful: Boolean
     ): MutableList<String> {
         val packets = mutableListOf<String>()
 
@@ -50,7 +60,7 @@ class SMSFormatter {
         // Each packet will be sent individually
 
         // Computes the size of the first message header
-        val headerSize = computeRequestHeaderLength()
+        val headerSize = computeRequestHeaderLength(isSuccessful)
 
         if (PACKET_SIZE < msg.length + headerSize) {
             val remainderMsgLength = msg.length + headerSize - PACKET_SIZE
@@ -71,6 +81,7 @@ class SMSFormatter {
                     $SMS_TUNNEL_PROTOCOL_VERSION-
                     $MAGIC_STRING-
                     $currentRequestCounterPadded-
+                    ${if (isSuccessful) REPLY_SUCCESS else REPLY_ERROR}-
                     $fragmentCountPadded-
                     """.trimIndent().replace("\n", "")
             } else {

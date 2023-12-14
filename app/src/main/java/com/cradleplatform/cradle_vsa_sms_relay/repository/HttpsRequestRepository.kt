@@ -80,8 +80,11 @@ class HttpsRequestRepository(
         val phoneNumber: String = smsRelayEntity.getPhoneNumber()
         val requestCounter: String = smsRelayEntity.getRequestIdentifier()
 
-        val smsMessages = smsFormatter.formatSMS(httpsResponse.body,
-            requestCounter.toLong())
+        val smsMessages = smsFormatter.formatSMS(
+            httpsResponse.body,
+            requestCounter.toLong(),
+            true
+        )
         val firstMessage = smsMessages.removeAt(0)
 
         smsRelayEntity.isServerError = false

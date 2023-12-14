@@ -19,8 +19,6 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
 
     private var sms: List<SmsRelayEntity> = ArrayList()
 
-    val onCLickList: ArrayList<MainActivity.AdapterClicker> = ArrayList()
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SMSViewHolder {
         val v: View =
             LayoutInflater.from(parent.context)
@@ -38,6 +36,7 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
     }
 
     //TODO Update bind function to use UI prototype
+    //TODO add onclicklistener for item
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
         val smsRelayEntity: SmsRelayEntity = sms[position]
 
