@@ -1,5 +1,6 @@
 package com.cradleplatform.cradle_vsa_sms_relay.repository
 
+import android.util.Log
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSRequest
 import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSResponse
@@ -8,6 +9,7 @@ import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Retrofit
@@ -44,50 +46,60 @@ class HttpsRequestRepository(
 
     fun sendToServer(smsRelayEntity: SmsRelayEntity) {
         val httpsRequest = HTTPSRequest(smsRelayEntity.getPhoneNumber(), smsRelayEntity.encryptedDataFromMobile)
-        smsRelayService.postSMSRelay(httpsRequest).enqueue(object : Callback<HTTPSResponse> {
+        smsRelayService.postSMSRelay(httpsRequest).enqueue(
+            object : Callback<HTTPSResponse> {
             override fun onResponse(
                 call: Call<HTTPSResponse>,
                 response: retrofit2.Response<HTTPSResponse>
             ) {
-                if(response.isSuccessful){
+                if(response.isSuccessful) {
                     val httpsResponse = response.body()
                     if (httpsResponse != null) {
                         // using a synchronized block to ensure no two threads
                         // can execute this block at the same time
                         // this is a safety measure, only for a special case where a user attempts
                         // to manually restart an incomplete relay process
-                        synchronized(this@HttpsRequestRepository){
-                            processSuccessfulCallback(smsRelayEntity, httpsResponse)
+                        synchronized(this@HttpsRequestRepository) {
+                            updateSmsRelayEntity(httpsResponse.body, true, smsRelayEntity)
                         }
-                    }
-                    else{
-                        //generic error
+                        return
                     }
                 }
+                val errorBody = response.errorBody()?.string()
+                val errorMessage : String
+                if (errorBody == null){
+                    errorMessage = "There was an unexpected error while sending the relay request - Status ${response.code()}"
+                }
+                // expected errors will be inside a json with a key message
                 else{
-                    // generic error message
+                    val errorJson = JSONObject(errorBody)
+                    errorMessage = errorJson.getString("message")
+                }
+                synchronized(this@HttpsRequestRepository) {
+                    updateSmsRelayEntity(errorMessage, false, smsRelayEntity)
                 }
             }
 
             override fun onFailure(call: Call<HTTPSResponse>, t: Throwable) {
-                TODO("Not yet implemented")
+                // TODO - Implement what happens when request fails because of network errors
+                // This method will only be called when there is a network error
             }
         })
     }
 
-    private fun processSuccessfulCallback(smsRelayEntity: SmsRelayEntity, httpsResponse: HTTPSResponse) {
-
+    private fun updateSmsRelayEntity(data: String, isSuccessful: Boolean, smsRelayEntity: SmsRelayEntity){
         val phoneNumber: String = smsRelayEntity.getPhoneNumber()
         val requestCounter: String = smsRelayEntity.getRequestIdentifier()
 
         val smsMessages = smsFormatter.formatSMS(
-            httpsResponse.body,
+            data,
             requestCounter.toLong(),
-            true
+            isSuccessful
         )
+
         val firstMessage = smsMessages.removeAt(0)
 
-        smsRelayEntity.isServerError = false
+        smsRelayEntity.isServerError = isSuccessful
         smsRelayEntity.isServerResponseReceived = true
         smsRelayEntity.smsPackets = smsMessages
         smsRelayEntity.totalFragmentsFromMobile = smsMessages.size + 1
@@ -97,9 +109,5 @@ class HttpsRequestRepository(
         smsRelayRepository.updateBlocking(smsRelayEntity)
 
         smsFormatter.sendMessage(phoneNumber, firstMessage)
-    }
-
-    private fun processUnsuccessfulCallback(){
-
     }
 }
