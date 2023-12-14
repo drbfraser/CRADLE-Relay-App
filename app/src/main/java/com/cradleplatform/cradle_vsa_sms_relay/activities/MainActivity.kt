@@ -30,12 +30,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.cradleplatform.smsrelay.R
-import com.cradleplatform.cradle_vsa_sms_relay.SmsRecyclerViewAdaper
+import com.cradleplatform.cradle_vsa_sms_relay.adapters.MainRecyclerViewAdapter
 import com.cradleplatform.smsrelay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.smsrelay.activities.SettingsActivity
-import com.cradleplatform.cradle_vsa_sms_relay.view_model.ReferralViewModel
+import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
 import com.cradleplatform.cradle_vsa_sms_relay.views.ReferralAlertDialog
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
@@ -63,7 +63,8 @@ class MainActivity : AppCompatActivity() {
             mService = binder.service
         }
     }
-    private lateinit var referralViewModel: ReferralViewModel
+
+    private lateinit var smsRelayViewModel: SmsRelayViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,7 +95,7 @@ class MainActivity : AppCompatActivity() {
 
         val emptyImageView: ImageView = findViewById(R.id.emptyRecyclerView)
         val smsRecyclerView: RecyclerView = findViewById(R.id.messageRecyclerview)
-        val adapter = SmsRecyclerViewAdaper(this)
+        val adapter = MainRecyclerViewAdapter(this)
         smsRecyclerView.adapter = adapter
         val layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
         smsRecyclerView.layoutManager = layout
@@ -126,19 +127,20 @@ class MainActivity : AppCompatActivity() {
                 referralAlertDialog.show()
             }
         })
-        referralViewModel =
+        smsRelayViewModel =
             ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application)).get(
-                ReferralViewModel::class.java
+                SmsRelayViewModel::class.java
             )
 
-        referralViewModel.getAllReferrals().observe(this, Observer { referrals ->
+        smsRelayViewModel.getAllRelayEntities().observe(this, Observer { relayEntities ->
             // update the recyclerview on updating
-            if (referrals.isNotEmpty()) {
+            if (relayEntities.isNotEmpty()) {
                 emptyImageView.visibility = GONE
             } else {
                 emptyImageView.visibility = VISIBLE
             }
-            adapter.setReferralList(referrals.sortedByDescending { it.timeReceived })
+
+            adapter.setReferralList(relayEntities.sortedByDescending { it.timeRequestInitiated })
         })
     }
 

@@ -36,7 +36,7 @@ class DataModule {
         // todo create a migration class
         return Room.databaseBuilder(
             app.applicationContext, SmsRelayDatabase::class.java,
-            "referral-DB"
+            "relay-DB"
         ).fallbackToDestructiveMigration().build()
     }
 

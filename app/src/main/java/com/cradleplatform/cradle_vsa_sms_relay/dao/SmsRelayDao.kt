@@ -10,7 +10,9 @@ import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 
 @Dao
 interface SmsRelayDao {
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+
+    // Using replace strategy on conflict 544
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertSmsRelayEntity(smsRelayEntity: SmsRelayEntity)
 
     @Query("SELECT * FROM SmsRelayEntity")
