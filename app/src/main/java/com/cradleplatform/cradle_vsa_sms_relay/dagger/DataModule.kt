@@ -33,7 +33,6 @@ class DataModule {
     @Provides
     @Singleton
     fun getSmsDatabase(app: MultiDexApplication): SmsRelayDatabase {
-        // todo create a migration class
         return Room.databaseBuilder(
             app.applicationContext, SmsRelayDatabase::class.java,
             "relay-DB"
