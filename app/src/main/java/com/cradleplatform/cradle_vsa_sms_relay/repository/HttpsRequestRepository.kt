@@ -66,14 +66,13 @@ class HttpsRequestRepository(
                     }
                 }
                 val errorBody = response.errorBody()?.string()
-                val errorMessage : String
-                if (errorBody == null){
-                    errorMessage = "There was an unexpected error while sending the relay request - Status ${response.code()}"
+                val errorMessage = if (errorBody == null){
+                    "There was an unexpected error while sending the relay request - Status ${response.code()}"
                 }
                 // expected errors will be inside a json with a key message
                 else{
                     val errorJson = JSONObject(errorBody)
-                    errorMessage = errorJson.getString("message")
+                    errorJson.getString("message")
                 }
                 synchronized(this@HttpsRequestRepository) {
                     updateSmsRelayEntity(errorMessage, false, smsRelayEntity)
