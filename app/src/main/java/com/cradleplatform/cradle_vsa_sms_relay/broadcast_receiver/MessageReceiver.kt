@@ -135,6 +135,10 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                     smsRelayRepository.updateBlocking(relayEntity)
                     smsFormatter.sendMessage(phoneNumber, encryptedPacket)
                 }
+                else{
+                    relayEntity.isCompleted = true
+                    smsRelayRepository.update(relayEntity)
+                }
 
             } else if (smsFormatter.isFirstMessage(message)) {
                 // create new relay entity
@@ -158,6 +162,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                         null,
                         null,
                         0,
+                        false,
                         false
                     )
 

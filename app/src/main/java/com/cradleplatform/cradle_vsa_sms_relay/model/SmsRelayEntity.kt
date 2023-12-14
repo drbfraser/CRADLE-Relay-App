@@ -35,7 +35,9 @@ data class SmsRelayEntity(
 
     //extras
     var numberOfTriesUploaded: Int,
-    var deliveryReportSent: Boolean
+    var deliveryReportSent: Boolean,
+
+    var isCompleted: Boolean
 ) : Serializable, Comparable<SmsRelayEntity> {
 
     override fun compareTo(other: SmsRelayEntity): Int {

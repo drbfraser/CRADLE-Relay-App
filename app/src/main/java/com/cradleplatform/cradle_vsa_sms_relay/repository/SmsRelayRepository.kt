@@ -44,4 +44,10 @@ class SmsRelayRepository(database: SmsRelayDatabase) {
             }
         }
     }
+
+    fun update(smsRelayEntity: SmsRelayEntity){
+        MainScope().launch(Dispatchers.IO) {
+            smsRelayDao.updateSmsRelayEntity(smsRelayEntity)
+        }
+    }
 }

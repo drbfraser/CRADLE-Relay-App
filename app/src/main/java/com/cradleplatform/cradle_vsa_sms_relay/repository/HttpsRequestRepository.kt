@@ -29,6 +29,9 @@ class HttpsRequestRepository(
     private val smsFormatter: SMSFormatter,
     private val smsRelayRepository: SmsRelayRepository
 ) {
+
+    private val TAG = "HttpsRequestRepository"
+
     // Todo remove hardcoding for base url
     private val baseUrl = "http://10.0.2.2:5000/"
 
@@ -69,7 +72,7 @@ class HttpsRequestRepository(
                 val errorMessage = if (errorBody == null){
                     "There was an unexpected error while sending the relay request - Status ${response.code()}"
                 }
-                // expected errors will be inside a json with a key message
+                // expected errors will be inside a json which will contain the key 'message'
                 else{
                     JSONObject(errorBody.string()).getString("message")
                 }
@@ -78,9 +81,23 @@ class HttpsRequestRepository(
                 }
             }
 
+            // This method will only be called when there is a network error while uploading
             override fun onFailure(call: Call<HTTPSResponse>, t: Throwable) {
-                // TODO - Implement what happens when request fails because of network errors
-                // This method will only be called when there is a network error
+                Log.e(TAG, t.toString())
+
+                //max number of attempted uploads is 5
+                if (smsRelayEntity.numberOfTriesUploaded > 5){
+                    smsRelayEntity.isServerError = true
+                    smsRelayEntity.isServerResponseReceived = false
+                    smsRelayEntity.isCompleted = false
+                    smsRelayRepository.update(smsRelayEntity)
+                    return
+                }
+
+                smsRelayEntity.numberOfTriesUploaded += 1
+                smsRelayRepository.updateBlocking(smsRelayEntity)
+
+                sendToServer(smsRelayEntity)
             }
         })
     }
