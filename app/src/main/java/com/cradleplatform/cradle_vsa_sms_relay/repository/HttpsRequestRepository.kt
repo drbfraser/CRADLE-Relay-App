@@ -93,7 +93,7 @@ class HttpsRequestRepository(
 
             // This method will only be called when there is a network error while uploading
             override fun onFailure(call: Call<HTTPSResponse>, t: Throwable) {
-                Log.e(Companion.TAG, t.toString())
+                Log.e(TAG, t.toString())
 
                 // max number of attempted uploads is 5
                 // TODO remove hardcoding and move to settings.xml
