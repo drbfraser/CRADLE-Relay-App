@@ -19,7 +19,7 @@ interface SmsRelayDao {
     fun getAllSmsRelayEntities(): LiveData<List<SmsRelayEntity>>
 
     @Query("SELECT * FROM SmsRelayEntity WHERE id = :id LIMIT 1")
-    fun getReferral(id: String): SmsRelayEntity?
+    fun getRelayEntity(id: String): SmsRelayEntity?
 
     @Update
     fun updateSmsRelayEntity(smsRelayEntity: SmsRelayEntity)

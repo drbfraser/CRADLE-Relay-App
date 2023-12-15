@@ -14,7 +14,7 @@ class SmsRelayViewModel(application: Application) :
     @Inject
     lateinit var repository: SmsRelayRepository
 
-    private val referrals: LiveData<List<SmsRelayEntity>>
+    private val relayEntity: LiveData<List<SmsRelayEntity>>
 
     fun getAllRelayEntities(): LiveData<List<SmsRelayEntity>> {
         return repository.relayEntities
@@ -22,7 +22,7 @@ class SmsRelayViewModel(application: Application) :
 
     init {
         (application as MyApp).component.inject(this)
-        referrals = repository.relayEntities
+        relayEntity = repository.relayEntities
     }
 
 }

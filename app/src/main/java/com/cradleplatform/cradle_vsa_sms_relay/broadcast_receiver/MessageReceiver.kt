@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.telephony.SmsMessage
-import android.util.Base64
 import android.util.Log
 import android.widget.Toast
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
@@ -14,9 +13,6 @@ import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
 import javax.inject.Inject
 import kotlin.collections.HashMap
-import java.lang.IllegalArgumentException
-import java.util.regex.Matcher
-import java.util.regex.Pattern
 
 /**
  * detects messages receives
@@ -90,7 +86,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                 val requestIdentifier = smsFormatter.getAckRequestIdentifier(message)
                 val id = "${phoneNumber}-${requestIdentifier}"
 
-                val relayEntity = smsRelayRepository.getReferralBlocking(id)
+                val relayEntity = smsRelayRepository.getRelayBlocking(id)
 
                 // ignore ACK message if there are no more packets to send
                 if (relayEntity!!.smsPackets.isNotEmpty()) {
@@ -151,7 +147,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                     val requestIdentifier = hash[phoneNumber]
                     val id = "${phoneNumber}-${requestIdentifier}"
                     val currentTime = System.currentTimeMillis()
-                    val relayEntity = smsRelayRepository.getReferralBlocking(id)
+                    val relayEntity = smsRelayRepository.getRelayBlocking(id)
 
                     //update required fields
                     relayEntity!!.timeLastDataMessageReceived = currentTime

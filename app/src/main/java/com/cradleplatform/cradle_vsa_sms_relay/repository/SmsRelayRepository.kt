@@ -28,10 +28,10 @@ class SmsRelayRepository(database: SmsRelayDatabase) {
         }
     }
 
-    fun getReferralBlocking(id: String): SmsRelayEntity? {
+    fun getRelayBlocking(id: String): SmsRelayEntity? {
         return runBlocking {
             withContext(Dispatchers.IO) {
-                smsRelayDao.getReferral(id)
+                smsRelayDao.getRelayEntity(id)
             }
         }
     }

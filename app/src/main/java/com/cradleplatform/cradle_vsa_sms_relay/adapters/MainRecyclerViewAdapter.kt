@@ -1,20 +1,15 @@
 package com.cradleplatform.cradle_vsa_sms_relay.adapters
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
-import android.widget.ImageView
 import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
-import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.smsrelay.R
-import com.cradleplatform.smsrelay.utilities.DateTimeUtil
 
-class MainRecyclerViewAdapter (private val context: Context) :
+class MainRecyclerViewAdapter () :
 RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
 
     private var sms: List<SmsRelayEntity> = ArrayList()
@@ -30,7 +25,7 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
         return sms.size
     }
 
-    fun setReferralList(smsRelayEntities: List<SmsRelayEntity>) {
+    fun setRelayList(smsRelayEntities: List<SmsRelayEntity>) {
         this.sms = smsRelayEntities
         notifyDataSetChanged()
     }

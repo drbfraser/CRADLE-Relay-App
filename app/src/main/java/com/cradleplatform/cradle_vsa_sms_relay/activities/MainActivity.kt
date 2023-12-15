@@ -7,7 +7,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -34,7 +33,6 @@ import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
 import com.google.android.material.button.MaterialButton
-import javax.inject.Inject
 
 @Suppress("LargeClass", "TooManyFunctions")
 class MainActivity : AppCompatActivity() {
@@ -43,9 +41,6 @@ class MainActivity : AppCompatActivity() {
 
     // our reference to the service
     var mService: SmsService? = null
-
-    @Inject
-    lateinit var sharedPreferences: SharedPreferences
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceDisconnected(p0: ComponentName?) {
@@ -91,7 +86,7 @@ class MainActivity : AppCompatActivity() {
 
         val emptyImageView: ImageView = findViewById(R.id.emptyRecyclerView)
         val smsRecyclerView: RecyclerView = findViewById(R.id.messageRecyclerview)
-        val adapter = MainRecyclerViewAdapter(this)
+        val adapter = MainRecyclerViewAdapter()
         smsRecyclerView.adapter = adapter
         val layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
         smsRecyclerView.layoutManager = layout
@@ -109,7 +104,7 @@ class MainActivity : AppCompatActivity() {
                 emptyImageView.visibility = VISIBLE
             }
 
-            adapter.setReferralList(relayEntities.sortedByDescending { it.timeRequestInitiated })
+            adapter.setRelayList(relayEntities.sortedByDescending { it.timeRequestInitiated })
             adapter.notifyDataSetChanged()
         })
     }
@@ -136,7 +131,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun stopSmsService() {
         if (mService != null && isServiceStarted) {
-            val intent: Intent = Intent(this, SmsService::class.java).also { intent ->
+            val intent: Intent = Intent(this, SmsService::class.java).also { _ ->
                 unbindService(serviceConnection)
             }
             intent.action = SmsService.STOP_SERVICE
