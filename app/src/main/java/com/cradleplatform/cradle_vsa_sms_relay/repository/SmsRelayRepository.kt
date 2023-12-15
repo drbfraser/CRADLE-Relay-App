@@ -24,7 +24,7 @@ class SmsRelayRepository(database: SmsRelayDatabase) {
         }
     }
 
-    fun insertBlocking(smsRelayEntity: SmsRelayEntity){
+    fun insertBlocking(smsRelayEntity: SmsRelayEntity) {
         runBlocking {
             MainScope().launch(Dispatchers.IO) {
                 smsRelayDao.insertSmsRelayEntity(smsRelayEntity)
@@ -40,7 +40,7 @@ class SmsRelayRepository(database: SmsRelayDatabase) {
         }
     }
 
-    fun updateBlocking(smsRelayEntity: SmsRelayEntity){
+    fun updateBlocking(smsRelayEntity: SmsRelayEntity) {
         runBlocking {
             MainScope().launch(Dispatchers.IO) {
                 smsRelayDao.updateSmsRelayEntity(smsRelayEntity)
@@ -48,7 +48,7 @@ class SmsRelayRepository(database: SmsRelayDatabase) {
         }
     }
 
-    fun update(smsRelayEntity: SmsRelayEntity){
+    fun update(smsRelayEntity: SmsRelayEntity) {
         MainScope().launch(Dispatchers.IO) {
             smsRelayDao.updateSmsRelayEntity(smsRelayEntity)
         }

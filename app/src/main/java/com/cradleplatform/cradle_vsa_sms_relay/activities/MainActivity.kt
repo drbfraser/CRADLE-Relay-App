@@ -244,7 +244,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     companion object {
         const val ALPHA_LOW = 0.2F
         const val ALPHA_HIGH = 1.0F

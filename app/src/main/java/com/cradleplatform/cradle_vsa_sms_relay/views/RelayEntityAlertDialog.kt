@@ -9,10 +9,10 @@ import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
  * dialog that pops up when a item is clicked on in the main activity recycler view
  */
 
-class RelayEntityAlertDialog(context: Context, var smsRelayEntity: SmsRelayEntity):
+class RelayEntityAlertDialog(context: Context, var smsRelayEntity: SmsRelayEntity) :
     AlertDialog(context) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //TODO implement dialog box logic here
+        // TODO implement dialog box logic here
     }
 }

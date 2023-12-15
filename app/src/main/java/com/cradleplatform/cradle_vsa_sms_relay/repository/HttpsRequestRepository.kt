@@ -27,6 +27,8 @@ private class AuthInterceptor(private val token: String) : Interceptor {
     }
 }
 
+private const val MAX_UPLOAD_ATTEMPTS = 5
+
 /**
  * class to make requests to the server
  * class registers callbacks for when the response is received from the server
@@ -63,7 +65,7 @@ class HttpsRequestRepository(
                 call: Call<HTTPSResponse>,
                 response: retrofit2.Response<HTTPSResponse>
             ) {
-                if(response.isSuccessful) {
+                if (response.isSuccessful) {
                     val httpsResponse = response.body()
                     if (httpsResponse != null) {
                         // using a synchronized block to ensure no two threads
@@ -77,11 +79,11 @@ class HttpsRequestRepository(
                     }
                 }
                 val errorBody = response.errorBody()
-                val errorMessage = if (errorBody == null){
+                val errorMessage = if (errorBody == null) {
                     "There was an unexpected error while sending the relay request - Status ${response.code()}"
                 }
                 // expected errors will be inside a json which will contain the key 'message'
-                else{
+                else {
                     JSONObject(errorBody.string()).getString("message")
                 }
                 synchronized(this@HttpsRequestRepository) {
@@ -93,9 +95,9 @@ class HttpsRequestRepository(
             override fun onFailure(call: Call<HTTPSResponse>, t: Throwable) {
                 Log.e(Companion.TAG, t.toString())
 
-                //max number of attempted uploads is 5
-                //TODO remove hardcoding and move to settings.xml
-                if (smsRelayEntity.numberOfTriesUploaded > 5){
+                // max number of attempted uploads is 5
+                // TODO remove hardcoding and move to settings.xml
+                if (smsRelayEntity.numberOfTriesUploaded > MAX_UPLOAD_ATTEMPTS) {
                     smsRelayEntity.isServerError = true
                     smsRelayEntity.isServerResponseReceived = false
                     smsRelayEntity.isCompleted = false
@@ -111,7 +113,7 @@ class HttpsRequestRepository(
         })
     }
 
-    private fun updateSmsRelayEntity(data: String, isSuccessful: Boolean, smsRelayEntity: SmsRelayEntity, code: Int){
+    private fun updateSmsRelayEntity(data: String, isSuccessful: Boolean, smsRelayEntity: SmsRelayEntity, code: Int) {
         val phoneNumber: String = smsRelayEntity.getPhoneNumber()
         val requestCounter: String = smsRelayEntity.getRequestIdentifier()
 

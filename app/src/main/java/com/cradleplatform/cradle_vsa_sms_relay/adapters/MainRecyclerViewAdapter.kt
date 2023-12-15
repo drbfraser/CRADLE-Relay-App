@@ -14,7 +14,7 @@ import com.cradleplatform.smsrelay.R
  * to display the status of a SMS Relay transaction
  */
 
-class MainRecyclerViewAdapter () :
+class MainRecyclerViewAdapter :
 RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
 
     private var sms: List<SmsRelayEntity> = ArrayList()
@@ -35,43 +35,39 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
         notifyDataSetChanged()
     }
 
-    //TODO Update bind function to use UI prototype
-    //TODO add onclicklistener for item
+    // TODO Update bind function to use UI prototype
+    // TODO add onclicklistener for item
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
         val smsRelayEntity: SmsRelayEntity = sms[position]
 
         holder.phone.text = smsRelayEntity.getPhoneNumber()
         holder.reqConter.text = smsRelayEntity.getRequestIdentifier()
 
-        if (smsRelayEntity.numFragmentsReceived == smsRelayEntity.totalFragmentsFromMobile){
+        if (smsRelayEntity.numFragmentsReceived == smsRelayEntity.totalFragmentsFromMobile) {
             holder.checkBox1.isChecked = true
             holder.checkBox2.isChecked = true
-        }
-        else{
+        } else {
             holder.checkBox1.isChecked = false
             holder.checkBox2.isChecked = false
         }
-        if (smsRelayEntity.isServerError == true || smsRelayEntity.isServerResponseReceived == true){
+        if (smsRelayEntity.isServerError == true || smsRelayEntity.isServerResponseReceived == true) {
             holder.checkBox3.isChecked = true
             holder.checkBox1.isChecked = true
             holder.checkBox2.isChecked = true
-        }
-        else{
+        } else {
             holder.checkBox3.isChecked = false
         }
-        if (smsRelayEntity.isServerError == true){
+        if (smsRelayEntity.isServerError == true) {
             holder.error.visibility = View.VISIBLE
-        }
-        else{
+        } else {
             holder.error.visibility = View.GONE
         }
-        if(smsRelayEntity.smsPacketsToMobile.isEmpty() && smsRelayEntity.isServerResponseReceived){
+        if (smsRelayEntity.smsPacketsToMobile.isEmpty() && smsRelayEntity.isServerResponseReceived) {
             holder.checkBox4.isChecked = true
             holder.checkBox1.isChecked = true
             holder.checkBox2.isChecked = true
             holder.checkBox3.isChecked = true
-        }
-        else{
+        } else {
             holder.checkBox4.isChecked = false
         }
     }

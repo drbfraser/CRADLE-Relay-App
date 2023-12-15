@@ -82,7 +82,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
             if (smsFormatter.isAckMessage(message)) {
 
                 val requestIdentifier = smsFormatter.getAckRequestIdentifier(message)
-                val id = "${phoneNumber}-${requestIdentifier}"
+                val id = "$phoneNumber-$requestIdentifier"
 
                 val relayEntity = smsRelayRepository.getRelayBlocking(id)
 
@@ -92,17 +92,15 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                     relayEntity.numFragmentsSentToMobile = relayEntity.numFragmentsSentToMobile!! + 1
                     smsRelayRepository.updateBlocking(relayEntity)
                     smsFormatter.sendMessage(phoneNumber, encryptedPacket)
-                }
-                else{
+                } else {
                     relayEntity.isCompleted = true
                     smsRelayRepository.update(relayEntity)
                 }
-
             } else if (smsFormatter.isFirstMessage(message)) {
                 // create new relay entity
                 Thread {
                     val requestIdentifier = smsFormatter.getNewRequestIdentifier(message)
-                    val id = "${phoneNumber}-${requestIdentifier}"
+                    val id = "$phoneNumber-$requestIdentifier"
                     val totalFragments = smsFormatter.getTotalNumOfFragments(message)
                     val currentTime = System.currentTimeMillis()
                     val newRelayEntity = SmsRelayEntity(
@@ -124,7 +122,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                         false
                     )
 
-                    if(newRelayEntity.numFragmentsReceived == newRelayEntity.totalFragmentsFromMobile){
+                    if (newRelayEntity.numFragmentsReceived == newRelayEntity.totalFragmentsFromMobile) {
                         newRelayEntity.numberOfTriesUploaded = 1
                     }
 
@@ -134,7 +132,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
                     hash[phoneNumber] = requestIdentifier
 
-                    if(newRelayEntity.numFragmentsReceived == newRelayEntity.totalFragmentsFromMobile){
+                    if (newRelayEntity.numFragmentsReceived == newRelayEntity.totalFragmentsFromMobile) {
                         httpsRequestRepository.sendToServer(newRelayEntity)
                     }
                 }.start()
@@ -142,16 +140,16 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
                 Thread {
                     val requestIdentifier = hash[phoneNumber]
-                    val id = "${phoneNumber}-${requestIdentifier}"
+                    val id = "$phoneNumber-$requestIdentifier"
                     val currentTime = System.currentTimeMillis()
                     val relayEntity = smsRelayRepository.getRelayBlocking(id)
 
-                    //update required fields
+                    // update required fields
                     relayEntity!!.timestampsDataMessagesReceived.add(currentTime)
                     relayEntity.smsPacketsFromMobile.add(message)
                     relayEntity.numFragmentsReceived += 1
 
-                    if(relayEntity.numFragmentsReceived == relayEntity.totalFragmentsFromMobile){
+                    if (relayEntity.numFragmentsReceived == relayEntity.totalFragmentsFromMobile) {
                         relayEntity.numberOfTriesUploaded = 1
                     }
 

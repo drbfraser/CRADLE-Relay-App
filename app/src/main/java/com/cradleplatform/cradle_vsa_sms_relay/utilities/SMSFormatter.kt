@@ -12,7 +12,7 @@ import kotlin.math.min
 private const val PACKET_SIZE = 153 * 2
 // private const val MAX_PACKET_NUMBER = 99
 
-//Fixed strings, prefixes, suffixes involved in the SMS Protocol
+// Fixed strings, prefixes, suffixes involved in the SMS Protocol
 private const val SMS_TUNNEL_PROTOCOL_VERSION = "01"
 private const val SMS_ACK_SUFFIX = "ACK"
 private const val MAGIC_STRING = "CRADLE"
@@ -20,38 +20,63 @@ private const val REPLY_SUCCESS = "REPLY"
 private const val REPLY_ERROR = "REPLY_ERROR"
 private const val REPLY_ERROR_CODE_PREFIX = "ERR"
 
-//Lengths for different parts of the SMS Protocol
+// Lengths for different parts of the SMS Protocol
 private const val REPLY_ERROR_CODE_LENGTH = 3
 private const val FRAGMENT_HEADER_LENGTH = 3
 private const val REQUEST_NUMBER_LENGTH = 6
 
-//positions of request identifiers inside different messages of the SMS protocol
+// positions of request identifiers inside different messages of the SMS protocol
 private const val POS_FIRST_MSG_REQUEST_COUNTER = 1
 private const val POS_ACK_MSG_REQUEST_COUNTER = 1
 private const val POS_REPLY_SUCCESS_REQUEST_COUNTER = 1
 private const val POS_REPLY_ERROR_REQUEST_COUNTER = 1
 
-//positions for data inside different messages of the SMS protocol
+// positions for data inside different messages of the SMS protocol
 private const val POS_FIRST_MSG_DATA = 3
 private const val POS_REST_MSG_DATA = 2
 private const val POS_REPLY_SUCCESS_DATA = 3
-private const val POS_REPLY_ERROR_DATA= 4
+private const val POS_REPLY_ERROR_DATA = 4
 
-//positions for total fragments in transaction
+// positions for total fragments in transaction
 private const val POS_FIRST_NUM_FRAGMENTS = 2
 private const val POS_REPLY_SUCCESS_NUM_FRAGMENTS = 2
 private const val POS_REPLY_ERROR_NUM_FRAGMENTS = 2
 
-//positions for current fragment number
+// positions for current fragment number
 private const val POS_ACK_CURR_FRAGMENT = 2
 private const val POS_REST_CURR_FRAGMENT = 1
 
-private val ackRegexPattern = Regex("^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-(\\d{$REQUEST_NUMBER_LENGTH})-(\\d{$FRAGMENT_HEADER_LENGTH})-$SMS_ACK_SUFFIX$")
-private val firstRegexPattern = Regex("^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-(\\d{$REQUEST_NUMBER_LENGTH})-(\\d{$FRAGMENT_HEADER_LENGTH})-(.+)")
-private val restRegexPattern = Regex("^(\\d{$FRAGMENT_HEADER_LENGTH})-(.+)")
-private val firstErrorReplyPattern = Regex("^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-(\\d{$REQUEST_NUMBER_LENGTH})-$REPLY_ERROR-(\\d{$FRAGMENT_HEADER_LENGTH})-$REPLY_ERROR_CODE_PREFIX(\\d{$REPLY_ERROR_CODE_LENGTH})-(.+)$")
-private val firstSuccessReplyPattern = Regex("^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-(\\d{$REQUEST_NUMBER_LENGTH})-$REPLY_SUCCESS-(\\d{$FRAGMENT_HEADER_LENGTH})-(.+)$")
+private val ackRegexPattern =
+    Regex(
+        "^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-" +
+                "(\\d{$REQUEST_NUMBER_LENGTH})-(\\d{$FRAGMENT_HEADER_LENGTH})-$SMS_ACK_SUFFIX$"
+    )
 
+private val firstRegexPattern =
+    Regex(
+        "^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-" +
+                "(\\d{$REQUEST_NUMBER_LENGTH})-(\\d{$FRAGMENT_HEADER_LENGTH})-(.+)"
+    )
+
+private val restRegexPattern =
+    Regex(
+        "^(\\d{$FRAGMENT_HEADER_LENGTH})-(.+)"
+    )
+
+private val firstErrorReplyPattern =
+    Regex(
+        "^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-" +
+                "(\\d{$REQUEST_NUMBER_LENGTH})-$REPLY_ERROR-(\\d{$FRAGMENT_HEADER_LENGTH})-" +
+                "$REPLY_ERROR_CODE_PREFIX(\\d{$REPLY_ERROR_CODE_LENGTH})-(.+)$"
+    )
+
+private val firstSuccessReplyPattern =
+    Regex(
+        "^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-" +
+                "(\\d{$REQUEST_NUMBER_LENGTH})-$REPLY_SUCCESS-(\\d{$FRAGMENT_HEADER_LENGTH})-(.+)"
+    )
+
+@Suppress("LargeClass", "TooManyFunctions")
 class SMSFormatter {
 
     private val smsManager = SmsManager.getDefault()
@@ -66,7 +91,7 @@ class SMSFormatter {
         )
 
         // Add the correct header to the list based on whether the HTTP request was successful or not
-        if(isSuccessful)
+        if (isSuccessful)
             baseHeaderContent.add(0, REPLY_SUCCESS.length)
         else {
             baseHeaderContent.add(0, REPLY_ERROR.length)
@@ -144,7 +169,7 @@ class SMSFormatter {
         return packets
     }
 
-    fun sendAckMessage(smsRelayEntity: SmsRelayEntity){
+    fun sendAckMessage(smsRelayEntity: SmsRelayEntity) {
         val phoneNumber = smsRelayEntity.getPhoneNumber()
         val requestIdentifier = smsRelayEntity.getRequestIdentifier()
         val ackFragmentNumber = String.format(
@@ -224,13 +249,12 @@ class SMSFormatter {
         )
     }
 
-    fun getEncryptedData(smsRelayEntity: SmsRelayEntity): String{
+    fun getEncryptedData(smsRelayEntity: SmsRelayEntity): String {
         var encryptedData = ""
-        smsRelayEntity.smsPacketsFromMobile.forEach{
-            if (isFirstMessage(it)){
+        smsRelayEntity.smsPacketsFromMobile.forEach {
+            if (isFirstMessage(it)) {
                 encryptedData = getEncryptedDataFromFirstMessage(it)
-            }
-            else{
+            } else {
                 encryptedData += getEncryptedDataFromRestMessage(it)
             }
         }

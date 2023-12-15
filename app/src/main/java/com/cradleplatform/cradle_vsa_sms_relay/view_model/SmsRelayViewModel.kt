@@ -29,5 +29,4 @@ class SmsRelayViewModel(application: Application) :
         (application as MyApp).component.inject(this)
         relayEntity = repository.relayEntities
     }
-
 }

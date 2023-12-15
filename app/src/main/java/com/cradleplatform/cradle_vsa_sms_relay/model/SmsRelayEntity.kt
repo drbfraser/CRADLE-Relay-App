@@ -31,7 +31,7 @@ data class SmsRelayEntity(
     @TypeConverters(TimeStampListConverter::class)
     val timestampsDataMessagesSent: MutableList<Long>,
 
-    //fields for receiving response from server
+    // fields for receiving response from server
     var isServerResponseReceived: Boolean,
     var isServerError: Boolean?,
     var errorMessage: String?,
@@ -40,7 +40,7 @@ data class SmsRelayEntity(
     var numFragmentsSentToMobile: Int?,
     val totalFragmentsFromServer: Int?,
 
-    //extras
+    // extras
     var numberOfTriesUploaded: Int,
     var deliveryReportSent: Boolean,
 
@@ -51,11 +51,11 @@ data class SmsRelayEntity(
         return (this.timeRequestInitiated - other.timeRequestInitiated).toInt()
     }
 
-    fun getPhoneNumber(): String{
+    fun getPhoneNumber(): String {
         return this.id.split("-")[0]
     }
 
-    fun getRequestIdentifier(): String{
+    fun getRequestIdentifier(): String {
         return this.id.split("-")[1]
     }
 }
