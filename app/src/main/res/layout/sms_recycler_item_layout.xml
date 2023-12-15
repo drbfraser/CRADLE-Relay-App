@@ -89,6 +89,14 @@
                     android:enabled="false" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/serverErrorText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:text="@string/the_server_encountered_an_error_the_response_will_be_relayed_back"
+            />
+
             <!-- TextView 4 with CheckBox -->
             <LinearLayout
                 android:layout_width="match_parent"

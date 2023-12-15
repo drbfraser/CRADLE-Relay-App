@@ -116,7 +116,7 @@ class HttpsRequestRepository(
 
         val firstMessage = smsMessages.removeAt(0)
 
-        smsRelayEntity.isServerError = isSuccessful
+        smsRelayEntity.isServerError = !isSuccessful
         smsRelayEntity.isServerResponseReceived = true
         smsRelayEntity.smsPacketsToMobile.addAll(smsMessages)
         smsRelayEntity.totalFragmentsFromMobile = smsMessages.size + 1

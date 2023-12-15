@@ -15,7 +15,7 @@ import javax.inject.Inject
 import kotlin.collections.HashMap
 
 /**
- * detects messages receives
+ * detects and processes received messages
  */
 
 class MessageReceiver(private val context: Context) : BroadcastReceiver() {

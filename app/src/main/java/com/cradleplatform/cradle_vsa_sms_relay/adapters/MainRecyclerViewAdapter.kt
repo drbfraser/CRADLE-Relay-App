@@ -52,8 +52,13 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             holder.checkBox2.isChecked = true
         }
         else{
-
             holder.checkBox3.isChecked = false
+        }
+        if (smsRelayEntity.isServerError == true){
+            holder.error.visibility = View.VISIBLE
+        }
+        else{
+            holder.error.visibility = View.GONE
         }
         if(smsRelayEntity.smsPacketsToMobile.isEmpty() && smsRelayEntity.isServerResponseReceived){
             holder.checkBox4.isChecked = true
@@ -67,11 +72,12 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
     }
 
     class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var checkBox1 = itemView.findViewById<CheckBox>(R.id.checkBox1)
-        var checkBox2 = itemView.findViewById<CheckBox>(R.id.checkBox2)
-        var checkBox3 = itemView.findViewById<CheckBox>(R.id.checkBox3)
-        var checkBox4 = itemView.findViewById<CheckBox>(R.id.checkBox4)
-        var phone = itemView.findViewById<TextView>(R.id.phone)
-        var reqConter = itemView.findViewById<TextView>(R.id.requestCounter)
+        val checkBox1: CheckBox = itemView.findViewById<CheckBox>(R.id.checkBox1)
+        val checkBox2: CheckBox = itemView.findViewById<CheckBox>(R.id.checkBox2)
+        val checkBox3: CheckBox = itemView.findViewById<CheckBox>(R.id.checkBox3)
+        val checkBox4: CheckBox = itemView.findViewById<CheckBox>(R.id.checkBox4)
+        val phone: TextView = itemView.findViewById<TextView>(R.id.phone)
+        val reqConter: TextView = itemView.findViewById<TextView>(R.id.requestCounter)
+        val error: TextView = itemView.findViewById(R.id.serverErrorText)
     }
 }
