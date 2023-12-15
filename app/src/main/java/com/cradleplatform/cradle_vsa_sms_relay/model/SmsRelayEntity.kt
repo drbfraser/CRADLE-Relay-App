@@ -7,6 +7,11 @@ import com.cradleplatform.cradle_vsa_sms_relay.type_converters.SmsListConverter
 import com.cradleplatform.cradle_vsa_sms_relay.type_converters.TimeStampListConverter
 import java.io.Serializable
 
+/**
+ * data class used to store the status of a single SMS Relay transaction
+ * the class also stores all information pertaining to a single transaction
+ */
+
 @Entity
 data class SmsRelayEntity(
     @PrimaryKey

@@ -9,6 +9,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.smsrelay.R
 
+/**
+ * Adapter for updating the recycler view UI in main activity
+ * to display the status of a SMS Relay transaction
+ */
+
 class MainRecyclerViewAdapter () :
 RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
 

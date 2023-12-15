@@ -10,6 +10,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
+/**
+ * class to access the DAO interface for SmsRelayEntity objects
+ */
+
 class SmsRelayRepository(database: SmsRelayDatabase) {
     private var smsRelayDao: SmsRelayDao = database.smsRelayDao()
     var relayEntities: LiveData<List<SmsRelayEntity>> = smsRelayDao.getAllSmsRelayEntities()

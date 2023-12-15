@@ -8,6 +8,11 @@ import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import javax.inject.Inject
 
+/**
+ * view model for the main activity
+ * provides live data object for the recycler view
+ */
+
 class SmsRelayViewModel(application: Application) :
     AndroidViewModel(application) {
 

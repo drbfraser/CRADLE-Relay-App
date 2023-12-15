@@ -4,6 +4,11 @@ import android.telephony.SmsManager
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import kotlin.math.min
 
+/**
+ * class handles the parsing and formatting of all messages that are sent and received
+ * class is used to retrieve information from the SMS message based on the protocol being used
+ */
+
 private const val PACKET_SIZE = 153 * 2
 private const val SMS_TUNNEL_PROTOCOL_VERSION = "01"
 private const val SMS_ACK_SUFFIX = "ACK"

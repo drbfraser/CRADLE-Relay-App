@@ -15,6 +15,9 @@ import retrofit2.Callback
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+/**
+ * class to add auth token to requests sent to the server
+ */
 private class AuthInterceptor(private val token: String) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request().newBuilder()
@@ -24,15 +27,19 @@ private class AuthInterceptor(private val token: String) : Interceptor {
     }
 }
 
+/**
+ * class to make requests to the server
+ * class registers callbacks for when the response is received from the server
+ * callbacks process the response and initiate the sms protocol to send data to mobile
+ */
+
 class HttpsRequestRepository(
     token: String,
     private val smsFormatter: SMSFormatter,
     private val smsRelayRepository: SmsRelayRepository
 ) {
 
-    private val TAG = "HttpsRequestRepository"
-
-    // Todo remove hardcoding for base url
+    // Todo remove hardcoding for base url - move to settings.xml
     private val baseUrl = "http://10.0.2.2:5000/"
 
     private val okHttpClient = OkHttpClient.Builder()
@@ -84,9 +91,10 @@ class HttpsRequestRepository(
 
             // This method will only be called when there is a network error while uploading
             override fun onFailure(call: Call<HTTPSResponse>, t: Throwable) {
-                Log.e(TAG, t.toString())
+                Log.e(Companion.TAG, t.toString())
 
                 //max number of attempted uploads is 5
+                //TODO remove hardcoding and move to settings.xml
                 if (smsRelayEntity.numberOfTriesUploaded > 5){
                     smsRelayEntity.isServerError = true
                     smsRelayEntity.isServerResponseReceived = false
@@ -126,5 +134,9 @@ class HttpsRequestRepository(
         smsRelayRepository.updateBlocking(smsRelayEntity)
 
         smsFormatter.sendMessage(phoneNumber, firstMessage)
+    }
+
+    companion object {
+        const val TAG = "HttpsRequestRepository"
     }
 }

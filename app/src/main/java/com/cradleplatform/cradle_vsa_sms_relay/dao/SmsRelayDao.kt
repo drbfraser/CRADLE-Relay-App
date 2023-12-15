@@ -8,6 +8,10 @@ import androidx.room.Query
 import androidx.room.Update
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 
+/**
+ * Data Access Object Interface for accessing the relay-DB that stores SmsRelayEntity
+ */
+
 @Dao
 interface SmsRelayDao {
 
