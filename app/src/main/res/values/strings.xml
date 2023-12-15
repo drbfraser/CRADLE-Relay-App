@@ -37,4 +37,6 @@
     <string name="click_to_see_full_referral"><u>Click to see full referral</u></string>
     <string name="show_password">show password</string>
     <string name="hide_password">hide password</string>
+    <string name="sign_in">SIGN IN</string>
+    <string name="email">Email:</string>
 </resources>

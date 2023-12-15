@@ -1,4 +1,4 @@
-package com.cradleplatform.smsrelay.dagger
+package com.cradleplatform.cradle_vsa_sms_relay.dagger
 
 import android.content.SharedPreferences
 import androidx.multidex.MultiDexApplication
@@ -7,8 +7,6 @@ import androidx.room.Room
 import com.cradleplatform.cradle_vsa_sms_relay.type_converters.SmsListConverter
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayDatabase
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
-import com.cradleplatform.smsrelay.database.ReferralDatabase
-import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
@@ -19,16 +17,6 @@ import javax.inject.Singleton
 
 @Module
 class DataModule {
-
-    @Provides
-    @Singleton
-    fun getDatabase(app: MultiDexApplication): ReferralDatabase {
-        // todo create a migration class
-        return Room.databaseBuilder(
-            app.applicationContext, ReferralDatabase::class.java,
-            "referral-DB"
-        ).fallbackToDestructiveMigration().build()
-    }
 
     @Provides
     @Singleton
@@ -43,12 +31,6 @@ class DataModule {
     @Singleton
     fun getSharedPref(app: MultiDexApplication): SharedPreferences {
         return PreferenceManager.getDefaultSharedPreferences(app)
-    }
-
-    @Provides
-    @Singleton
-    fun getReferralRepository(database: ReferralDatabase): ReferralRepository {
-        return ReferralRepository(database)
     }
 
     @Provides

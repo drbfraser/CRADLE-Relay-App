@@ -2,11 +2,7 @@ package com.cradleplatform.cradle_vsa_sms_relay.utilities
 
 import android.telephony.SmsManager
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
-import com.google.firebase.crashlytics.internal.model.ImmutableList
 import kotlin.math.min
-
-private const val NUM_OF_FIRST_PACKET_COMPONENTS = 5
-private const val NUM_OF_NON_FIRST_PACKET_COMPONENTS = 2
 
 private const val PACKET_SIZE = 153 * 2
 private const val SMS_TUNNEL_PROTOCOL_VERSION = "01"
@@ -143,11 +139,6 @@ class SMSFormatter {
     fun getNewRequestIdentifier(message: String): String {
         return firstRegexPattern.find(message)?.groupValues!![1]
     }
-
-    // Extract the request identifier from a subsequent message
-//    fun getRequestIdentifier(message: String): String {
-//        return restRegexPattern.find(message)?.groupValues!![1]
-//    }
 
     // Extract the total number of SMS packets that should be received
     fun getTotalNumOfFragments(message: String): Int {

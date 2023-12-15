@@ -5,7 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
-import com.cradleplatform.smsrelay.dagger.MyApp
+import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import javax.inject.Inject
 
 class SmsRelayViewModel(application: Application) :
@@ -15,10 +15,6 @@ class SmsRelayViewModel(application: Application) :
     lateinit var repository: SmsRelayRepository
 
     private val referrals: LiveData<List<SmsRelayEntity>>
-
-    fun insert(smsReferralEntity: SmsRelayEntity) {
-        repository.insert(smsReferralEntity)
-    }
 
     fun getAllRelayEntities(): LiveData<List<SmsRelayEntity>> {
         return repository.relayEntities

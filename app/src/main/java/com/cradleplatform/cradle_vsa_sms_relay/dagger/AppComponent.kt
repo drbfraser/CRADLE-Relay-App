@@ -1,15 +1,15 @@
 package com.cradleplatform.smsrelay.dagger
 
-import com.cradleplatform.smsrelay.activities.LauncherActivity
+import com.cradleplatform.cradle_vsa_sms_relay.activities.LauncherActivity
 import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReceiver
+import com.cradleplatform.cradle_vsa_sms_relay.dagger.DataModule
+import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
-import com.cradleplatform.smsrelay.database.ReferralRepository
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
-import com.cradleplatform.cradle_vsa_sms_relay.utilities.UploadReferralWorker
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
 import dagger.Component
 import javax.inject.Singleton
@@ -21,9 +21,7 @@ interface AppComponent {
     fun inject(app: MyApp)
     fun inject(smsService: SmsService)
     fun inject(activity: MainActivity)
-    fun inject(worker: UploadReferralWorker)
     fun inject(launcherActivity: LauncherActivity)
-    fun inject(repository: ReferralRepository)
     fun inject(messageReceiver: MessageReceiver)
     fun inject(networkManager: NetworkManager)
     fun inject(smsFormatter: SMSFormatter)

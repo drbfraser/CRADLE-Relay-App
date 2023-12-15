@@ -12,7 +12,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.Button
@@ -31,10 +30,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.cradleplatform.smsrelay.R
 import com.cradleplatform.cradle_vsa_sms_relay.adapters.MainRecyclerViewAdapter
-import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
-import com.cradleplatform.smsrelay.dagger.MyApp
+import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
-import com.cradleplatform.smsrelay.activities.SettingsActivity
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject

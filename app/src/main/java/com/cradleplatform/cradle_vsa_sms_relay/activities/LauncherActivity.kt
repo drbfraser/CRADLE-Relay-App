@@ -1,4 +1,4 @@
-package com.cradleplatform.smsrelay.activities
+package com.cradleplatform.cradle_vsa_sms_relay.activities
 
 import android.annotation.SuppressLint
 import android.app.ProgressDialog
@@ -14,9 +14,8 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
-import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradleplatform.smsrelay.R
-import com.cradleplatform.smsrelay.dagger.MyApp
+import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
 import com.cradleplatform.smsrelay.network.VolleyRequests.Companion.TOKEN
 import com.google.android.material.button.MaterialButton

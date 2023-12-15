@@ -2,8 +2,7 @@ package com.cradleplatform.cradle_vsa_sms_relay.network
 
 import android.app.Application
 import android.content.SharedPreferences
-import com.cradleplatform.smsrelay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
+import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.smsrelay.network.*
 import com.cradleplatform.smsrelay.network.Urls.authenticationUrl
 import com.cradleplatform.smsrelay.network.VolleyRequests.Companion.TOKEN
@@ -59,83 +58,6 @@ class NetworkManager(application: Application) {
                 }
             }
         volleyRequestQueue.addRequest(request)
-    }
-
-    /**
-     * returns patient information, given the id
-     */
-    private fun uploadPatient(
-        patientJSONObject: JSONObject,
-        callback: (NetworkResult<JSONObject>) -> Unit
-    ) {
-        val request =
-            volleyRequests.postJsonObjectRequest(Urls.patientUrl, patientJSONObject) { result ->
-                when (result) {
-                    is Success -> {
-                        callback(Success(result.value))
-                    }
-                    is Failure -> {
-                        // update database with error
-                        callback(Failure(result.value))
-                    }
-                }
-            }
-        volleyRequestQueue.addRequest(request)
-    }
-
-    /**
-     * send a reading to the server and propagates its result down to the client
-     * @param smsReferralEntity the reading should be inside this referral entity
-     * @param callback callback for the caller
-     */
-    private fun uploadReadingToTheServer(
-        smsReferralEntity: SmsReferralEntity,
-        callback: (NetworkResult<JSONObject>) -> Unit
-    ) {
-
-        // parse the patient
-        val patientJSONObject =
-            JSONObject(smsReferralEntity.encryptedData.toString()).getJSONObject("patient")
-        // parse the reading
-        val readingJson = patientJSONObject.getJSONArray("readings")[0] as JSONObject
-        val request =
-            volleyRequests.postJsonObjectRequest(Urls.readingUrl, readingJson) { result ->
-                when (result) {
-                    is Success -> {
-                        callback(Success(result.value))
-                    }
-                    is Failure -> {
-                        callback(Failure(result.value))
-                    }
-                }
-            }
-        volleyRequestQueue.addRequest(request)
-    }
-
-    /**
-     * uploads a single referral and let the caller know upload status
-     * @param smsReferralEntity the patient exists within this entity
-     * @param callback callback for the caller
-     */
-    fun uploadReferral(
-        smsReferralEntity: SmsReferralEntity,
-        callback: (NetworkResult<JSONObject>) -> Unit
-    ) {
-        val patientJSONObject = JSONObject(smsReferralEntity.encryptedData.toString())
-            .getJSONObject("patient")
-
-        uploadPatient(patientJSONObject) { result ->
-            when (result) {
-                is Success -> {
-                    // let caller know we uploaded referral
-                    callback(Success(result.value))
-                }
-                is Failure -> {
-                    // upload reading only since patient exists.
-                    uploadReadingToTheServer(smsReferralEntity, callback)
-                }
-            }
-        }
     }
 
     companion object {

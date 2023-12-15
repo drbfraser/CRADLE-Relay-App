@@ -2,7 +2,6 @@ package com.cradleplatform.cradle_vsa_sms_relay.repository
 
 import androidx.lifecycle.LiveData
 import com.cradleplatform.cradle_vsa_sms_relay.dao.SmsRelayDao
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayDatabase
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import kotlinx.coroutines.Dispatchers
