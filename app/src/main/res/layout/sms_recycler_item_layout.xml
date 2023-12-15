@@ -40,12 +40,13 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:text="Received from mobile"/>
+                    android:text="@string/received_from_mobile"/>
 
                 <CheckBox
                     android:id="@+id/checkBox1"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:enabled="false" />
             </LinearLayout>
 
             <!-- TextView 2 with CheckBox -->
@@ -59,12 +60,13 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:text="Uploaded to server" />
+                    android:text="@string/uploaded_to_server" />
 
                 <CheckBox
                     android:id="@+id/checkBox2"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:enabled="false" />
             </LinearLayout>
 
             <!-- TextView 3 with CheckBox -->
@@ -78,12 +80,13 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:text="Received from server" />
+                    android:text="@string/received_from_server" />
 
                 <CheckBox
                     android:id="@+id/checkBox3"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:enabled="false" />
             </LinearLayout>
 
             <!-- TextView 4 with CheckBox -->
@@ -97,12 +100,13 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:text="Sent to Mobile"/>
+                    android:text="@string/sent_to_mobile"/>
 
                 <CheckBox
                     android:id="@+id/checkBox4"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:enabled="false" />
             </LinearLayout>
 
         </LinearLayout>

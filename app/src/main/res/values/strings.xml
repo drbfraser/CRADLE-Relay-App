@@ -39,4 +39,8 @@
     <string name="hide_password">hide password</string>
     <string name="sign_in">SIGN IN</string>
     <string name="email">Email:</string>
+    <string name="uploaded_to_server">Uploaded to server</string>
+    <string name="received_from_mobile">Received from mobile</string>
+    <string name="received_from_server">Received from server</string>
+    <string name="sent_to_mobile">Sent to Mobile</string>
 </resources>

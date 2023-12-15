@@ -151,7 +151,7 @@ class SMSFormatter {
     }
 
     // Extract the encrypted content from the subsequent message
-    fun getEncryptedDataFromMessage(message: String): String {
+    fun getEncryptedDataFromRestMessage(message: String): String {
         return restRegexPattern.find(message)?.groupValues!![2]
     }
 
@@ -184,5 +184,18 @@ class SMSFormatter {
             null,
             null
         )
+    }
+
+    fun getEncryptedData(smsRelayEntity: SmsRelayEntity): String{
+        var encryptedData = ""
+        smsRelayEntity.smsPacketsFromMobile.forEach{
+            if (isFirstMessage(it)){
+                encryptedData = getEncryptedDataFromFirstMessage(it)
+            }
+            else{
+                encryptedData += getEncryptedDataFromRestMessage(it)
+            }
+        }
+        return encryptedData
     }
 }

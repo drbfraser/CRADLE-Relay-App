@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.cradleplatform.cradle_vsa_sms_relay.type_converters.SmsListConverter
+import com.cradleplatform.cradle_vsa_sms_relay.type_converters.TimeStampListConverter
 import java.io.Serializable
 
 @Entity
@@ -17,22 +18,20 @@ data class SmsRelayEntity(
     // to track how many messages are part of the the entire relay request
     var totalFragmentsFromMobile: Int,
 
-    // data received from mobile as a single string
-    // string is appended to when more data is received
-    // make this a list
-    var encryptedDataFromMobile: String,
+    @TypeConverters(SmsListConverter::class)
+    val smsPacketsFromMobile: MutableList<String>,
     val timeRequestInitiated: Long,
-    // make a list
-    var timeLastDataMessageReceived: Long,
-    // make a list
-    var timeLastDataMessageSent: Long?,
+    @TypeConverters(TimeStampListConverter::class)
+    val timestampsDataMessagesReceived: MutableList<Long>,
+    @TypeConverters(TimeStampListConverter::class)
+    val timestampsDataMessagesSent: MutableList<Long>,
 
     //fields for receiving response from server
     var isServerResponseReceived: Boolean,
     var isServerError: Boolean?,
     var errorMessage: String?,
     @TypeConverters(SmsListConverter::class)
-    var smsPackets: MutableList<String>,
+    val smsPacketsToMobile: MutableList<String>,
     var numFragmentsSentToMobile: Int?,
     val totalFragmentsFromServer: Int?,
 

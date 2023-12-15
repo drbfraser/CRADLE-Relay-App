@@ -48,12 +48,18 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
         }
         if (smsRelayEntity.isServerError == true || smsRelayEntity.isServerResponseReceived == true){
             holder.checkBox3.isChecked = true
+            holder.checkBox1.isChecked = true
+            holder.checkBox2.isChecked = true
         }
         else{
+
             holder.checkBox3.isChecked = false
         }
-        if(smsRelayEntity.smsPackets.isEmpty() && smsRelayEntity.isServerResponseReceived){
+        if(smsRelayEntity.smsPacketsToMobile.isEmpty() && smsRelayEntity.isServerResponseReceived){
             holder.checkBox4.isChecked = true
+            holder.checkBox1.isChecked = true
+            holder.checkBox2.isChecked = true
+            holder.checkBox3.isChecked = true
         }
         else{
             holder.checkBox4.isChecked = false

@@ -48,19 +48,15 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
         val data = p1?.extras
         val pdus = data?.get("pdus") as Array<*>
 
-//        val requestIdentifier = "000011"
-
         // may receive multiple messages at the same time from different numbers so
         // we keep track of all the messages from different numbers
         val messages = processSMSMessages(pdus)
-
-        // HashMap to track data messages, ack messages are not saved here
-//        val dataMessages = HashMap<String, String>()
 
         messages.entries.forEach { entry ->
 
             val message = entry.value
             val phoneNumber = entry.key
+
             // Exceptions. Escape forEach and show error message.
             if (message.isEmpty()) {
                 Log.w(tag, "message is empty")
@@ -71,6 +67,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                 ).show()
                 return@forEach
             }
+
             if (phoneNumber.isEmpty()) {
                 Log.w(tag, "phone number is empty")
                 Toast.makeText(
@@ -80,6 +77,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                 ).show()
                 return@forEach
             }
+
             // Process SMS
             if (smsFormatter.isAckMessage(message)) {
 
@@ -89,8 +87,8 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                 val relayEntity = smsRelayRepository.getRelayBlocking(id)
 
                 // ignore ACK message if there are no more packets to send
-                if (relayEntity!!.smsPackets.isNotEmpty()) {
-                    val encryptedPacket = relayEntity.smsPackets.removeAt(0)
+                if (relayEntity!!.smsPacketsToMobile.isNotEmpty()) {
+                    val encryptedPacket = relayEntity.smsPacketsToMobile.removeAt(0)
                     relayEntity.numFragmentsSentToMobile = relayEntity.numFragmentsSentToMobile!! + 1
                     smsRelayRepository.updateBlocking(relayEntity)
                     smsFormatter.sendMessage(phoneNumber, encryptedPacket)
@@ -111,10 +109,10 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                         id,
                         1,
                         totalFragments,
-                        smsFormatter.getEncryptedDataFromFirstMessage(message),
+                        mutableListOf(message),
                         currentTime,
-                        currentTime,
-                        null,
+                        mutableListOf(currentTime),
+                        mutableListOf(),
                         false,
                         false,
                         null,
@@ -143,18 +141,14 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
             } else if (smsFormatter.isRestMessage(message)) {
 
                 Thread {
-//                    val requestIdentifier = smsFormatter.getRequestIdentifier(message)
                     val requestIdentifier = hash[phoneNumber]
                     val id = "${phoneNumber}-${requestIdentifier}"
                     val currentTime = System.currentTimeMillis()
                     val relayEntity = smsRelayRepository.getRelayBlocking(id)
 
                     //update required fields
-                    relayEntity!!.timeLastDataMessageReceived = currentTime
-                    relayEntity.encryptedDataFromMobile =
-                        relayEntity.encryptedDataFromMobile + smsFormatter.getEncryptedDataFromMessage(
-                            message
-                        )
+                    relayEntity!!.timestampsDataMessagesReceived.add(currentTime)
+                    relayEntity.smsPacketsFromMobile.add(message)
                     relayEntity.numFragmentsReceived += 1
 
                     if(relayEntity.numFragmentsReceived == relayEntity.totalFragmentsFromMobile){

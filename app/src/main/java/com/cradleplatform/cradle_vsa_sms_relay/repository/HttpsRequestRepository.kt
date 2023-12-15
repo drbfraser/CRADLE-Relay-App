@@ -48,7 +48,8 @@ class HttpsRequestRepository(
     private val smsRelayService = retrofit.create(SMSRelayService::class.java)
 
     fun sendToServer(smsRelayEntity: SmsRelayEntity) {
-        val httpsRequest = HTTPSRequest(smsRelayEntity.getPhoneNumber(), smsRelayEntity.encryptedDataFromMobile)
+        val encryptedData = smsFormatter.getEncryptedData(smsRelayEntity)
+        val httpsRequest = HTTPSRequest(smsRelayEntity.getPhoneNumber(), encryptedData)
         smsRelayService.postSMSRelay(httpsRequest).enqueue(
             object : Callback<HTTPSResponse> {
             override fun onResponse(
@@ -117,10 +118,10 @@ class HttpsRequestRepository(
 
         smsRelayEntity.isServerError = isSuccessful
         smsRelayEntity.isServerResponseReceived = true
-        smsRelayEntity.smsPackets = smsMessages
+        smsRelayEntity.smsPacketsToMobile.addAll(smsMessages)
         smsRelayEntity.totalFragmentsFromMobile = smsMessages.size + 1
         smsRelayEntity.numFragmentsSentToMobile = 1
-        smsRelayEntity.timeLastDataMessageSent = System.currentTimeMillis()
+        smsRelayEntity.timestampsDataMessagesSent.add(System.currentTimeMillis())
 
         smsRelayRepository.updateBlocking(smsRelayEntity)
 

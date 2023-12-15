@@ -6,9 +6,10 @@ import androidx.room.TypeConverters
 import com.cradleplatform.cradle_vsa_sms_relay.dao.SmsRelayDao
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.type_converters.SmsListConverter
+import com.cradleplatform.cradle_vsa_sms_relay.type_converters.TimeStampListConverter
 
-@Database(entities = [SmsRelayEntity::class], version = 3, exportSchema = false)
-@TypeConverters(SmsListConverter::class)
+@Database(entities = [SmsRelayEntity::class], version = 6, exportSchema = false)
+@TypeConverters(SmsListConverter::class, TimeStampListConverter::class)
 abstract class SmsRelayDatabase : RoomDatabase() {
     abstract fun smsRelayDao(): SmsRelayDao
 }
