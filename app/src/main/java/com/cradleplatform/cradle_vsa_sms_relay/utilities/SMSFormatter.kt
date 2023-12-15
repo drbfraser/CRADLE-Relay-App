@@ -10,19 +10,47 @@ import kotlin.math.min
  */
 
 private const val PACKET_SIZE = 153 * 2
+// private const val MAX_PACKET_NUMBER = 99
+
+//Fixed strings, prefixes, suffixes involved in the SMS Protocol
 private const val SMS_TUNNEL_PROTOCOL_VERSION = "01"
 private const val SMS_ACK_SUFFIX = "ACK"
 private const val MAGIC_STRING = "CRADLE"
 private const val REPLY_SUCCESS = "REPLY"
 private const val REPLY_ERROR = "REPLY_ERROR"
 private const val REPLY_ERROR_CODE_PREFIX = "ERR"
+
+//Lengths for different parts of the SMS Protocol
 private const val REPLY_ERROR_CODE_LENGTH = 3
 private const val FRAGMENT_HEADER_LENGTH = 3
 private const val REQUEST_NUMBER_LENGTH = 6
 
-private val ackRegexPattern = Regex("^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-(\\d{6})-(\\d{3})-ACK$")
-private val firstRegexPattern = Regex("^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-(\\d{6})-(\\d{3})-(.+)")
-private val restRegexPattern = Regex("^(\\d{3})-(.+)")
+//positions of request identifiers inside different messages of the SMS protocol
+private const val POS_FIRST_MSG_REQUEST_COUNTER = 1
+private const val POS_ACK_MSG_REQUEST_COUNTER = 1
+private const val POS_REPLY_SUCCESS_REQUEST_COUNTER = 1
+private const val POS_REPLY_ERROR_REQUEST_COUNTER = 1
+
+//positions for data inside different messages of the SMS protocol
+private const val POS_FIRST_MSG_DATA = 3
+private const val POS_REST_MSG_DATA = 2
+private const val POS_REPLY_SUCCESS_DATA = 3
+private const val POS_REPLY_ERROR_DATA= 4
+
+//positions for total fragments in transaction
+private const val POS_FIRST_NUM_FRAGMENTS = 2
+private const val POS_REPLY_SUCCESS_NUM_FRAGMENTS = 2
+private const val POS_REPLY_ERROR_NUM_FRAGMENTS = 2
+
+//positions for current fragment number
+private const val POS_ACK_CURR_FRAGMENT = 2
+private const val POS_REST_CURR_FRAGMENT = 1
+
+private val ackRegexPattern = Regex("^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-(\\d{$REQUEST_NUMBER_LENGTH})-(\\d{$FRAGMENT_HEADER_LENGTH})-$SMS_ACK_SUFFIX$")
+private val firstRegexPattern = Regex("^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-(\\d{$REQUEST_NUMBER_LENGTH})-(\\d{$FRAGMENT_HEADER_LENGTH})-(.+)")
+private val restRegexPattern = Regex("^(\\d{$FRAGMENT_HEADER_LENGTH})-(.+)")
+private val firstErrorReplyPattern = Regex("^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-(\\d{$REQUEST_NUMBER_LENGTH})-$REPLY_ERROR-(\\d{$FRAGMENT_HEADER_LENGTH})-$REPLY_ERROR_CODE_PREFIX(\\d{$REPLY_ERROR_CODE_LENGTH})-(.+)$")
+private val firstSuccessReplyPattern = Regex("^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-(\\d{$REQUEST_NUMBER_LENGTH})-$REPLY_SUCCESS-(\\d{$FRAGMENT_HEADER_LENGTH})-(.+)$")
 
 class SMSFormatter {
 
@@ -137,32 +165,37 @@ class SMSFormatter {
 
     // Extract the request identifier from an acknowledgment message
     fun getAckRequestIdentifier(ackMessage: String): String {
-        return ackRegexPattern.find(ackMessage)?.groupValues!![1]
+        return ackRegexPattern.find(ackMessage)?.groupValues!![POS_ACK_MSG_REQUEST_COUNTER]
     }
 
     // Extract the request identifier from the first message - update this
     fun getNewRequestIdentifier(message: String): String {
-        return firstRegexPattern.find(message)?.groupValues!![1]
+        return firstRegexPattern.find(message)?.groupValues!![POS_FIRST_MSG_REQUEST_COUNTER]
     }
 
     // Extract the total number of SMS packets that should be received
     fun getTotalNumOfFragments(message: String): Int {
-        return firstRegexPattern.find(message)?.groupValues!![2].toInt()
+        return firstRegexPattern.find(message)?.groupValues!![POS_FIRST_NUM_FRAGMENTS].toInt()
     }
 
     // Extract the encrypted content from the first message
     fun getEncryptedDataFromFirstMessage(message: String): String {
-        return firstRegexPattern.find(message)?.groupValues!![3]
+        return firstRegexPattern.find(message)?.groupValues!![POS_FIRST_MSG_DATA]
     }
 
     // Extract the encrypted content from the subsequent message
     fun getEncryptedDataFromRestMessage(message: String): String {
-        return restRegexPattern.find(message)?.groupValues!![2]
+        return restRegexPattern.find(message)?.groupValues!![POS_REST_MSG_DATA]
     }
 
     // Extract the fragment number from an acknowledgment message
     fun getAckFragmentNumber(ackMessage: String): Int {
-        return ackRegexPattern.find(ackMessage)?.groupValues!![2].toInt()
+        return ackRegexPattern.find(ackMessage)?.groupValues!![POS_ACK_CURR_FRAGMENT].toInt()
+    }
+
+    // Extract the fragment number from a subsequent messagex`
+    fun getRestFragmentNumber(ackMessage: String): Int {
+        return ackRegexPattern.find(ackMessage)?.groupValues!![POS_REST_CURR_FRAGMENT].toInt()
     }
 
     // Check if a message is the first fragment
