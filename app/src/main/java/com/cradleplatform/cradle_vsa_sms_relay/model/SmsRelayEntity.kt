@@ -19,9 +19,12 @@ data class SmsRelayEntity(
 
     // data received from mobile as a single string
     // string is appended to when more data is received
+    // make this a list
     var encryptedDataFromMobile: String,
     val timeRequestInitiated: Long,
+    // make a list
     var timeLastDataMessageReceived: Long,
+    // make a list
     var timeLastDataMessageSent: Long?,
 
     //fields for receiving response from server

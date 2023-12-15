@@ -14,6 +14,8 @@ private const val SMS_ACK_SUFFIX = "ACK"
 private const val MAGIC_STRING = "CRADLE"
 private const val REPLY_SUCCESS = "REPLY"
 private const val REPLY_ERROR = "REPLY_ERROR"
+private const val REPLY_ERROR_CODE_PREFIX = "ERR"
+private const val REPLY_ERROR_CODE_LENGTH = 3
 private const val FRAGMENT_HEADER_LENGTH = 3
 private const val REQUEST_NUMBER_LENGTH = 6
 
@@ -37,9 +39,11 @@ class SMSFormatter {
         // Add the correct header to the list based on whether the HTTP request was successful or not
         if(isSuccessful)
             baseHeaderContent.add(0, REPLY_SUCCESS.length)
-        else
+        else {
             baseHeaderContent.add(0, REPLY_ERROR.length)
-
+            baseHeaderContent.add(0, REPLY_ERROR_CODE_PREFIX.length)
+            baseHeaderContent.add(0, REPLY_ERROR_CODE_LENGTH)
+        }
 
         return baseHeaderContent.fold(0) { acc, i -> acc + i + 1 }
     }
@@ -48,7 +52,8 @@ class SMSFormatter {
     fun formatSMS(
         msg: String,
         currentRequestCounter: Long,
-        isSuccessful: Boolean
+        isSuccessful: Boolean,
+        statusCode: Int?
     ): MutableList<String> {
         val packets = mutableListOf<String>()
 
@@ -83,6 +88,7 @@ class SMSFormatter {
                     $currentRequestCounterPadded-
                     ${if (isSuccessful) REPLY_SUCCESS else REPLY_ERROR}-
                     $fragmentCountPadded-
+                    ${if (isSuccessful) "" else REPLY_ERROR_CODE_PREFIX + statusCode.toString() + "-"}
                     """.trimIndent().replace("\n", "")
             } else {
                 // creating header for consequent messages

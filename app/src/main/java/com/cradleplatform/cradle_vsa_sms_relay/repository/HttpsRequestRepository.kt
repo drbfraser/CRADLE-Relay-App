@@ -63,7 +63,7 @@ class HttpsRequestRepository(
                         // this is a safety measure, only for a special case where a user attempts
                         // to manually restart an incomplete relay process
                         synchronized(this@HttpsRequestRepository) {
-                            updateSmsRelayEntity(httpsResponse.body, true, smsRelayEntity)
+                            updateSmsRelayEntity(httpsResponse.body, true, smsRelayEntity, response.code())
                         }
                         return
                     }
@@ -77,7 +77,7 @@ class HttpsRequestRepository(
                     JSONObject(errorBody.string()).getString("message")
                 }
                 synchronized(this@HttpsRequestRepository) {
-                    updateSmsRelayEntity(errorMessage, false, smsRelayEntity)
+                    updateSmsRelayEntity(errorMessage, false, smsRelayEntity, response.code())
                 }
             }
 
@@ -102,14 +102,15 @@ class HttpsRequestRepository(
         })
     }
 
-    private fun updateSmsRelayEntity(data: String, isSuccessful: Boolean, smsRelayEntity: SmsRelayEntity){
+    private fun updateSmsRelayEntity(data: String, isSuccessful: Boolean, smsRelayEntity: SmsRelayEntity, code: Int){
         val phoneNumber: String = smsRelayEntity.getPhoneNumber()
         val requestCounter: String = smsRelayEntity.getRequestIdentifier()
 
         val smsMessages = smsFormatter.formatSMS(
             data,
             requestCounter.toLong(),
-            isSuccessful
+            isSuccessful,
+            code
         )
 
         val firstMessage = smsMessages.removeAt(0)
