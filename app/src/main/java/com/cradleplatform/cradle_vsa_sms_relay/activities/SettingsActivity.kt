@@ -1,4 +1,4 @@
-package com.cradleplatform.smsrelay.activities
+package com.cradleplatform.cradle_vsa_sms_relay.activities
 
 import android.content.Intent
 import android.os.Bundle

@@ -1,15 +1,15 @@
-package com.cradleplatform.smsrelay.dagger
+package com.cradleplatform.cradle_vsa_sms_relay.dagger
 
 import android.content.SharedPreferences
 import androidx.multidex.MultiDexApplication
 import androidx.preference.PreferenceManager
 import androidx.room.Room
-import com.cradleplatform.smsrelay.database.ReferralDatabase
-import com.cradleplatform.smsrelay.database.ReferralRepository
+import com.cradleplatform.cradle_vsa_sms_relay.type_converters.SmsListConverter
+import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayDatabase
+import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
-import com.cradleplatform.cradle_vsa_sms_relay.repository.SMSHttpRequestRepository
+import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
-import com.cradleplatform.cradle_vsa_sms_relay.view_model.SMSHttpRequestViewModel
 import com.cradleplatform.smsrelay.network.VolleyRequests
 import dagger.Module
 import dagger.Provides
@@ -20,11 +20,10 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun getDatabase(app: MultiDexApplication): ReferralDatabase {
-        // todo create a migration class
+    fun getSmsDatabase(app: MultiDexApplication): SmsRelayDatabase {
         return Room.databaseBuilder(
-            app.applicationContext, ReferralDatabase::class.java,
-            "referral-DB"
+            app.applicationContext, SmsRelayDatabase::class.java,
+            "relay-DB"
         ).fallbackToDestructiveMigration().build()
     }
 
@@ -36,8 +35,8 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun getReferralRepository(database: ReferralDatabase): ReferralRepository {
-        return ReferralRepository(database)
+    fun getSmsRelayRepository(database: SmsRelayDatabase): SmsRelayRepository {
+        return SmsRelayRepository(database)
     }
 
     @Provides
@@ -48,28 +47,24 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun getSMSHttpRequestViewModel(
-        repository: SMSHttpRequestRepository,
-        referralRepository: ReferralRepository,
-        smsFormatter: SMSFormatter
-    ): SMSHttpRequestViewModel {
-        return SMSHttpRequestViewModel(
-            repository,
-            referralRepository,
-            smsFormatter
-        )
-    }
-
-    @Provides
-    @Singleton
-    fun getSMSHttpRequestRepository(sharedPreference: SharedPreferences): SMSHttpRequestRepository {
+    fun getHttpsRequestRepository(
+        sharedPreference: SharedPreferences,
+        smsFormatter: SMSFormatter,
+        smsRelayRepository: SmsRelayRepository
+    ): HttpsRequestRepository {
         val token = sharedPreference.getString(VolleyRequests.TOKEN, "") ?: ""
-        return SMSHttpRequestRepository(token)
+        return HttpsRequestRepository(token, smsFormatter, smsRelayRepository)
     }
 
     @Provides
     @Singleton
     fun getSMSFormatter(): SMSFormatter {
         return SMSFormatter()
+    }
+
+    @Singleton
+    @Provides
+    fun provideStringListConverter(): SmsListConverter {
+        return SmsListConverter()
     }
 }

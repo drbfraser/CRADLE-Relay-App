@@ -7,12 +7,10 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.Button
@@ -30,16 +28,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.cradleplatform.smsrelay.R
-import com.cradleplatform.cradle_vsa_sms_relay.SmsRecyclerViewAdaper
-import com.cradleplatform.smsrelay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.database.SmsReferralEntity
+import com.cradleplatform.cradle_vsa_sms_relay.adapters.MainRecyclerViewAdapter
+import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
-import com.cradleplatform.smsrelay.activities.SettingsActivity
-import com.cradleplatform.cradle_vsa_sms_relay.view_model.ReferralViewModel
-import com.cradleplatform.cradle_vsa_sms_relay.view_model.SMSHttpRequestViewModel
-import com.cradleplatform.cradle_vsa_sms_relay.views.ReferralAlertDialog
+import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
 import com.google.android.material.button.MaterialButton
-import javax.inject.Inject
 
 @Suppress("LargeClass", "TooManyFunctions")
 class MainActivity : AppCompatActivity() {
@@ -48,12 +41,6 @@ class MainActivity : AppCompatActivity() {
 
     // our reference to the service
     var mService: SmsService? = null
-
-    @Inject
-    lateinit var sharedPreferences: SharedPreferences
-
-    @Inject
-    lateinit var smsHttpRequestViewModel: SMSHttpRequestViewModel
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceDisconnected(p0: ComponentName?) {
@@ -67,7 +54,8 @@ class MainActivity : AppCompatActivity() {
             mService = binder.service
         }
     }
-    private lateinit var referralViewModel: ReferralViewModel
+
+    private lateinit var smsRelayViewModel: SmsRelayViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,7 +65,7 @@ class MainActivity : AppCompatActivity() {
         setupToolBar()
         setupStartService()
         setupStopService()
-        setuprecyclerview()
+        setupRecyclerView()
     }
 
     private fun setupToolBar() {
@@ -94,55 +82,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setuprecyclerview() {
+    private fun setupRecyclerView() {
 
         val emptyImageView: ImageView = findViewById(R.id.emptyRecyclerView)
         val smsRecyclerView: RecyclerView = findViewById(R.id.messageRecyclerview)
-        val adapter = SmsRecyclerViewAdaper(this)
+        val adapter = MainRecyclerViewAdapter()
         smsRecyclerView.adapter = adapter
         val layout: RecyclerView.LayoutManager = LinearLayoutManager(this)
         smsRecyclerView.layoutManager = layout
-        adapter.onCLickList.add(object : AdapterClicker {
-            override fun onClick(referralEntity: SmsReferralEntity) {
-                val referralAlertDialog = ReferralAlertDialog(this@MainActivity, referralEntity)
 
-                referralAlertDialog.setOnSendToServerListener(View.OnClickListener {
-                    if (isServiceStarted) {
-                        if (!referralEntity.isUploaded) {
-                            Toast.makeText(
-                                this@MainActivity, "Uploading the referral to the server",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            Toast.makeText(
-                                this@MainActivity, "Referral is already uploaded to the server ",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                        referralAlertDialog.cancel()
-                    } else {
-                        Toast.makeText(
-                            this@MainActivity, "Unable to send to the server, " +
-                                    "Make sure service is running.", Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                })
-                referralAlertDialog.show()
-            }
-        })
-        referralViewModel =
+        smsRelayViewModel =
             ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application)).get(
-                ReferralViewModel::class.java
+                SmsRelayViewModel::class.java
             )
 
-        referralViewModel.getAllReferrals().observe(this, Observer { referrals ->
+        smsRelayViewModel.getAllRelayEntities().observe(this, Observer { relayEntities ->
             // update the recyclerview on updating
-            if (referrals.isNotEmpty()) {
+            if (relayEntities.isNotEmpty()) {
                 emptyImageView.visibility = GONE
             } else {
                 emptyImageView.visibility = VISIBLE
             }
-            adapter.setReferralList(referrals.sortedByDescending { it.timeReceived })
+
+            adapter.setRelayList(relayEntities.sortedByDescending { it.timeRequestInitiated })
+            adapter.notifyDataSetChanged()
         })
     }
 
@@ -168,7 +131,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun stopSmsService() {
         if (mService != null && isServiceStarted) {
-            val intent: Intent = Intent(this, SmsService::class.java).also { intent ->
+            val intent: Intent = Intent(this, SmsService::class.java).also { _ ->
                 unbindService(serviceConnection)
             }
             intent.action = SmsService.STOP_SERVICE
@@ -202,13 +165,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupStartService() {
         findViewById<MaterialButton>(R.id.btnStartService).setOnClickListener {
-            checkpermissions()
+            checkPermissions()
         }
         // start the service initially
-        checkpermissions()
+        checkPermissions()
     }
 
-    private fun checkpermissions() {
+    private fun checkPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -279,10 +242,6 @@ class MainActivity : AppCompatActivity() {
         ) {
             unbindService(serviceConnection)
         }
-    }
-
-    interface AdapterClicker {
-        fun onClick(referralEntity: SmsReferralEntity)
     }
 
     companion object {
