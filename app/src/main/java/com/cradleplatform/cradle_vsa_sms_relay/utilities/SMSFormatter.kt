@@ -9,7 +9,7 @@ import kotlin.math.min
  * class is used to retrieve information from the SMS message based on the protocol being used
  */
 
-private const val PACKET_SIZE = 153 * 2
+private const val PACKET_SIZE = 153
 // private const val MAX_PACKET_NUMBER = 99
 
 // Fixed strings, prefixes, suffixes involved in the SMS Protocol
@@ -55,12 +55,12 @@ private val ackRegexPattern =
 private val firstRegexPattern =
     Regex(
         "^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-" +
-                "(\\d{$REQUEST_NUMBER_LENGTH})-(\\d{$FRAGMENT_HEADER_LENGTH})-(.+)"
+                "(\\d{$REQUEST_NUMBER_LENGTH})-(\\d{$FRAGMENT_HEADER_LENGTH})-(.+$)"
     )
 
 private val restRegexPattern =
     Regex(
-        "^(\\d{$FRAGMENT_HEADER_LENGTH})-(.+)"
+        "^(\\d{$FRAGMENT_HEADER_LENGTH})-(.+$)"
     )
 
 private val firstErrorReplyPattern =
@@ -73,7 +73,8 @@ private val firstErrorReplyPattern =
 private val firstSuccessReplyPattern =
     Regex(
         "^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-" +
-                "(\\d{$REQUEST_NUMBER_LENGTH})-$REPLY_SUCCESS-(\\d{$FRAGMENT_HEADER_LENGTH})-(.+)"
+                "(\\d{$REQUEST_NUMBER_LENGTH})-$REPLY_SUCCESS-" +
+                "(\\d{$FRAGMENT_HEADER_LENGTH})-(.+$)"
     )
 
 @Suppress("LargeClass", "TooManyFunctions")
@@ -121,7 +122,7 @@ class SMSFormatter {
         // Computes the size of the first message header
         val headerSize = computeRequestHeaderLength(isSuccessful)
 
-        if (PACKET_SIZE < msg.length + headerSize) {
+        if (PACKET_SIZE < (msg.length + headerSize)) {
             val remainderMsgLength = msg.length + headerSize - PACKET_SIZE
             packetCount += kotlin.math.ceil(
                 remainderMsgLength.toDouble() / (PACKET_SIZE - FRAGMENT_HEADER_LENGTH)
