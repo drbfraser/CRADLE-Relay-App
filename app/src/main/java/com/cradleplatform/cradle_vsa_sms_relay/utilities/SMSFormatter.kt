@@ -30,6 +30,8 @@ private const val POS_FIRST_MSG_REQUEST_COUNTER = 1
 private const val POS_ACK_MSG_REQUEST_COUNTER = 1
 private const val POS_REPLY_SUCCESS_REQUEST_COUNTER = 1
 private const val POS_REPLY_ERROR_REQUEST_COUNTER = 1
+//position of error code in error message
+private const val POS_REPLY_ERROR_CODE = 3
 
 // positions for data inside different messages of the SMS protocol
 private const val POS_FIRST_MSG_DATA = 3
