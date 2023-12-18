@@ -174,7 +174,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
             val originatingPhoneNumber = smsMessage.originatingAddress ?: continue
 
-            // We are ./gradlew clean --stacktraceassuming that no one phone can send multiple long messages at ones.
+            // We are assuming that no one phone can send multiple long messages at ones.
             // since there is some user delay in either typing or copy/pasting the message
             // or typing 1 char at  a time
             if (messages.containsKey(originatingPhoneNumber)) {
