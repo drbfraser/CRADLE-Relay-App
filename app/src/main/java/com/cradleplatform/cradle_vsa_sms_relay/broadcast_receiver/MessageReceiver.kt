@@ -16,9 +16,11 @@ import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
+import kotlinx.coroutines.Runnable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.collections.HashMap
 import kotlin.math.abs
@@ -41,16 +43,19 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
     @Inject
     lateinit var httpsRequestRepository: HttpsRequestRepository
 
+    // TODO: Maybe use a thread-safe TTL cache
     private val hash: ConcurrentHashMap<String, Pair<String, Long>> = ConcurrentHashMap()
 
-    private val handlerThread = HandlerThread("ActiveExpiryCheckThread")
-    private var handler: Handler
+    private val scheduler = Executors.newScheduledThreadPool(1)
 
     init {
-        handlerThread.start()
-        handler = Handler(handlerThread.looper)
         (context.applicationContext as MyApp).component.inject(this)
-        startExpirationCheck(MAX_INTERVAL_MS)
+        scheduler.schedule(startExpirationCheck(MAX_INTERVAL_MS), 0, TimeUnit.MILLISECONDS)
+    }
+
+    fun stop() {
+        Log.d(tag, "Shutting down scheduled thread pool")
+        scheduler.shutdownNow()
     }
 
     fun updateLastRunPref() {
@@ -97,7 +102,6 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
             // Process SMS
             if (smsFormatter.isAckMessage(message)) {
-
                 val requestIdentifier = smsFormatter.getAckRequestIdentifier(message)
                 val id = "$phoneNumber-$requestIdentifier"
 
@@ -159,6 +163,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                     if (!hash.containsKey(phoneNumber)) return@Thread
                     // Passive expiry check
                     else if (isKeyExpired(phoneNumber)) {
+                        Log.d(tag, "$phoneNumber has expired, evicting it from the hash")
                         hash.remove(phoneNumber)
                         return@Thread
                     }
@@ -216,28 +221,47 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
         return messages
     }
 
-    private fun startExpirationCheck(interval: Long) {
-        val runnable = Runnable {
+    private fun startExpirationCheck(interval: Long): Runnable {
+        return Runnable {
             val startExe = System.currentTimeMillis()
+            try {
+                Log.d(tag, "Actively checking for expired keys")
 
-            Log.d(tag, "Actively checking for expired keys")
-
-            val hashSize = hash.size
-            hash.forEach { (key, _) ->
-                if (isKeyExpired(key)) {
-                    hash.remove(key)
+                val hashSize = hash.size
+                hash.forEach { (key, _) ->
+                    if (isKeyExpired(key, startExe)) {
+                        Log.d(tag, "$key has expired, evicting it from the hash")
+                        hash.remove(key)
+                    }
                 }
-            }
 
-            val newInterval = when {
-                hash.size < hashSize * (1 - SIZE_PERCENT_THRESHOLD) -> max(MIN_INTERVAL_MS, interval / 2)
-                else -> min(MAX_INTERVAL_MS, interval * 2)
-            }
+                // Interval is dynamic to ensure sufficient clean up of resources
+                val newInterval = when {
+                    hash.size < hashSize * (1 - SIZE_PERCENT_THRESHOLD) -> max(
+                        MIN_INTERVAL_MS,
+                        interval / 2
+                    )
 
-            startExpirationCheck(abs(newInterval - (System.currentTimeMillis() - startExe)))
+                    else -> min(MAX_INTERVAL_MS, interval * 2)
+                }
+
+                Log.d(tag, "Previous interval: $interval; new interval: $newInterval")
+
+                scheduler.schedule(
+                    startExpirationCheck(newInterval),
+                    abs(newInterval - (System.currentTimeMillis() - startExe)),
+                    TimeUnit.MILLISECONDS
+                )
+            } catch (e: Exception) {
+                Log.e(tag, "Exception occurred in startExpirationCheck", e)
+                scheduler.schedule(
+                    startExpirationCheck(interval),
+                    // TODO: It may be useful to reduce the interval in half due to failure
+                    abs(interval - (System.currentTimeMillis() - startExe)),
+                    TimeUnit.MILLISECONDS
+                )
+            }
         }
-
-        handler.postDelayed(runnable, interval)
     }
 
     private fun isKeyExpired(key: String, currentTime: Long=System.currentTimeMillis()): Boolean {
