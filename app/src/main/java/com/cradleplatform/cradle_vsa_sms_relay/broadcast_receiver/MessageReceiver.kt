@@ -110,7 +110,8 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                 // ignore ACK message if there are no more packets to send
                 if (relayEntity!!.smsPacketsToMobile.isNotEmpty()) {
                     val encryptedPacket = relayEntity.smsPacketsToMobile.removeAt(0)
-                    relayEntity.numFragmentsSentToMobile = relayEntity.numFragmentsSentToMobile!! + 1
+                    relayEntity.numFragmentsSentToMobile =
+                        relayEntity.numFragmentsSentToMobile!! + 1
                     smsRelayRepository.updateBlocking(relayEntity)
                     smsFormatter.sendMessage(phoneNumber, encryptedPacket)
                 } else {
@@ -191,7 +192,8 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                     }
 
                     // Update last received timestamp
-                    hash[phoneNumber] = hash[phoneNumber]!!.copy(second=System.currentTimeMillis())
+                    hash[phoneNumber] =
+                        hash[phoneNumber]!!.copy(second = System.currentTimeMillis())
                 }.start()
             }
         }
@@ -264,7 +266,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
         }
     }
 
-    private fun isKeyExpired(key: String, currentTime: Long=System.currentTimeMillis()): Boolean {
+    private fun isKeyExpired(key: String, currentTime: Long = System.currentTimeMillis()): Boolean {
         val timestamp = hash[key]!!.second
         return currentTime - timestamp > TIMEOUT_SECONDS * 1000
     }
