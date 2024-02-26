@@ -43,6 +43,7 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
 
         holder.phone.text = smsRelayEntity.getPhoneNumber()
         holder.reqConter.text = smsRelayEntity.getRequestIdentifier()
+        holder.receiveMobile.visibility = View.VISIBLE
 
         if (smsRelayEntity.numFragmentsReceived == smsRelayEntity.totalFragmentsFromMobile) {
             //to be deleted:Start
@@ -51,11 +52,20 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             //end
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
+            holder.imageView1.alpha = 0.2F
+            holder.imageView2.alpha = 0.2F
+            holder.uploadServer.visibility = View.VISIBLE
+            holder.receiveMobile.visibility = View.INVISIBLE
+
         } else {
             //to be deleted:Start
             holder.checkBox1.isChecked = false
             holder.checkBox2.isChecked = false
             //end
+            holder.checkMark1.visibility = View.INVISIBLE
+            holder.checkMark2.visibility = View.INVISIBLE
+            holder.imageView1.alpha = 1F
+            holder.imageView2.alpha = 1F
         }
         if (smsRelayEntity.isServerError == true || smsRelayEntity.isServerResponseReceived) {
             //to be deleted:Start
@@ -63,12 +73,20 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             holder.checkBox1.isChecked = true
             holder.checkBox2.isChecked = true
             //end
+            holder.imageView1.alpha = 0.2F
+            holder.imageView2.alpha = 0.2F
+            holder.imageView3.alpha = 0.2F
+
+            holder.uploadServer.visibility = View.INVISIBLE
+            holder.receiveServer.visibility = View.VISIBLE
 
             holder.checkMark3.visibility = View.VISIBLE
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
         } else {
             holder.checkBox3.isChecked = false
+            holder.checkMark3.visibility = View.INVISIBLE
+            holder.imageView3.alpha = 1F
         }
         if (smsRelayEntity.isServerError == true) {
             holder.error.visibility = View.VISIBLE
@@ -82,23 +100,25 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             holder.checkBox2.isChecked = true
             holder.checkBox3.isChecked = true
             //end
-
             holder.checkMark4.visibility = View.VISIBLE
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
             holder.checkMark3.visibility = View.VISIBLE
-
             holder.imageView1.alpha = 0.2F
             holder.imageView2.alpha = 0.2F
             holder.imageView3.alpha = 0.2F
             holder.imageView4.alpha = 0.2F
-
-            holder.confirmationMessage.visibility = View.VISIBLE
+            holder.receiveServer.visibility = View.INVISIBLE
+            holder.receiveMobile.visibility = View.INVISIBLE
+            holder.uploadServer.visibility = View.INVISIBLE
+            holder.completedMessage.visibility = View.VISIBLE
         } else {
             holder.checkBox4.isChecked = false
+            holder.checkMark4.visibility = View.INVISIBLE
+            holder.completedMessage.visibility = View.INVISIBLE
+            holder.imageView4.alpha = 1F
         }
     }
-
     class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val checkBox1: CheckBox = itemView.findViewById<CheckBox>(R.id.checkBox1)
         val checkBox2: CheckBox = itemView.findViewById<CheckBox>(R.id.checkBox2)
@@ -115,6 +135,11 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
         val imageView2: ImageView = itemView.findViewById(R.id.UploadServer)
         val imageView3: ImageView = itemView.findViewById(R.id.receiveServer)
         val imageView4: ImageView = itemView.findViewById(R.id.sentMobile)
-        val confirmationMessage: TextView = itemView.findViewById(R.id.completed)
+        val completedMessage: TextView = itemView.findViewById(R.id.completed)
+        val receiveMobile: TextView = itemView.findViewById(R.id.receivingMobile)
+        val uploadServer: TextView = itemView.findViewById(R.id.uploadingServer)
+        val receiveServer: TextView = itemView.findViewById(R.id.receivingServer)
+        val sendMobile: TextView = itemView.findViewById(R.id.sendingMobile)
     }
 }
+

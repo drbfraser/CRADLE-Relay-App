@@ -139,23 +139,68 @@
                     android:src="@drawable/check_mark"
                     android:visibility="invisible"/>
             </FrameLayout>
-
-
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
                 <TextView
                     android:id="@+id/completed"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@color/light_green"
-                    android:text="Completed. 4/4 Messages"
+                    android:text="@string/completed_4_messages"
                     android:visibility="invisible"
                     android:textStyle = "bold"
                     android:textFontWeight="400"
                     android:layout_margin="5dp"
                     android:paddingBottom="3dp"
                     android:paddingTop="5dp"/>
-
+                    <TextView
+                        android:id="@+id/receivingMobile"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/receiving_from_mobile"
+                        android:textStyle = "bold"
+                        android:textFontWeight="400"
+                        android:layout_margin="5dp"
+                        android:paddingBottom="3dp"
+                        android:paddingTop="5dp"/>
+                    <TextView
+                        android:id="@+id/uploadingServer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/uploading_to_server"
+                        android:visibility="invisible"
+                        android:textStyle = "bold"
+                        android:textFontWeight="400"
+                        android:layout_margin="5dp"
+                        android:paddingBottom="3dp"
+                        android:paddingTop="5dp"/>
+                    <TextView
+                        android:id="@+id/receivingServer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/receiving_from_server"
+                        android:visibility="invisible"
+                        android:textStyle = "bold"
+                        android:textFontWeight="400"
+                        android:layout_margin="5dp"
+                        android:paddingBottom="3dp"
+                        android:paddingTop="5dp"/>
+                    <TextView
+                        android:id="@+id/sendingMobile"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sending_to_mobile"
+                        android:visibility="invisible"
+                        android:textStyle = "bold"
+                        android:textFontWeight="400"
+                        android:layout_margin="5dp"
+                        android:paddingBottom="3dp"
+                        android:paddingTop="5dp"/>
+                </FrameLayout>
+                
             </LinearLayout>
-
             <!-- TextView 1 with CheckBox -->
             <LinearLayout
                 android:layout_width="match_parent"
