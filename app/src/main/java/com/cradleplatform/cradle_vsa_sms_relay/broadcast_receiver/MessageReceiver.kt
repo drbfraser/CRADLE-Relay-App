@@ -45,6 +45,8 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
     // TODO: Maybe use a thread-safe TTL cache
     private val hash: ConcurrentHashMap<String, Pair<String, Long>> = ConcurrentHashMap()
+    private val ackHash: ConcurrentHashMap<String, Pair<Long, Long>> = ConcurrentHashMap()
+
 
     private val scheduler = Executors.newScheduledThreadPool(1)
 
@@ -74,7 +76,9 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
         // we keep track of all the messages from different numbers
         val messages = processSMSMessages(pdus)
 
+        var shouldContinue = true
         messages.entries.forEach { entry ->
+            if (!shouldContinue) return@forEach
 
             val message = entry.value
             val phoneNumber = entry.key
@@ -161,11 +165,15 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
             } else if (smsFormatter.isRestMessage(message)) {
                 Thread {
                     // Exit early because this hash key expired
-                    if (!hash.containsKey(phoneNumber)) return@Thread
+                    if (!hash.containsKey(phoneNumber)) {
+                        shouldContinue = false
+                        return@Thread
+                    }
                     // Passive expiry check
                     else if (isKeyExpired(phoneNumber)) {
                         Log.d(tag, "$phoneNumber has expired, evicting it from the hash")
                         hash.remove(phoneNumber)
+                        shouldContinue = false
                         return@Thread
                     }
 
