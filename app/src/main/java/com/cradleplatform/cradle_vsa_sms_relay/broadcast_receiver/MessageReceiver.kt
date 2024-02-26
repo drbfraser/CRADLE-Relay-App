@@ -45,8 +45,6 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
     // TODO: Maybe use a thread-safe TTL cache
     private val hash: ConcurrentHashMap<String, Pair<String, Long>> = ConcurrentHashMap()
-    private val ackHash: ConcurrentHashMap<String, Pair<Long, Long>> = ConcurrentHashMap()
-
 
     private val scheduler = Executors.newScheduledThreadPool(1)
 
