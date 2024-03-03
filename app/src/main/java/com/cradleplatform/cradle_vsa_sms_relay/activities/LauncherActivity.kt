@@ -14,10 +14,10 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
-import com.cradleplatform.smsrelay.R
+import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
-import com.cradleplatform.smsrelay.network.VolleyRequests.Companion.TOKEN
+import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests.Companion.TOKEN
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
 

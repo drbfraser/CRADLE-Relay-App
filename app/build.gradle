@@ -11,7 +11,7 @@ android {
     buildToolsVersion "29.0.3"
 
     defaultConfig {
-        applicationId "com.cradleplatform.smsrelay"
+        applicationId "com.cradleplatform.cradle_vsa_sms_relay"
         vectorDrawables.useSupportLibrary = true
         minSdkVersion 26
         targetSdkVersion 29

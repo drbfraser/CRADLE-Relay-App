@@ -10,7 +10,7 @@ import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
-import com.cradleplatform.smsrelay.network.VolleyRequests
+import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton

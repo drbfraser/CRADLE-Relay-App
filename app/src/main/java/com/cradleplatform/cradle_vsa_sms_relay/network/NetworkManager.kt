@@ -3,9 +3,9 @@ package com.cradleplatform.cradle_vsa_sms_relay.network
 import android.app.Application
 import android.content.SharedPreferences
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.smsrelay.network.*
-import com.cradleplatform.smsrelay.network.Urls.authenticationUrl
-import com.cradleplatform.smsrelay.network.VolleyRequests.Companion.TOKEN
+import com.cradleplatform.cradle_vsa_sms_relay.network.*
+import com.cradleplatform.cradle_vsa_sms_relay.network.Urls.authenticationUrl
+import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests.Companion.TOKEN
 import javax.inject.Inject
 import org.json.JSONObject
 

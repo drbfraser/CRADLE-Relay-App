@@ -7,7 +7,7 @@ import android.widget.CheckBox
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
-import com.cradleplatform.smsrelay.R
+import com.cradleplatform.cradle_vsa_sms_relay.R
 
 /**
  * Adapter for updating the recycler view UI in main activity

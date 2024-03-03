@@ -1,4 +1,4 @@
-package com.cradleplatform.smsrelay.network
+package com.cradleplatform.cradle_vsa_sms_relay.network
 
 import android.content.SharedPreferences
 import com.android.volley.Request.Method.GET

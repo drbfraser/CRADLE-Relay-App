@@ -1,4 +1,4 @@
-package com.cradleplatform.smsrelay
+package com.cradleplatform.cradle_vsa_sms_relay
 
 import org.junit.Test
 import org.junit.Assert.*

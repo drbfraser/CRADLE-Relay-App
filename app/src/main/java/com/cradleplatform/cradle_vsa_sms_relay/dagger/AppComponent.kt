@@ -1,4 +1,4 @@
-package com.cradleplatform.smsrelay.dagger
+package com.cradleplatform.cradle_vsa_sms_relay.dagger
 
 import com.cradleplatform.cradle_vsa_sms_relay.activities.LauncherActivity
 import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
