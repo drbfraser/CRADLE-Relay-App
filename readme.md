@@ -14,7 +14,9 @@
 # Setup
 
 Spring 2024 Set Up:
-   - Android Gradle Plugin Version: 3.6.3
-   - Gradle Version: 6.3
-   - Java Version: coretto 11
-   
+   - File -> Project Structure -> Project
+      - Android Gradle Plugin Version: 3.6.3
+      - Gradle Version: 6.3
+   - File -> Settings -> Build, Execution, Deployment -> Build Tools -> Gradle
+      - Gradle JDK: coretto 11
+      - If it's not one of the options, click on "Download JDK" and select the version mentioned above
