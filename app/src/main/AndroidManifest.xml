@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.cradleplatform.cradle_vsa_sms_relay">
+    package="com.cradleplatform.sms_relay">
 
     <uses-feature
         android:name="android.hardware.telephony"
@@ -14,7 +14,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
-        android:name="com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp"
+        android:name="com.cradleplatform.sms_relay.dagger.MyApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -24,11 +24,11 @@
         android:usesCleartextTraffic="true">
 
         <activity
-            android:name="com.cradleplatform.cradle_vsa_sms_relay.activities.SettingsActivity"
+            android:name="com.cradleplatform.sms_relay.activities.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:theme="@style/settingPreference" />
         <activity
-            android:name="com.cradleplatform.cradle_vsa_sms_relay.activities.LauncherActivity"
+            android:name="com.cradleplatform.sms_relay.activities.LauncherActivity"
             android:theme="@style/NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,9 +36,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity" />
+        <activity android:name="com.cradleplatform.sms_relay.activities.MainActivity" />
 
-        <service android:name="com.cradleplatform.cradle_vsa_sms_relay.service.SmsService" />
+        <service android:name="com.cradleplatform.sms_relay.service.SmsService" />
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />

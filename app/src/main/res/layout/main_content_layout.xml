@@ -10,7 +10,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity">
+        tools:context="com.cradleplatform.sms_relay.activities.MainActivity">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnStartService"

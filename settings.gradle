@@ -1,2 +1,2 @@
-rootProject.name='cradle-vsa-sms-relay'
+rootProject.name='sms-relay'
 include ':app'
