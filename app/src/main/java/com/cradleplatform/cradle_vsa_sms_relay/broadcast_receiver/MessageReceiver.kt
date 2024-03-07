@@ -245,7 +245,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
                 // Interval is dynamic to ensure sufficient clean up of resources
                 val newInterval = when {
-                    hash.size < hashSize * (1 - SIZE_PERCENT_THRESHOLD) -> max(
+                    hashSize >= 100 && hash.size < hashSize * (1 - SIZE_PERCENT_THRESHOLD) -> max(
                         MIN_INTERVAL_MS,
                         interval / 2
                     )
