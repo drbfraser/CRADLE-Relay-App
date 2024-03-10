@@ -26,6 +26,9 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
         // Add "ALL" to the initial phoneList
         phoneList.add("All")
     }
+    // Constants for alpha values
+    private val ALPHA_FULL = 1F
+    private val ALPHA_DIM = 0.2F
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SMSViewHolder {
         val v: View =
@@ -68,8 +71,8 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             //end
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
-            holder.imageView1.alpha = 0.2F
-            holder.imageView2.alpha = 0.2F
+            holder.imageView1.alpha = ALPHA_DIM
+            holder.imageView2.alpha = ALPHA_DIM
             holder.uploadServer.visibility = View.VISIBLE
             holder.receiveMobile.visibility = View.INVISIBLE
 
@@ -80,8 +83,8 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             //end
             holder.checkMark1.visibility = View.INVISIBLE
             holder.checkMark2.visibility = View.INVISIBLE
-            holder.imageView1.alpha = 1F
-            holder.imageView2.alpha = 1F
+            holder.imageView1.alpha = ALPHA_FULL
+            holder.imageView2.alpha = ALPHA_FULL
         }
         if (smsRelayEntity.isServerError == true || smsRelayEntity.isServerResponseReceived) {
             //to be deleted:Start
@@ -89,9 +92,9 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             holder.checkBox1.isChecked = true
             holder.checkBox2.isChecked = true
             //end
-            holder.imageView1.alpha = 0.2F
-            holder.imageView2.alpha = 0.2F
-            holder.imageView3.alpha = 0.2F
+            holder.imageView1.alpha = ALPHA_DIM
+            holder.imageView2.alpha = ALPHA_DIM
+            holder.imageView3.alpha = ALPHA_DIM
 
             holder.uploadServer.visibility = View.INVISIBLE
             holder.receiveServer.visibility = View.VISIBLE
@@ -102,7 +105,7 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
         } else {
             holder.checkBox3.isChecked = false
             holder.checkMark3.visibility = View.INVISIBLE
-            holder.imageView3.alpha = 1F
+            holder.imageView3.alpha = ALPHA_FULL
         }
         if (smsRelayEntity.isServerError == true) {
             holder.error.visibility = View.VISIBLE
@@ -110,30 +113,35 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             holder.error.visibility = View.GONE
         }
         if (smsRelayEntity.smsPacketsToMobile.isEmpty() && smsRelayEntity.isServerResponseReceived) {
-            //to be deleted:Start
-            holder.checkBox4.isChecked = true
-            holder.checkBox1.isChecked = true
-            holder.checkBox2.isChecked = true
-            holder.checkBox3.isChecked = true
-            //end
-            holder.checkMark4.visibility = View.VISIBLE
-            holder.checkMark1.visibility = View.VISIBLE
-            holder.checkMark2.visibility = View.VISIBLE
-            holder.checkMark3.visibility = View.VISIBLE
-            holder.imageView1.alpha = 0.2F
-            holder.imageView2.alpha = 0.2F
-            holder.imageView3.alpha = 0.2F
-            holder.imageView4.alpha = 0.2F
-            holder.receiveServer.visibility = View.INVISIBLE
-            holder.receiveMobile.visibility = View.INVISIBLE
-            holder.uploadServer.visibility = View.INVISIBLE
-            holder.completedMessage.visibility = View.VISIBLE
+            serverResponseReceived(holder)
         } else {
             holder.checkBox4.isChecked = false
             holder.checkMark4.visibility = View.INVISIBLE
             holder.completedMessage.visibility = View.INVISIBLE
-            holder.imageView4.alpha = 1F
+            holder.imageView4.alpha = ALPHA_FULL
         }
+    }
+
+    private fun serverResponseReceived(holder: SMSViewHolder) {
+        //to be deleted:Start
+        holder.checkBox4.isChecked = true
+        holder.checkBox1.isChecked = true
+        holder.checkBox2.isChecked = true
+        holder.checkBox3.isChecked = true
+        //end
+        holder.checkMark4.visibility = View.VISIBLE
+        holder.checkMark1.visibility = View.VISIBLE
+        holder.checkMark2.visibility = View.VISIBLE
+        holder.checkMark3.visibility = View.VISIBLE
+        holder.imageView1.alpha = ALPHA_DIM
+        holder.imageView2.alpha = ALPHA_DIM
+        holder.imageView3.alpha = ALPHA_DIM
+        holder.imageView4.alpha = ALPHA_DIM
+        holder.receiveServer.visibility = View.INVISIBLE
+        holder.receiveMobile.visibility = View.INVISIBLE
+        holder.uploadServer.visibility = View.INVISIBLE
+        holder.completedMessage.visibility = View.VISIBLE
+
     }
     class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val checkBox1: CheckBox = itemView.findViewById<CheckBox>(R.id.checkBox1)

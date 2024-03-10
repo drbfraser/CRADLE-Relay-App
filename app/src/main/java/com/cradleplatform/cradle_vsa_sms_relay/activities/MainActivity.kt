@@ -66,68 +66,45 @@ class MainActivity : AppCompatActivity() {
     private lateinit var smsRelayViewModel: SmsRelayViewModel
     private lateinit var mainRecyclerViewAdapter: MainRecyclerViewAdapter
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
         mainRecyclerViewAdapter = setupRecyclerView()
-
-
         setupToolBar()
         setupStartService()
         setupStopService()
         setupFilter()
-        //setupRecyclerView()
     }
 
-    private fun setupFilter(){
-        //To do: phoneNumberSpinner shows a list of phone numbers using getPhoneNumbers function in MainRecyclerViewAdapter file
-            // Get reference to the spinner
-            val phoneNumberSpinner: Spinner = findViewById(R.id.phoneNumberSpinner)
-
-        //mainRecyclerViewAdapter = MainRecyclerViewAdapter()
-//        val phoneList = mainRecyclerViewAdapter.phoneList
-//        Log.d(TAG, "onCreate: $phoneList")
-
-//        val getnum = mainRecyclerViewAdapter.getPhoneNumbers()
-//        Log.d(TAG, "onCreate: $getnum")
-
+    private fun setupFilter() {
+        // Get reference to the spinner
+        val phoneNumberSpinner: Spinner = findViewById(R.id.phoneNumberSpinner)
+        val filterTypeSpinner: Spinner = findViewById(R.id.filterType)
 
         // Create an ArrayAdapter using the MainRecyclerViewAdapter's phone numbers
-            val adapter = ArrayAdapter(
-                this,
-                android.R.layout.simple_spinner_item,
-               mainRecyclerViewAdapter.getPhoneNumbers()
-            )
+        val adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            mainRecyclerViewAdapter.getPhoneNumbers()
+        )
 
-            // Set the layout for the dropdown list
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        // Set the layout for the dropdown list
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
-            // Set the adapter to the spinner
-            phoneNumberSpinner.adapter = adapter
+        // Set the adapter to the spinner
+        phoneNumberSpinner.adapter = adapter
 
-
-//        // Get reference to the spinner
-//        val phoneNumberSpinner: Spinner = findViewById(R.id.phoneNumberSpinner)
-//
-//        // Create a list of numbers from 1 to 10 as strings
-//        val numbersList = (1..10).map { it.toString() }
-//
-//        // Create an ArrayAdapter using the numbers list
-//        val adapter = ArrayAdapter(
-//            this,
-//            android.R.layout.simple_spinner_item,
-//            numbersList
-//        )
-//
-//        // Set the layout for the dropdown list
-//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-//
-//        // Set the adapter to the spinner
-//        phoneNumberSpinner.adapter = adapter
-
+        // Set up filterTypeSpinner with options: None, Only Successful, and Only Failed
+        val filterAdapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.filter_options,
+            android.R.layout.simple_spinner_item
+        )
+        filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        filterTypeSpinner.adapter = filterAdapter
     }
+
 
 
     private fun setupToolBar() {
