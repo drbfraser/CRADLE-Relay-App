@@ -6,6 +6,9 @@ import androidx.room.TypeConverters
 import com.cradleplatform.cradle_vsa_sms_relay.type_converters.SmsListConverter
 import com.cradleplatform.cradle_vsa_sms_relay.type_converters.TimeStampListConverter
 import java.io.Serializable
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * data class used to store the status of a single SMS Relay transaction
@@ -44,6 +47,7 @@ data class SmsRelayEntity(
     var numberOfTriesUploaded: Int,
     var deliveryReportSent: Boolean,
 
+
     var isCompleted: Boolean
 ) : Serializable, Comparable<SmsRelayEntity> {
 
@@ -57,5 +61,11 @@ data class SmsRelayEntity(
 
     fun getRequestIdentifier(): String {
         return this.id.split("-")[1]
+    }
+    fun getDateAndTime(): String {
+        var receivedDateTime: Long = System.currentTimeMillis()
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val date = Date(receivedDateTime)
+        return simpleDateFormat.format(date)
     }
 }

@@ -1,5 +1,6 @@
 package com.cradleplatform.cradle_vsa_sms_relay.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.smsrelay.R
 
+
 /**
  * Adapter for updating the recycler view UI in main activity
  * to display the status of a SMS Relay transaction
@@ -18,7 +20,12 @@ import com.cradleplatform.smsrelay.R
 class MainRecyclerViewAdapter :
 RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
 
-    private var sms: List<SmsRelayEntity> = ArrayList()
+     private var sms: List<SmsRelayEntity> = ArrayList()
+     private var phoneList: MutableList<String> = ArrayList()
+    init {
+        // Add "ALL" to the initial phoneList
+        phoneList.add("All")
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SMSViewHolder {
         val v: View =
@@ -33,7 +40,14 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
 
     fun setRelayList(smsRelayEntities: List<SmsRelayEntity>) {
         this.sms = smsRelayEntities
+        phoneList.clear()
+        phoneList.add("All")
+        phoneList.addAll(smsRelayEntities.map { it.getPhoneNumber() }.distinct())
         notifyDataSetChanged()
+    }
+
+    fun getPhoneNumbers(): List<String> {
+        return phoneList
     }
 
     // TODO Update bind function to use UI prototype
@@ -41,9 +55,11 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
         val smsRelayEntity: SmsRelayEntity = sms[position]
 
+        holder.receivedDateTime.text = "Date"
         holder.phone.text = smsRelayEntity.getPhoneNumber()
         holder.reqConter.text = smsRelayEntity.getRequestIdentifier()
         holder.receiveMobile.visibility = View.VISIBLE
+
 
         if (smsRelayEntity.numFragmentsReceived == smsRelayEntity.totalFragmentsFromMobile) {
             //to be deleted:Start
@@ -140,6 +156,7 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
         val uploadServer: TextView = itemView.findViewById(R.id.uploadingServer)
         val receiveServer: TextView = itemView.findViewById(R.id.receivingServer)
         val sendMobile: TextView = itemView.findViewById(R.id.sendingMobile)
+        val receivedDateTime: TextView = itemView.findViewById<TextView>(R.id.receivedDateTime)
     }
 }
 

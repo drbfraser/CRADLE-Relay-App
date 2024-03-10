@@ -11,6 +11,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
+import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.Button
@@ -33,11 +35,17 @@ import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
 import com.google.android.material.button.MaterialButton
+import android.widget.ArrayAdapter
+import android.widget.Spinner
+import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository.Companion.TAG
+import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService.Companion.isServiceRunningInForeground
+
 
 @Suppress("LargeClass", "TooManyFunctions")
 class MainActivity : AppCompatActivity() {
 
     private var isServiceStarted = false
+    private var selectedPhoneNumber: String? = null
 
     // our reference to the service
     var mService: SmsService? = null
@@ -56,17 +64,71 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var smsRelayViewModel: SmsRelayViewModel
+    private lateinit var mainRecyclerViewAdapter: MainRecyclerViewAdapter
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
+        mainRecyclerViewAdapter = setupRecyclerView()
+
 
         setupToolBar()
         setupStartService()
         setupStopService()
-        setupRecyclerView()
+        setupFilter()
+        //setupRecyclerView()
     }
+
+    private fun setupFilter(){
+        //To do: phoneNumberSpinner shows a list of phone numbers using getPhoneNumbers function in MainRecyclerViewAdapter file
+            // Get reference to the spinner
+            val phoneNumberSpinner: Spinner = findViewById(R.id.phoneNumberSpinner)
+
+        //mainRecyclerViewAdapter = MainRecyclerViewAdapter()
+//        val phoneList = mainRecyclerViewAdapter.phoneList
+//        Log.d(TAG, "onCreate: $phoneList")
+
+//        val getnum = mainRecyclerViewAdapter.getPhoneNumbers()
+//        Log.d(TAG, "onCreate: $getnum")
+
+
+        // Create an ArrayAdapter using the MainRecyclerViewAdapter's phone numbers
+            val adapter = ArrayAdapter(
+                this,
+                android.R.layout.simple_spinner_item,
+               mainRecyclerViewAdapter.getPhoneNumbers()
+            )
+
+            // Set the layout for the dropdown list
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+            // Set the adapter to the spinner
+            phoneNumberSpinner.adapter = adapter
+
+
+//        // Get reference to the spinner
+//        val phoneNumberSpinner: Spinner = findViewById(R.id.phoneNumberSpinner)
+//
+//        // Create a list of numbers from 1 to 10 as strings
+//        val numbersList = (1..10).map { it.toString() }
+//
+//        // Create an ArrayAdapter using the numbers list
+//        val adapter = ArrayAdapter(
+//            this,
+//            android.R.layout.simple_spinner_item,
+//            numbersList
+//        )
+//
+//        // Set the layout for the dropdown list
+//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+//
+//        // Set the adapter to the spinner
+//        phoneNumberSpinner.adapter = adapter
+
+    }
+
 
     private fun setupToolBar() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
@@ -82,8 +144,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupRecyclerView() {
-
+    private fun setupRecyclerView(): MainRecyclerViewAdapter {
         val emptyImageView: ImageView = findViewById(R.id.emptyRecyclerView)
         val smsRecyclerView: RecyclerView = findViewById(R.id.messageRecyclerview)
         val adapter = MainRecyclerViewAdapter()
@@ -107,7 +168,10 @@ class MainActivity : AppCompatActivity() {
             adapter.setRelayList(relayEntities.sortedByDescending { it.timeRequestInitiated })
             adapter.notifyDataSetChanged()
         })
+
+        return adapter
     }
+
 
     private fun setupStopService() {
         findViewById<MaterialButton>(R.id.btnStopService).setOnClickListener {
