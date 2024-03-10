@@ -3,16 +3,29 @@ package com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Looper
 import android.telephony.SmsMessage
 import android.util.Log
 import android.widget.Toast
+import androidx.core.graphics.component1
+import androidx.core.graphics.component2
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
+import kotlinx.coroutines.Runnable
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.collections.HashMap
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * detects and processes received messages
@@ -30,10 +43,19 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
     @Inject
     lateinit var httpsRequestRepository: HttpsRequestRepository
 
-    private val hash: HashMap<String, String> = hashMapOf()
+    // TODO: Maybe use a thread-safe TTL cache
+    private val hash: ConcurrentHashMap<String, Pair<String, Long>> = ConcurrentHashMap()
+
+    private val scheduler = Executors.newScheduledThreadPool(1)
 
     init {
         (context.applicationContext as MyApp).component.inject(this)
+        scheduler.schedule(startExpirationCheck(MAX_INTERVAL_MS), 0, TimeUnit.MILLISECONDS)
+    }
+
+    fun stop() {
+        Log.d(tag, "Shutting down scheduled thread pool")
+        scheduler.shutdownNow()
     }
 
     fun updateLastRunPref() {
@@ -52,7 +74,9 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
         // we keep track of all the messages from different numbers
         val messages = processSMSMessages(pdus)
 
+        var shouldContinue = true
         messages.entries.forEach { entry ->
+            if (!shouldContinue) return@forEach
 
             val message = entry.value
             val phoneNumber = entry.key
@@ -80,7 +104,6 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
             // Process SMS
             if (smsFormatter.isAckMessage(message)) {
-
                 val requestIdentifier = smsFormatter.getAckRequestIdentifier(message)
                 val id = "$phoneNumber-$requestIdentifier"
 
@@ -89,7 +112,8 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                 // ignore ACK message if there are no more packets to send
                 if (relayEntity!!.smsPacketsToMobile.isNotEmpty()) {
                     val encryptedPacket = relayEntity.smsPacketsToMobile.removeAt(0)
-                    relayEntity.numFragmentsSentToMobile = relayEntity.numFragmentsSentToMobile!! + 1
+                    relayEntity.numFragmentsSentToMobile =
+                        relayEntity.numFragmentsSentToMobile!! + 1
                     smsRelayRepository.updateBlocking(relayEntity)
                     smsFormatter.sendMessage(phoneNumber, encryptedPacket)
                 } else {
@@ -130,16 +154,28 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
                     smsFormatter.sendAckMessage(newRelayEntity)
 
-                    hash[phoneNumber] = requestIdentifier
+                    hash[phoneNumber] = Pair(requestIdentifier, System.currentTimeMillis())
 
                     if (newRelayEntity.numFragmentsReceived == newRelayEntity.totalFragmentsFromMobile) {
                         httpsRequestRepository.sendToServer(newRelayEntity)
                     }
                 }.start()
             } else if (smsFormatter.isRestMessage(message)) {
-
                 Thread {
-                    val requestIdentifier = hash[phoneNumber]
+                    // Exit early because this hash key expired
+                    if (!hash.containsKey(phoneNumber)) {
+                        shouldContinue = false
+                        return@Thread
+                    }
+                    // Passive expiry check
+                    else if (isKeyExpired(phoneNumber)) {
+                        Log.d(tag, "$phoneNumber has expired, evicting it from the hash")
+                        hash.remove(phoneNumber)
+                        shouldContinue = false
+                        return@Thread
+                    }
+
+                    val requestIdentifier = hash[phoneNumber]!!.first
                     val id = "$phoneNumber-$requestIdentifier"
                     val currentTime = System.currentTimeMillis()
                     val relayEntity = smsRelayRepository.getRelayBlocking(id)
@@ -160,6 +196,10 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                     if (relayEntity.numFragmentsReceived == relayEntity.totalFragmentsFromMobile) {
                         httpsRequestRepository.sendToServer(relayEntity)
                     }
+
+                    // Update last received timestamp
+                    hash[phoneNumber] =
+                        hash[phoneNumber]!!.copy(second = System.currentTimeMillis())
                 }.start()
             }
         }
@@ -189,8 +229,60 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
         return messages
     }
 
+    private fun startExpirationCheck(interval: Long): Runnable {
+        return Runnable {
+            val startExe = System.currentTimeMillis()
+            try {
+                Log.d(tag, "Actively checking for expired keys")
+
+                val hashSize = hash.size
+                hash.forEach { (key, _) ->
+                    if (isKeyExpired(key, startExe)) {
+                        Log.d(tag, "$key has expired, evicting it from the hash")
+                        hash.remove(key)
+                    }
+                }
+
+                // Interval is dynamic to ensure sufficient clean up of resources
+                val newInterval = when {
+                    hashSize >= 100 && hash.size < hashSize * (1 - SIZE_PERCENT_THRESHOLD) -> max(
+                        MIN_INTERVAL_MS,
+                        interval / 2
+                    )
+
+                    else -> min(MAX_INTERVAL_MS, interval * 2)
+                }
+
+                Log.d(tag, "Previous interval: $interval; new interval: $newInterval")
+
+                scheduler.schedule(
+                    startExpirationCheck(newInterval),
+                    abs(newInterval - (System.currentTimeMillis() - startExe)),
+                    TimeUnit.MILLISECONDS
+                )
+            } catch (e: Exception) {
+                Log.e(tag, "Exception occurred in startExpirationCheck", e)
+                scheduler.schedule(
+                    startExpirationCheck(interval),
+                    // TODO: It may be useful to reduce the interval in half due to failure
+                    abs(interval - (System.currentTimeMillis() - startExe)),
+                    TimeUnit.MILLISECONDS
+                )
+            }
+        }
+    }
+
+    private fun isKeyExpired(key: String, currentTime: Long = System.currentTimeMillis()): Boolean {
+        val timestamp = hash[key]!!.second
+        return currentTime - timestamp > TIMEOUT_SECONDS * 1000
+    }
+
     companion object {
         private const val LAST_RUN_PREF = "sharedPrefLastTimeServiceRun"
         private const val LAST_RUN_TIME = "lastTimeServiceRun"
+        private const val TIMEOUT_SECONDS = 200
+        private const val SIZE_PERCENT_THRESHOLD = 0.25
+        private const val MIN_INTERVAL_MS: Long = 1000
+        private const val MAX_INTERVAL_MS: Long = 32000
     }
 }

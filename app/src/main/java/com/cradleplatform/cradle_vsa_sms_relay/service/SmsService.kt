@@ -108,6 +108,7 @@ class SmsService : LifecycleService(), CoroutineScope {
     override fun onDestroy() {
         super.onDestroy()
         coroutineJob.cancel()
+        smsReceiver?.stop()
     }
 
     private fun createNotificationChannel() {
