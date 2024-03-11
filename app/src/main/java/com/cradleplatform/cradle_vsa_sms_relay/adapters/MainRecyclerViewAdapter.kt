@@ -57,11 +57,21 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
     // TODO add onclicklistener for item
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
         val smsRelayEntity: SmsRelayEntity = sms[position]
+        val numFragmentsReceived = smsRelayEntity.numFragmentsReceived
+        val totalFragmentsFromMobile = smsRelayEntity.totalFragmentsFromMobile
 
+        if (numFragmentsReceived <= totalFragmentsFromMobile) {
+            holder.receivingMobile.text = "Receiving $numFragmentsReceived out of $totalFragmentsFromMobile"
+            if (numFragmentsReceived == totalFragmentsFromMobile) {
+                holder.receivingMobile.text = "Received all messages"
+                holder.checkMark1.visibility = View.VISIBLE
+                holder.imageView1.alpha = ALPHA_DIM
+            }
+        }
         holder.receivedDateTime.text = smsRelayEntity.getDateAndTime()
         holder.duration.text = smsRelayEntity.getDuration()
         holder.phone.text = smsRelayEntity.getPhoneNumber()
-        holder.receiveMobile.visibility = View.VISIBLE
+//        holder.receiveMobile.visibility = View.VISIBLE
 
 
         if (smsRelayEntity.numFragmentsReceived == smsRelayEntity.totalFragmentsFromMobile) {
@@ -73,8 +83,8 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             holder.checkMark2.visibility = View.VISIBLE
             holder.imageView1.alpha = ALPHA_DIM
             holder.imageView2.alpha = ALPHA_DIM
-            holder.uploadServer.visibility = View.VISIBLE
-            holder.receiveMobile.visibility = View.INVISIBLE
+//            holder.uploadServer.visibility = View.VISIBLE
+//            holder.receiveMobile.visibility = View.INVISIBLE
 
         } else {
             //to be deleted:Start
@@ -96,8 +106,8 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             holder.imageView2.alpha = ALPHA_DIM
             holder.imageView3.alpha = ALPHA_DIM
 
-            holder.uploadServer.visibility = View.INVISIBLE
-            holder.receiveServer.visibility = View.VISIBLE
+//            holder.uploadServer.visibility = View.INVISIBLE
+//            holder.receiveServer.visibility = View.VISIBLE
 
             holder.checkMark3.visibility = View.VISIBLE
             holder.checkMark1.visibility = View.VISIBLE
@@ -126,14 +136,14 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             holder.imageView2.alpha = ALPHA_DIM
             holder.imageView3.alpha = ALPHA_DIM
             holder.imageView4.alpha = ALPHA_DIM
-            holder.receiveServer.visibility = View.INVISIBLE
-            holder.receiveMobile.visibility = View.INVISIBLE
-            holder.uploadServer.visibility = View.INVISIBLE
-            holder.completedMessage.visibility = View.VISIBLE
+//            holder.receiveServer.visibility = View.INVISIBLE
+//            holder.receiveMobile.visibility = View.INVISIBLE
+//            holder.uploadServer.visibility = View.INVISIBLE
+//            holder.completedMessage.visibility = View.VISIBLE
         } else {
             holder.checkBox4.isChecked = false
             holder.checkMark4.visibility = View.INVISIBLE
-            holder.completedMessage.visibility = View.INVISIBLE
+//            holder.completedMessage.visibility = View.INVISIBLE
             holder.imageView4.alpha = ALPHA_FULL
         }
     }
@@ -153,10 +163,10 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
         holder.imageView2.alpha = ALPHA_DIM
         holder.imageView3.alpha = ALPHA_DIM
         holder.imageView4.alpha = ALPHA_DIM
-        holder.receiveServer.visibility = View.INVISIBLE
-        holder.receiveMobile.visibility = View.INVISIBLE
-        holder.uploadServer.visibility = View.INVISIBLE
-        holder.completedMessage.visibility = View.VISIBLE
+//        holder.receiveServer.visibility = View.INVISIBLE
+//        holder.receiveMobile.visibility = View.INVISIBLE
+//        holder.uploadServer.visibility = View.INVISIBLE
+//        holder.completedMessage.visibility = View.VISIBLE
 
     }
     class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -178,11 +188,11 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
         val imageView2: ImageView = itemView.findViewById(R.id.UploadServer)
         val imageView3: ImageView = itemView.findViewById(R.id.receiveServer)
         val imageView4: ImageView = itemView.findViewById(R.id.sentMobile)
-        val completedMessage: TextView = itemView.findViewById(R.id.completed)
-        val receiveMobile: TextView = itemView.findViewById(R.id.receivingMobile)
-        val uploadServer: TextView = itemView.findViewById(R.id.uploadingServer)
-        val receiveServer: TextView = itemView.findViewById(R.id.receivingServer)
-        val sendMobile: TextView = itemView.findViewById(R.id.sendingMobile)
+//        val completedMessage: TextView = itemView.findViewById(R.id.completed)
+//        val receiveMobile: TextView = itemView.findViewById(R.id.receivingMobile)
+//        val uploadServer: TextView = itemView.findViewById(R.id.uploadingServer)
+//        val receiveServer: TextView = itemView.findViewById(R.id.receivingServer)
+        val receivingMobile: TextView = itemView.findViewById(R.id.sendingMobile)
         val receivedDateTime: TextView = itemView.findViewById<TextView>(R.id.receivedDateTime)
         val duration: TextView = itemView.findViewById<TextView>(R.id.duration)
     }

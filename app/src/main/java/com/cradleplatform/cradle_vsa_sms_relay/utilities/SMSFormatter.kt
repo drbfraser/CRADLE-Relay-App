@@ -175,7 +175,6 @@ class SMSFormatter {
     fun sendAckMessage(smsRelayEntity: SmsRelayEntity) {
         val phoneNumber = smsRelayEntity.getPhoneNumber()
         val requestIdentifier = smsRelayEntity.getRequestIdentifier()
-        val dateTime = smsRelayEntity.getDateAndTime()
         val ackFragmentNumber = String.format(
             "%03d",
             smsRelayEntity.numFragmentsReceived - 1
