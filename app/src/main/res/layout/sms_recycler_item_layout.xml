@@ -23,20 +23,27 @@
 
                 <TextView
                     android:id="@+id/phone"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:textColor="@color/blue" />
 
                 <TextView
-                    android:id="@+id/requestCounter"
-                    android:layout_width="match_parent"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content" />
-                <TextView
                     android:id="@+id/receivedDateTime"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="12dp"
+                    android:textStyle="normal"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/duration"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="12dp"
+                    android:textStyle="normal"
                     android:gravity="end"
                     android:textColor="@color/black" />
             </LinearLayout>
@@ -68,6 +75,14 @@
                     android:paddingTop="5dp"
                     android:src="@drawable/check_mark"
                     android:visibility="invisible" />
+                <ImageView
+                    android:id="@+id/receivedMobileFailedMark"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_margin="2dp"
+                    android:paddingTop="5dp"
+                    android:src="@drawable/failed_icon"
+                    android:visibility="invisible" />
 
             </FrameLayout>
 
@@ -93,6 +108,14 @@
                     android:paddingTop="5dp"
                     android:src="@drawable/check_mark"
                     android:visibility="invisible"/>
+                <ImageView
+                    android:id="@+id/UploadServerFailedMark"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_margin="2dp"
+                    android:paddingTop="5dp"
+                    android:src="@drawable/failed_icon"
+                    android:visibility="invisible" />
 
             </FrameLayout>
 
@@ -117,6 +140,14 @@
                     android:layout_margin="2dp"
                     android:paddingTop="5dp"
                     android:src="@drawable/check_mark"
+                    android:visibility="invisible" />
+                <ImageView
+                    android:id="@+id/receiveServerFailedMark"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_margin="2dp"
+                    android:paddingTop="5dp"
+                    android:src="@drawable/failed_icon"
                     android:visibility="invisible" />
 
             </FrameLayout>
@@ -144,6 +175,14 @@
                     android:paddingTop="5dp"
                     android:src="@drawable/check_mark"
                     android:visibility="invisible"/>
+                <ImageView
+                    android:id="@+id/sentMobileFailedMark"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_margin="2dp"
+                    android:paddingTop="5dp"
+                    android:src="@drawable/failed_icon"
+                    android:visibility="invisible" />
             </FrameLayout>
                 <FrameLayout
                     android:layout_width="wrap_content"

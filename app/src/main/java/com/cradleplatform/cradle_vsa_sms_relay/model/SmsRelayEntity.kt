@@ -28,7 +28,7 @@ data class SmsRelayEntity(
 
     @TypeConverters(SmsListConverter::class)
     val smsPacketsFromMobile: MutableList<String>,
-    val timeRequestInitiated: Long,
+    val timeRequestInitiated: Long = System.currentTimeMillis(),
     @TypeConverters(TimeStampListConverter::class)
     val timestampsDataMessagesReceived: MutableList<Long>,
     @TypeConverters(TimeStampListConverter::class)
@@ -63,9 +63,20 @@ data class SmsRelayEntity(
         return this.id.split("-")[1]
     }
     fun getDateAndTime(): String {
-        var receivedDateTime: Long = System.currentTimeMillis()
-        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        val date = Date(receivedDateTime)
+        val simpleDateFormat = SimpleDateFormat("MMM d, yyyy h:mm a", Locale.getDefault())
+        val date = Date(timeRequestInitiated)
         return simpleDateFormat.format(date)
     }
+    fun getDuration(): String {
+        val receivedTime = if (timestampsDataMessagesReceived.isNotEmpty()) timestampsDataMessagesReceived[0] else 0
+        val sentTime = if (timestampsDataMessagesSent.isNotEmpty()) timestampsDataMessagesSent[0] else 0
+
+        val durationInSeconds = (sentTime - receivedTime) / 1000
+
+        val minutes = durationInSeconds / 60
+        val seconds = durationInSeconds % 60
+
+        return String.format("%dm %ds", minutes, seconds)
+    }
+
 }
