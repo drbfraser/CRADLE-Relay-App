@@ -20,7 +20,7 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
      private var sms: List<SmsRelayEntity> = ArrayList()
      private var phoneList: MutableList<String> = ArrayList()
     // Constants for alpha values
-    private val alphaFull = 1F
+    //private val alphaFull = 1F
     private val alphaDim = 0.2F
     init {
 
@@ -99,7 +99,7 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
 
         }
 
-        if (smsRelayEntity.isCompleted){
+        if (smsRelayEntity.isCompleted) {
             holder.duration.text = smsRelayEntity.getDuration()
             holder.receivingMobile.text = "Completed"
             holder.checkMark4.visibility = View.VISIBLE
@@ -134,5 +134,6 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
         val duration: TextView = itemView.findViewById<TextView>(R.id.duration)
 
     }
+
 }
 
