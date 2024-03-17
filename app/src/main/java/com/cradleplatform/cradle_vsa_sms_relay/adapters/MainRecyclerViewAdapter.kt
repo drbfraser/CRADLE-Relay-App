@@ -1,16 +1,13 @@
 package com.cradleplatform.cradle_vsa_sms_relay.adapters
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.smsrelay.R
-
 
 /**
  * Adapter for updating the recycler view UI in main activity
@@ -23,9 +20,10 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
      private var sms: List<SmsRelayEntity> = ArrayList()
      private var phoneList: MutableList<String> = ArrayList()
     // Constants for alpha values
-    private val ALPHA_FULL = 1F
-    private val ALPHA_DIM = 0.2F
+    private val alphaFull = 1F
+    private val alphaDim = 0.2F
     init {
+
         // Add "ALL" to the initial phoneList
         phoneList.add("All")
     }
@@ -66,14 +64,14 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             holder.receivingMobile.text = "Received all messages"
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
-            holder.imageView1.alpha = ALPHA_DIM
-            holder.imageView2.alpha = ALPHA_DIM
+            holder.imageView1.alpha = alphaDim
+            holder.imageView2.alpha = alphaDim
             holder.duration.text = smsRelayEntity.getDuration()
         }
         if (smsRelayEntity.isServerError == true || smsRelayEntity.isServerResponseReceived == true) {
-            holder.imageView1.alpha = ALPHA_DIM
-            holder.imageView2.alpha = ALPHA_DIM
-            holder.imageView3.alpha = ALPHA_DIM
+            holder.imageView1.alpha = alphaDim
+            holder.imageView2.alpha = alphaDim
+            holder.imageView3.alpha = alphaDim
             holder.checkMark3.visibility = View.VISIBLE
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
@@ -90,13 +88,15 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
             holder.checkMark3.visibility = View.VISIBLE
-            holder.imageView1.alpha = ALPHA_DIM
-            holder.imageView2.alpha = ALPHA_DIM
-            holder.imageView3.alpha = ALPHA_DIM
-            holder.imageView4.alpha = ALPHA_DIM
+            holder.imageView1.alpha = alphaDim
+            holder.imageView2.alpha = alphaDim
+            holder.imageView3.alpha = alphaDim
+            holder.imageView4.alpha = alphaDim
+
         } else {
             //holder.checkMark4.visibility = View.INVISIBLE
             //holder.imageView4.alpha = ALPHA_FULL
+
         }
 
         if (smsRelayEntity.isCompleted){
@@ -106,13 +106,13 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
             holder.checkMark3.visibility = View.VISIBLE
-            holder.imageView1.alpha = ALPHA_DIM
-            holder.imageView2.alpha = ALPHA_DIM
-            holder.imageView3.alpha = ALPHA_DIM
-            holder.imageView4.alpha = ALPHA_DIM
+            holder.imageView1.alpha = alphaDim
+            holder.imageView2.alpha = alphaDim
+            holder.imageView3.alpha = alphaDim
+            holder.imageView4.alpha = alphaDim
+
         }
     }
-
 
     class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val phone: TextView = itemView.findViewById<TextView>(R.id.phone)
@@ -132,6 +132,7 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
         val receivingMobile: TextView = itemView.findViewById(R.id.sendingMobile)
         val receivedDateTime: TextView = itemView.findViewById<TextView>(R.id.receivedDateTime)
         val duration: TextView = itemView.findViewById<TextView>(R.id.duration)
+
     }
 }
 

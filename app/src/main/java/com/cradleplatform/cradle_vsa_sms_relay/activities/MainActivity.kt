@@ -11,8 +11,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
-import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.Button
@@ -37,8 +35,6 @@ import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
 import com.google.android.material.button.MaterialButton
 import android.widget.ArrayAdapter
 import android.widget.Spinner
-import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository.Companion.TAG
-import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService.Companion.isServiceRunningInForeground
 
 
 @Suppress("LargeClass", "TooManyFunctions")
@@ -103,6 +99,7 @@ class MainActivity : AppCompatActivity() {
         )
         filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         filterTypeSpinner.adapter = filterAdapter
+
     }
 
 
@@ -147,6 +144,7 @@ class MainActivity : AppCompatActivity() {
         })
 
         return adapter
+        
     }
 
 
