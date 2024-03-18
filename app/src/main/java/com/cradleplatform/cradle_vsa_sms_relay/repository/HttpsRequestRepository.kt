@@ -178,6 +178,7 @@ class HttpsRequestRepository(
     }
 
     private suspend fun publishEvent(event: Pair<SmsRelayEntity, HTTPSResponseSent>) {
+        Log.d(TAG, "Publishing event with ${event.first.id}, ${event.second.phoneNumber}")
         _events.emit(event)
     }
 
