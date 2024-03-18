@@ -50,13 +50,14 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
         ConcurrentHashMap()
     private val retryQueue: PriorityBlockingQueue<HTTPSResponseSent> = PriorityBlockingQueue()
 
-    private val scheduler = Executors.newScheduledThreadPool(2)
+    private val schedulerTimeout = Executors.newScheduledThreadPool(1)
+    private val schedulerRetry = Executors.newScheduledThreadPool(1)
 
     init {
         (context.applicationContext as MyApp).component.inject(this)
-        scheduler.schedule(startExpirationCheck(MAX_INTERVAL_MS), 0, TimeUnit.MILLISECONDS)
+        schedulerTimeout.schedule(startExpirationCheck(MAX_INTERVAL_MS), 0, TimeUnit.MILLISECONDS)
         subscribeToEvents()
-        scheduler.scheduleWithFixedDelay(
+        schedulerRetry.scheduleWithFixedDelay(
             { retrySendMessageToMobile() },
             0,
             RETRY_CHECK_INTERVAL_MS,
@@ -66,7 +67,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
 
     fun stop() {
         Log.d(tag, "Shutting down scheduled thread pool")
-        scheduler.shutdownNow()
+        schedulerTimeout.shutdownNow()
     }
 
     fun updateLastRunPref() {
@@ -277,14 +278,14 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
 
                 Log.d(tag, "Previous interval: $interval; new interval: $newInterval")
 
-                scheduler.schedule(
+                schedulerTimeout.schedule(
                     startExpirationCheck(newInterval),
                     abs(newInterval - (System.currentTimeMillis() - startExe)),
                     TimeUnit.MILLISECONDS
                 )
             } catch (e: Exception) {
                 Log.e(tag, "Exception occurred in startExpirationCheck", e)
-                scheduler.schedule(
+                schedulerTimeout.schedule(
                     startExpirationCheck(interval),
                     // TODO: It may be useful to reduce the interval in half due to failure
                     abs(interval - (System.currentTimeMillis() - startExe)),
@@ -302,6 +303,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
     private fun subscribeToEvents() {
         coroutineScope.launch {
             httpsRequestRepository.events.collect { event ->
+                Log.d(tag, "Received event with ${event.first.id}, ${event.second.phoneNumber}")
                 retryQueue.add(event.second)
                 retryHash[event.first] = event.second
             }
@@ -310,9 +312,10 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
 
     private fun retrySendMessageToMobile() {
         val startExe = System.currentTimeMillis()
-        while (retryQueue.peek()?.timestamp!! <= startExe) {
+        while (retryQueue.peek()?.let { it.timestamp <= startExe } == true) {
             val httpsResponseSent = retryQueue.poll()
             if (httpsResponseSent!!.numberOfRetries == HTTPSResponseSent.MAX_RETRIES) {
+                Log.d(tag, "HTTPS response to ${httpsResponseSent.phoneNumber} has reached maximum number of retries")
                 // TODO: Revisit this as this is expensive. Suggested fix: use second HashMap, but
                 //  this will reduce time complexity for extra memory usage
                 retryHash.filterValues { it != httpsResponseSent }.also {
@@ -321,6 +324,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                 }
                 continue
             }
+            Log.d(tag, "Retrying send to ${httpsResponseSent.phoneNumber}")
             smsFormatter.sendMessage(
                 httpsResponseSent.phoneNumber,
                 httpsResponseSent.lastEncryptedPacket
