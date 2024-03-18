@@ -104,8 +104,8 @@ class HttpsRequestRepository(
                     else {
                         JSONObject(errorBody.string()).getString("message")
                     }
-                    // TODO: Add retry functionality here as well and look at why we are
-                    //  doing the below on failure
+                    // TODO: Add retry functionality here as well and look at why we are doing the
+                    //  below on failure
                     synchronized(this@HttpsRequestRepository) {
                         updateSmsRelayEntity(
                             errorMessage,
