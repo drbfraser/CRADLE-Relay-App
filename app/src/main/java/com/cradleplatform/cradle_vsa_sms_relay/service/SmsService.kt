@@ -14,16 +14,16 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.work.WorkManager
-import com.cradleplatform.smsrelay.R
 import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReceiver
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
-import javax.inject.Inject
-import kotlin.coroutines.CoroutineContext
+import com.cradleplatform.smsrelay.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import javax.inject.Inject
+import kotlin.coroutines.CoroutineContext
 
 @Suppress("LargeClass", "TooManyFunctions")
 class SmsService : LifecycleService(), CoroutineScope {
@@ -73,7 +73,7 @@ class SmsService : LifecycleService(), CoroutineScope {
             this.stopSelf()
         } else {
             if (!isMessageReceiverRegistered) {
-                smsReceiver = MessageReceiver(this)
+                smsReceiver = MessageReceiver(this, this)
                 val intentFilter = IntentFilter()
                 intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
                 intentFilter.priority = Int.MAX_VALUE
