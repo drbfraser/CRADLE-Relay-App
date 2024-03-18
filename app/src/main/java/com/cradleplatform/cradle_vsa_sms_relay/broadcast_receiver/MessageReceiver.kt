@@ -3,35 +3,35 @@ package com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Handler
-import android.os.HandlerThread
-import android.os.Looper
 import android.telephony.SmsMessage
 import android.util.Log
 import android.widget.Toast
-import androidx.core.graphics.component1
-import androidx.core.graphics.component2
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
+import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSResponseSent
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
-import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
+import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlin.collections.HashMap
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
 
 /**
  * detects and processes received messages
  */
 
-class MessageReceiver(private val context: Context) : BroadcastReceiver() {
+class MessageReceiver(private val context: Context, private val coroutineScope: CoroutineScope) :
+    BroadcastReceiver() {
     private val tag = "MESSAGE_RECEIVER"
 
     @Inject
@@ -46,11 +46,22 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
     // TODO: Maybe use a thread-safe TTL cache
     private val hash: ConcurrentHashMap<String, Pair<String, Long>> = ConcurrentHashMap()
 
-    private val scheduler = Executors.newScheduledThreadPool(1)
+    private val retryHash: ConcurrentHashMap<SmsRelayEntity, HTTPSResponseSent> =
+        ConcurrentHashMap()
+    private val retryQueue: PriorityBlockingQueue<HTTPSResponseSent> = PriorityBlockingQueue()
+
+    private val scheduler = Executors.newScheduledThreadPool(2)
 
     init {
         (context.applicationContext as MyApp).component.inject(this)
         scheduler.schedule(startExpirationCheck(MAX_INTERVAL_MS), 0, TimeUnit.MILLISECONDS)
+        subscribeToEvents()
+        scheduler.scheduleWithFixedDelay(
+            { retrySendMessageToMobile() },
+            0,
+            RETRY_CHECK_INTERVAL_MS,
+            TimeUnit.MILLISECONDS
+        )
     }
 
     fun stop() {
@@ -109,16 +120,27 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
                 val relayEntity = smsRelayRepository.getRelayBlocking(id)
 
+                // Ack was for previous fragment in retry case
+                if (smsFormatter.getAckFragmentNumber(message) < relayEntity!!.numFragmentsSentToMobile!! - 1) {
+                    return
+                }
+
                 // ignore ACK message if there are no more packets to send
-                if (relayEntity!!.smsPacketsToMobile.isNotEmpty()) {
+                if (relayEntity.smsPacketsToMobile.isNotEmpty()) {
                     val encryptedPacket = relayEntity.smsPacketsToMobile.removeAt(0)
                     relayEntity.numFragmentsSentToMobile =
                         relayEntity.numFragmentsSentToMobile!! + 1
                     smsRelayRepository.updateBlocking(relayEntity)
                     smsFormatter.sendMessage(phoneNumber, encryptedPacket)
+
+                    retryQueue.remove(retryHash[relayEntity])
+                    retryHash[relayEntity] = HTTPSResponseSent(phoneNumber, encryptedPacket)
+                    retryQueue.add(retryHash[relayEntity])
                 } else {
                     relayEntity.isCompleted = true
                     smsRelayRepository.update(relayEntity)
+                    retryQueue.remove(retryHash[relayEntity])
+                    retryHash.remove(relayEntity)
                 }
             } else if (smsFormatter.isFirstMessage(message)) {
                 // create new relay entity
@@ -157,7 +179,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                     hash[phoneNumber] = Pair(requestIdentifier, System.currentTimeMillis())
 
                     if (newRelayEntity.numFragmentsReceived == newRelayEntity.totalFragmentsFromMobile) {
-                        httpsRequestRepository.sendToServer(newRelayEntity)
+                        httpsRequestRepository.sendToServer(newRelayEntity, coroutineScope)
                     }
                 }.start()
             } else if (smsFormatter.isRestMessage(message)) {
@@ -194,7 +216,7 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                     smsFormatter.sendAckMessage(relayEntity)
 
                     if (relayEntity.numFragmentsReceived == relayEntity.totalFragmentsFromMobile) {
-                        httpsRequestRepository.sendToServer(relayEntity)
+                        httpsRequestRepository.sendToServer(relayEntity, coroutineScope)
                     }
 
                     // Update last received timestamp
@@ -277,6 +299,40 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
         return currentTime - timestamp > TIMEOUT_SECONDS * 1000
     }
 
+    private fun subscribeToEvents() {
+        coroutineScope.launch {
+            httpsRequestRepository.events.collect { event ->
+                retryQueue.add(event.second)
+                retryHash[event.first] = event.second
+            }
+        }
+    }
+
+    private fun retrySendMessageToMobile() {
+        val startExe = System.currentTimeMillis()
+        while (retryQueue.peek()?.timestamp!! <= startExe) {
+            val httpsResponseSent = retryQueue.poll()
+            if (httpsResponseSent!!.numberOfRetries == HTTPSResponseSent.MAX_RETRIES) {
+                // TODO: Revisit this as this is expensive. Suggested fix: use second HashMap, but
+                //  this will reduce time complexity for extra memory usage
+                retryHash.filterValues { it != httpsResponseSent }.also {
+                    retryHash.clear()
+                    retryHash.putAll(it)
+                }
+                continue
+            }
+            smsFormatter.sendMessage(
+                httpsResponseSent.phoneNumber,
+                httpsResponseSent.lastEncryptedPacket
+            )
+            httpsResponseSent.numberOfRetries++
+            httpsResponseSent.timestamp = System.currentTimeMillis() + min(
+                HTTPSResponseSent.DEFAULT_WAIT * 2.0.pow(httpsResponseSent.numberOfRetries),
+                HTTPSResponseSent.MAX_WAIT
+            ).toLong()
+        }
+    }
+
     companion object {
         private const val LAST_RUN_PREF = "sharedPrefLastTimeServiceRun"
         private const val LAST_RUN_TIME = "lastTimeServiceRun"
@@ -284,5 +340,6 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
         private const val SIZE_PERCENT_THRESHOLD = 0.25
         private const val MIN_INTERVAL_MS: Long = 1000
         private const val MAX_INTERVAL_MS: Long = 32000
+        private const val RETRY_CHECK_INTERVAL_MS: Long = 250
     }
 }
