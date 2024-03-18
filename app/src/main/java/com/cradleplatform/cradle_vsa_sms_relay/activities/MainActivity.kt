@@ -36,7 +36,6 @@ import com.google.android.material.button.MaterialButton
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 
-
 @Suppress("LargeClass", "TooManyFunctions")
 class MainActivity : AppCompatActivity() {
 
@@ -99,10 +98,7 @@ class MainActivity : AppCompatActivity() {
         )
         filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         filterTypeSpinner.adapter = filterAdapter
-
     }
-
-
 
     private fun setupToolBar() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
@@ -145,9 +141,7 @@ class MainActivity : AppCompatActivity() {
 
         return adapter
 
-
     }
-
 
     private fun setupStopService() {
         findViewById<MaterialButton>(R.id.btnStopService).setOnClickListener {

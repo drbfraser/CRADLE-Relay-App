@@ -14,8 +14,7 @@ import com.cradleplatform.smsrelay.R
  * to display the status of a SMS Relay transaction
  */
 
-class MainRecyclerViewAdapter :
- RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
+class MainRecyclerViewAdapter: RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
 
      private var sms: List<SmsRelayEntity> = ArrayList()
      private var phoneList: MutableList<String> = ArrayList()
@@ -84,8 +83,8 @@ class MainRecyclerViewAdapter :
             holder.imageView4.alpha = Companion.alphaDim
 
         } else {
-            //holder.checkMark4.visibility = View.INVISIBLE
-            //holder.imageView4.alpha = ALPHA_FULL
+            // holder.checkMark4.visibility = View.INVISIBLE
+            // holder.imageView4.alpha = ALPHA_FULL
 
         }
 
@@ -106,7 +105,7 @@ class MainRecyclerViewAdapter :
 
     class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val phone: TextView = itemView.findViewById<TextView>(R.id.phone)
-        //val error: TextView = itemView.findViewById(R.id.serverErrorText)
+        // val error: TextView = itemView.findViewById(R.id.serverErrorText)
         val checkMark1: ImageView = itemView.findViewById(R.id.receivedMobileCheckMark)
         val checkMark2: ImageView = itemView.findViewById(R.id.UploadServerCheckMark)
         val checkMark3: ImageView = itemView.findViewById(R.id.receiveServerCheckMark)

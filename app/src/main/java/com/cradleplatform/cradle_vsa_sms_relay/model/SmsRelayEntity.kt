@@ -46,8 +46,6 @@ data class SmsRelayEntity(
     // extras
     var numberOfTriesUploaded: Int,
     var deliveryReportSent: Boolean,
-
-
     var isCompleted: Boolean
 ) : Serializable, Comparable<SmsRelayEntity> {
 
@@ -73,10 +71,15 @@ data class SmsRelayEntity(
 
         val durationInSeconds = (sentTime - receivedTime) / 1000
 
-        val minutes = durationInSeconds / 60
-        val seconds = durationInSeconds % 60
+        val minutes = durationInSeconds / SIXTY
+        val seconds = durationInSeconds % SIXTY
 
         return String.format("%dm %ds", minutes, seconds)
+
+    }
+
+    companion object {
+        private const val SIXTY = 60
     }
 
 }
