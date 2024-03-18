@@ -15,15 +15,12 @@ import com.cradleplatform.smsrelay.R
  */
 
 class MainRecyclerViewAdapter :
-RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
+ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
 
      private var sms: List<SmsRelayEntity> = ArrayList()
      private var phoneList: MutableList<String> = ArrayList()
-    // Constants for alpha values
-    //private val alphaFull = 1F
-    private val alphaDim = 0.2F
-    init {
 
+    init {
         // Add "ALL" to the initial phoneList
         phoneList.add("All")
     }
@@ -64,34 +61,27 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             holder.receivingMobile.text = "Received all messages"
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
-            holder.imageView1.alpha = alphaDim
-            holder.imageView2.alpha = alphaDim
+            holder.imageView1.alpha = Companion.alphaDim
+            holder.imageView2.alpha = Companion.alphaDim
             holder.duration.text = smsRelayEntity.getDuration()
         }
         if (smsRelayEntity.isServerError == true || smsRelayEntity.isServerResponseReceived == true) {
-            holder.imageView1.alpha = alphaDim
-            holder.imageView2.alpha = alphaDim
-            holder.imageView3.alpha = alphaDim
+            holder.imageView1.alpha = Companion.alphaDim
+            holder.imageView2.alpha = Companion.alphaDim
+            holder.imageView3.alpha = Companion.alphaDim
             holder.checkMark3.visibility = View.VISIBLE
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
-        } else {
-           // holder.imageView3.alpha = ALPHA_FULL
         }
-//        if (smsRelayEntity.isServerError == true) {
-//            //holder.error.visibility = View.VISIBLE
-//        } else {
-//            //holder.error.visibility = View.GONE
-//        }
         if (smsRelayEntity.smsPacketsToMobile.isEmpty() && smsRelayEntity.isServerResponseReceived) {
             holder.checkMark4.visibility = View.VISIBLE
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
             holder.checkMark3.visibility = View.VISIBLE
-            holder.imageView1.alpha = alphaDim
-            holder.imageView2.alpha = alphaDim
-            holder.imageView3.alpha = alphaDim
-            holder.imageView4.alpha = alphaDim
+            holder.imageView1.alpha = Companion.alphaDim
+            holder.imageView2.alpha = Companion.alphaDim
+            holder.imageView3.alpha = Companion.alphaDim
+            holder.imageView4.alpha = Companion.alphaDim
 
         } else {
             //holder.checkMark4.visibility = View.INVISIBLE
@@ -106,10 +96,10 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
             holder.checkMark3.visibility = View.VISIBLE
-            holder.imageView1.alpha = alphaDim
-            holder.imageView2.alpha = alphaDim
-            holder.imageView3.alpha = alphaDim
-            holder.imageView4.alpha = alphaDim
+            holder.imageView1.alpha = Companion.alphaDim
+            holder.imageView2.alpha = Companion.alphaDim
+            holder.imageView3.alpha = Companion.alphaDim
+            holder.imageView4.alpha = Companion.alphaDim
 
         }
     }
@@ -133,6 +123,11 @@ RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
         val receivedDateTime: TextView = itemView.findViewById<TextView>(R.id.receivedDateTime)
         val duration: TextView = itemView.findViewById<TextView>(R.id.duration)
 
+    }
+
+    companion object {
+        private const val alphaDim = 0.2F
+        private const val alphaFull = 1F
     }
 
 }
