@@ -56,8 +56,6 @@ comments:
   EndOfSentenceFormat:
     active: false
     endOfSentenceFormat: ([.?!][ \t\n\r\f<])|([.?!]$)
-  ForbiddenComment:
-    active: false
   UndocumentedPublicClass:
     active: false
     searchInNestedClass: true
