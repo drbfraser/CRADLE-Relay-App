@@ -15,8 +15,8 @@ import com.cradleplatform.smsrelay.R
  */
 
 class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
-     private var sms: List<SmsRelayEntity> = ArrayList()
-     private var phoneList: MutableList<String> = ArrayList()
+    private var sms: List<SmsRelayEntity> = ArrayList()
+    private var phoneList: MutableList<String> = ArrayList()
     init {
         // Add "ALL" to the initial phoneList
         phoneList.add("All")
@@ -117,8 +117,5 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
     companion object {
         private const val alphaDim = 0.2F
         private const val alphaFull = 1F
-
     }
-
 }
-
