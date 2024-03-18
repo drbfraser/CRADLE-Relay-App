@@ -104,7 +104,6 @@ class HttpsRequestRepository(
                     else {
                         JSONObject(errorBody.string()).getString("message")
                     }
-                    @Suppress("ForbiddenComment")
                     // TODO: Add retry functionality here as well and look at why we are doing the
                     //  below on failure
                     synchronized(this@HttpsRequestRepository) {
