@@ -14,11 +14,9 @@ import com.cradleplatform.smsrelay.R
  * to display the status of a SMS Relay transaction
  */
 
-class MainRecyclerViewAdapter: RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
-
+class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
      private var sms: List<SmsRelayEntity> = ArrayList()
      private var phoneList: MutableList<String> = ArrayList()
-
     init {
         // Add "ALL" to the initial phoneList
         phoneList.add("All")
@@ -62,7 +60,6 @@ class MainRecyclerViewAdapter: RecyclerView.Adapter<MainRecyclerViewAdapter.SMSV
             holder.checkMark2.visibility = View.VISIBLE
             holder.imageView1.alpha = Companion.alphaDim
             holder.imageView2.alpha = Companion.alphaDim
-            holder.duration.text = smsRelayEntity.getDuration()
         }
         if (smsRelayEntity.isServerError == true || smsRelayEntity.isServerResponseReceived == true) {
             holder.imageView1.alpha = Companion.alphaDim
@@ -81,11 +78,6 @@ class MainRecyclerViewAdapter: RecyclerView.Adapter<MainRecyclerViewAdapter.SMSV
             holder.imageView2.alpha = Companion.alphaDim
             holder.imageView3.alpha = Companion.alphaDim
             holder.imageView4.alpha = Companion.alphaDim
-
-        } else {
-            // holder.checkMark4.visibility = View.INVISIBLE
-            // holder.imageView4.alpha = ALPHA_FULL
-
         }
 
         if (smsRelayEntity.isCompleted) {
@@ -99,7 +91,6 @@ class MainRecyclerViewAdapter: RecyclerView.Adapter<MainRecyclerViewAdapter.SMSV
             holder.imageView2.alpha = Companion.alphaDim
             holder.imageView3.alpha = Companion.alphaDim
             holder.imageView4.alpha = Companion.alphaDim
-
         }
     }
 
@@ -121,12 +112,12 @@ class MainRecyclerViewAdapter: RecyclerView.Adapter<MainRecyclerViewAdapter.SMSV
         val receivingMobile: TextView = itemView.findViewById(R.id.sendingMobile)
         val receivedDateTime: TextView = itemView.findViewById<TextView>(R.id.receivedDateTime)
         val duration: TextView = itemView.findViewById<TextView>(R.id.duration)
-
     }
 
     companion object {
         private const val alphaDim = 0.2F
         private const val alphaFull = 1F
+
     }
 
 }

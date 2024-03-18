@@ -140,7 +140,6 @@ class MainActivity : AppCompatActivity() {
         })
 
         return adapter
-
     }
 
     private fun setupStopService() {
