@@ -33,11 +33,14 @@ import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
 import com.google.android.material.button.MaterialButton
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 
 @Suppress("LargeClass", "TooManyFunctions")
 class MainActivity : AppCompatActivity() {
 
     private var isServiceStarted = false
+    private var selectedPhoneNumber: String? = null
 
     // our reference to the service
     var mService: SmsService? = null
@@ -56,16 +59,45 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var smsRelayViewModel: SmsRelayViewModel
+    private lateinit var mainRecyclerViewAdapter: MainRecyclerViewAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
-
+        mainRecyclerViewAdapter = setupRecyclerView()
         setupToolBar()
         setupStartService()
         setupStopService()
-        setupRecyclerView()
+        setupFilter()
+    }
+
+    private fun setupFilter() {
+        // Get reference to the spinner
+        val phoneNumberSpinner: Spinner = findViewById(R.id.phoneNumberSpinner)
+        val filterTypeSpinner: Spinner = findViewById(R.id.filterType)
+
+        // Create an ArrayAdapter using the MainRecyclerViewAdapter's phone numbers
+        val adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            mainRecyclerViewAdapter.getPhoneNumbers()
+        )
+
+        // Set the layout for the dropdown list
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        // Set the adapter to the spinner
+        phoneNumberSpinner.adapter = adapter
+
+        // Set up filterTypeSpinner with options: None, Only Successful, and Only Failed
+        val filterAdapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.filter_options,
+            android.R.layout.simple_spinner_item
+        )
+        filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        filterTypeSpinner.adapter = filterAdapter
     }
 
     private fun setupToolBar() {
@@ -82,8 +114,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupRecyclerView() {
-
+    private fun setupRecyclerView(): MainRecyclerViewAdapter {
         val emptyImageView: ImageView = findViewById(R.id.emptyRecyclerView)
         val smsRecyclerView: RecyclerView = findViewById(R.id.messageRecyclerview)
         val adapter = MainRecyclerViewAdapter()
@@ -107,6 +138,8 @@ class MainActivity : AppCompatActivity() {
             adapter.setRelayList(relayEntities.sortedByDescending { it.timeRequestInitiated })
             adapter.notifyDataSetChanged()
         })
+
+        return adapter
     }
 
     private fun setupStopService() {

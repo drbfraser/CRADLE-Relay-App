@@ -6,6 +6,9 @@ import androidx.room.TypeConverters
 import com.cradleplatform.cradle_vsa_sms_relay.type_converters.SmsListConverter
 import com.cradleplatform.cradle_vsa_sms_relay.type_converters.TimeStampListConverter
 import java.io.Serializable
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * data class used to store the status of a single SMS Relay transaction
@@ -25,7 +28,7 @@ data class SmsRelayEntity(
 
     @TypeConverters(SmsListConverter::class)
     val smsPacketsFromMobile: MutableList<String>,
-    val timeRequestInitiated: Long,
+    val timeRequestInitiated: Long = System.currentTimeMillis(),
     @TypeConverters(TimeStampListConverter::class)
     val timestampsDataMessagesReceived: MutableList<Long>,
     @TypeConverters(TimeStampListConverter::class)
@@ -43,7 +46,6 @@ data class SmsRelayEntity(
     // extras
     var numberOfTriesUploaded: Int,
     var deliveryReportSent: Boolean,
-
     var isCompleted: Boolean
 ) : Serializable, Comparable<SmsRelayEntity> {
 
@@ -57,5 +59,22 @@ data class SmsRelayEntity(
 
     fun getRequestIdentifier(): String {
         return this.id.split("-")[1]
+    }
+    fun getDateAndTime(): String {
+        val simpleDateFormat = SimpleDateFormat("MMM d, yyyy h:mm a", Locale.getDefault())
+        val date = Date(timeRequestInitiated)
+        return simpleDateFormat.format(date)
+    }
+    fun getDuration(): String {
+        val receivedTime = if (timestampsDataMessagesReceived.isNotEmpty()) timestampsDataMessagesReceived[0] else 0
+        val sentTime = if (timestampsDataMessagesSent.isNotEmpty()) timestampsDataMessagesSent[0] else 0
+        val durationInSeconds = (sentTime - receivedTime) / THOUSAND
+        val minutes = durationInSeconds / SIXTY
+        val seconds = durationInSeconds % SIXTY
+        return String.format("%dm %ds", minutes, seconds)
+    }
+    companion object {
+        private const val SIXTY = 60
+        private const val THOUSAND = 60
     }
 }

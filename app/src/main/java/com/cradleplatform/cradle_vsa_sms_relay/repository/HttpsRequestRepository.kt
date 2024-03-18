@@ -116,7 +116,6 @@ class HttpsRequestRepository(
     private fun updateSmsRelayEntity(data: String, isSuccessful: Boolean, smsRelayEntity: SmsRelayEntity, code: Int) {
         val phoneNumber: String = smsRelayEntity.getPhoneNumber()
         val requestCounter: String = smsRelayEntity.getRequestIdentifier()
-
         val smsMessages = smsFormatter.formatSMS(
             data,
             requestCounter.toLong(),
