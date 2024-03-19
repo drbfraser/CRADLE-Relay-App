@@ -123,6 +123,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
 
                 // Ack was for previous fragment in retry case
                 if (smsFormatter.getAckFragmentNumber(message) < relayEntity!!.numFragmentsSentToMobile!! - 1) {
+                    Log.d(tag, "Ack received for outdated fragment; dropping")
                     return
                 }
 

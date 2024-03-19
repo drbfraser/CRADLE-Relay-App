@@ -106,6 +106,7 @@ class HttpsRequestRepository(
                     }
                     // Add retry functionality here as well and look at why we are doing the
                     //  below on failure
+                    Log.e(TAG, errorMessage)
                     synchronized(this@HttpsRequestRepository) {
                         updateSmsRelayEntity(
                             errorMessage,
