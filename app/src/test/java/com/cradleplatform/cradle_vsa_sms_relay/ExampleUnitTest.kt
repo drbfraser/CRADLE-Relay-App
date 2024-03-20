@@ -1,8 +1,8 @@
 package com.cradleplatform.cradle_vsa_sms_relay
 
+import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReceiver
 import org.junit.Test
 import org.junit.Assert.*
-import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReceiver
 
 
 /**
