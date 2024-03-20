@@ -11,7 +11,7 @@ android {
     buildToolsVersion "29.0.3"
 
     defaultConfig {
-        applicationId "com.cradleplatform.sms_relay"
+        applicationId "com.cradleplatform.cradle_vsa_sms_relay"
         vectorDrawables.useSupportLibrary = true
         minSdkVersion 26
         targetSdkVersion 29
@@ -56,6 +56,7 @@ android {
         implementation "com.squareup.retrofit2:retrofit:$retrofitVersion"
         implementation "com.squareup.retrofit2:converter-gson:$retrofitVersion"
     }
+
 }
 
 dependencies {
@@ -66,7 +67,6 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.3.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     implementation 'androidx.preference:preference:1.1.1'
-    implementation 'androidx.test.ext:junit-ktx:1.1.5'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
