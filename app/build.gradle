@@ -7,8 +7,9 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'io.gitlab.arturbosch.detekt'
 android {
 
-    sourceSets {
-        test.java.srcDirs += "src/test/java"
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     buildFeatures {

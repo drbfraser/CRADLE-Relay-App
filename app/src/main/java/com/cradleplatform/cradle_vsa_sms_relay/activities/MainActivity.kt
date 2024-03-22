@@ -191,7 +191,8 @@ class MainActivity : AppCompatActivity() {
                         Manifest.permission.INTERNET,
                         Manifest.permission.READ_SMS,
                         Manifest.permission.RECEIVE_SMS,
-                        Manifest.permission.SEND_SMS
+                        Manifest.permission.SEND_SMS,
+                        Manifest.permission.READ_PHONE_STATE
                     ), PERMISSION_REQUEST_CODE
                 )
             }
