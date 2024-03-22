@@ -44,4 +44,9 @@
     <string name="received_from_server">Received from server</string>
     <string name="sent_to_mobile">Sent to Mobile</string>
     <string name="the_server_encountered_an_error_the_response_will_be_relayed_back">The server encountered an error, the response will be relayed back</string>
+    <string name="completed_4_messages">Completed. 4/4 Messages.</string>
+    <string name="receiving_from_mobile">Receiving data from mobile...</string>
+    <string name="uploading_to_server">Uploading data to server...</string>
+    <string name="receiving_from_server">Receiving data from server...</string>
+    <string name="sending_to_mobile">Sending data to Mobile...</string>
 </resources>

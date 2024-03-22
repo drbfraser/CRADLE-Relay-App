@@ -7,18 +7,31 @@ import android.telephony.SmsMessage
 import android.util.Log
 import android.widget.Toast
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
+import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSResponseSent
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
-import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
+import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
+import java.util.concurrent.PriorityBlockingQueue
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlin.collections.HashMap
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.pow
 
 /**
  * detects and processes received messages
  */
 
-class MessageReceiver(private val context: Context) : BroadcastReceiver() {
+class MessageReceiver(private val context: Context, private val coroutineScope: CoroutineScope) :
+    BroadcastReceiver() {
     private val tag = "MESSAGE_RECEIVER"
 
     @Inject
@@ -30,10 +43,31 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
     @Inject
     lateinit var httpsRequestRepository: HttpsRequestRepository
 
-    private val hash: HashMap<String, String> = hashMapOf()
+    // TODO: Maybe use a thread-safe TTL cache
+    private val hash: ConcurrentHashMap<String, Pair<String, Long>> = ConcurrentHashMap()
+
+    private val retryHash: ConcurrentHashMap<SmsRelayEntity, HTTPSResponseSent> =
+        ConcurrentHashMap()
+    private val retryQueue: PriorityBlockingQueue<HTTPSResponseSent> = PriorityBlockingQueue()
+
+    private val schedulerTimeout = Executors.newScheduledThreadPool(1)
+    private val schedulerRetry = Executors.newScheduledThreadPool(1)
 
     init {
         (context.applicationContext as MyApp).component.inject(this)
+        schedulerTimeout.schedule(startExpirationCheck(MAX_INTERVAL_MS), 0, TimeUnit.MILLISECONDS)
+        subscribeToEvents()
+        schedulerRetry.scheduleWithFixedDelay(
+            { retrySendMessageToMobile() },
+            0,
+            RETRY_CHECK_INTERVAL_MS,
+            TimeUnit.MILLISECONDS
+        )
+    }
+
+    fun stop() {
+        Log.d(tag, "Shutting down scheduled thread pool")
+        schedulerTimeout.shutdownNow()
     }
 
     fun updateLastRunPref() {
@@ -52,7 +86,9 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
         // we keep track of all the messages from different numbers
         val messages = processSMSMessages(pdus)
 
+        var shouldContinue = true
         messages.entries.forEach { entry ->
+            if (!shouldContinue) return@forEach
 
             val message = entry.value
             val phoneNumber = entry.key
@@ -80,21 +116,33 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
             // Process SMS
             if (smsFormatter.isAckMessage(message)) {
-
                 val requestIdentifier = smsFormatter.getAckRequestIdentifier(message)
                 val id = "$phoneNumber-$requestIdentifier"
 
                 val relayEntity = smsRelayRepository.getRelayBlocking(id)
 
+                // Ack was for previous fragment in retry case
+                if (smsFormatter.getAckFragmentNumber(message) < relayEntity!!.numFragmentsSentToMobile!! - 1) {
+                    Log.d(tag, "Ack received for outdated fragment; dropping")
+                    return
+                }
+
                 // ignore ACK message if there are no more packets to send
-                if (relayEntity!!.smsPacketsToMobile.isNotEmpty()) {
+                if (relayEntity.smsPacketsToMobile.isNotEmpty()) {
                     val encryptedPacket = relayEntity.smsPacketsToMobile.removeAt(0)
-                    relayEntity.numFragmentsSentToMobile = relayEntity.numFragmentsSentToMobile!! + 1
+                    relayEntity.numFragmentsSentToMobile =
+                        relayEntity.numFragmentsSentToMobile!! + 1
                     smsRelayRepository.updateBlocking(relayEntity)
                     smsFormatter.sendMessage(phoneNumber, encryptedPacket)
+
+                    retryQueue.remove(retryHash[relayEntity])
+                    retryHash[relayEntity] = HTTPSResponseSent(phoneNumber, encryptedPacket)
+                    retryQueue.add(retryHash[relayEntity])
                 } else {
                     relayEntity.isCompleted = true
                     smsRelayRepository.update(relayEntity)
+                    retryQueue.remove(retryHash[relayEntity])
+                    retryHash.remove(relayEntity)
                 }
             } else if (smsFormatter.isFirstMessage(message)) {
                 // create new relay entity
@@ -130,16 +178,28 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
 
                     smsFormatter.sendAckMessage(newRelayEntity)
 
-                    hash[phoneNumber] = requestIdentifier
+                    hash[phoneNumber] = Pair(requestIdentifier, System.currentTimeMillis())
 
                     if (newRelayEntity.numFragmentsReceived == newRelayEntity.totalFragmentsFromMobile) {
-                        httpsRequestRepository.sendToServer(newRelayEntity)
+                        httpsRequestRepository.sendToServer(newRelayEntity, coroutineScope)
                     }
                 }.start()
             } else if (smsFormatter.isRestMessage(message)) {
-
                 Thread {
-                    val requestIdentifier = hash[phoneNumber]
+                    // Exit early because this hash key expired
+                    if (!hash.containsKey(phoneNumber)) {
+                        shouldContinue = false
+                        return@Thread
+                    }
+                    // Passive expiry check
+                    else if (isKeyExpired(phoneNumber)) {
+                        Log.d(tag, "$phoneNumber has expired, evicting it from the hash")
+                        hash.remove(phoneNumber)
+                        shouldContinue = false
+                        return@Thread
+                    }
+
+                    val requestIdentifier = hash[phoneNumber]!!.first
                     val id = "$phoneNumber-$requestIdentifier"
                     val currentTime = System.currentTimeMillis()
                     val relayEntity = smsRelayRepository.getRelayBlocking(id)
@@ -158,8 +218,12 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
                     smsFormatter.sendAckMessage(relayEntity)
 
                     if (relayEntity.numFragmentsReceived == relayEntity.totalFragmentsFromMobile) {
-                        httpsRequestRepository.sendToServer(relayEntity)
+                        httpsRequestRepository.sendToServer(relayEntity, coroutineScope)
                     }
+
+                    // Update last received timestamp
+                    hash[phoneNumber] =
+                        hash[phoneNumber]!!.copy(second = System.currentTimeMillis())
                 }.start()
             }
         }
@@ -189,8 +253,98 @@ class MessageReceiver(private val context: Context) : BroadcastReceiver() {
         return messages
     }
 
+    private fun startExpirationCheck(interval: Long): Runnable {
+        return Runnable {
+            val startExe = System.currentTimeMillis()
+            try {
+                Log.d(tag, "Actively checking for expired keys")
+
+                val hashSize = hash.size
+                hash.forEach { (key, _) ->
+                    if (isKeyExpired(key, startExe)) {
+                        Log.d(tag, "$key has expired, evicting it from the hash")
+                        hash.remove(key)
+                    }
+                }
+
+                // Interval is dynamic to ensure sufficient clean up of resources
+                val newInterval = when {
+                    hashSize >= 100 && hash.size < hashSize * (1 - SIZE_PERCENT_THRESHOLD) -> max(
+                        MIN_INTERVAL_MS,
+                        interval / 2
+                    )
+
+                    else -> min(MAX_INTERVAL_MS, interval * 2)
+                }
+
+                Log.d(tag, "Previous interval: $interval; new interval: $newInterval")
+
+                schedulerTimeout.schedule(
+                    startExpirationCheck(newInterval),
+                    abs(newInterval - (System.currentTimeMillis() - startExe)),
+                    TimeUnit.MILLISECONDS
+                )
+            } catch (e: Exception) {
+                Log.e(tag, "Exception occurred in startExpirationCheck", e)
+                schedulerTimeout.schedule(
+                    startExpirationCheck(interval),
+                    // TODO: It may be useful to reduce the interval in half due to failure
+                    abs(interval - (System.currentTimeMillis() - startExe)),
+                    TimeUnit.MILLISECONDS
+                )
+            }
+        }
+    }
+
+    private fun isKeyExpired(key: String, currentTime: Long = System.currentTimeMillis()): Boolean {
+        val timestamp = hash[key]!!.second
+        return currentTime - timestamp > TIMEOUT_SECONDS * 1000
+    }
+
+    private fun subscribeToEvents() {
+        coroutineScope.launch {
+            httpsRequestRepository.events.collect { event ->
+                Log.d(tag, "Received event with ${event.first.id}, ${event.second.phoneNumber}")
+                retryQueue.add(event.second)
+                retryHash[event.first] = event.second
+            }
+        }
+    }
+
+    private fun retrySendMessageToMobile() {
+        val startExe = System.currentTimeMillis()
+        while (retryQueue.peek()?.let { it.timestamp <= startExe } == true) {
+            val httpsResponseSent = retryQueue.poll()
+            if (httpsResponseSent!!.numberOfRetries == HTTPSResponseSent.MAX_RETRIES) {
+                Log.d(tag, "HTTPS response to ${httpsResponseSent.phoneNumber} has reached maximum number of retries")
+                // TODO: Revisit this as this is expensive. Suggested fix: use second HashMap, but
+                //  this will reduce time complexity for extra memory usage
+                retryHash.filterValues { it != httpsResponseSent }.also {
+                    retryHash.clear()
+                    retryHash.putAll(it)
+                }
+                continue
+            }
+            Log.d(tag, "Retrying send to ${httpsResponseSent.phoneNumber}")
+            smsFormatter.sendMessage(
+                httpsResponseSent.phoneNumber,
+                httpsResponseSent.lastEncryptedPacket
+            )
+            httpsResponseSent.numberOfRetries++
+            httpsResponseSent.timestamp = System.currentTimeMillis() + min(
+                HTTPSResponseSent.DEFAULT_WAIT * 2.0.pow(httpsResponseSent.numberOfRetries),
+                HTTPSResponseSent.MAX_WAIT
+            ).toLong()
+        }
+    }
+
     companion object {
         private const val LAST_RUN_PREF = "sharedPrefLastTimeServiceRun"
         private const val LAST_RUN_TIME = "lastTimeServiceRun"
+        private const val TIMEOUT_SECONDS = 200
+        private const val SIZE_PERCENT_THRESHOLD = 0.25
+        private const val MIN_INTERVAL_MS: Long = 1000
+        private const val MAX_INTERVAL_MS: Long = 32000
+        private const val RETRY_CHECK_INTERVAL_MS: Long = 250
     }
 }

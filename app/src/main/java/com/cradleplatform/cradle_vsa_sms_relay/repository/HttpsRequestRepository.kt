@@ -1,11 +1,16 @@
 package com.cradleplatform.cradle_vsa_sms_relay.repository
 
 import android.util.Log
-import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSRequest
 import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSResponse
+import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSResponseSent
+import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.service.SMSRelayService
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -14,6 +19,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.Executors
 
 /**
  * class to add auth token to requests sent to the server
@@ -56,67 +62,93 @@ class HttpsRequestRepository(
 
     private val smsRelayService = retrofit.create(SMSRelayService::class.java)
 
-    fun sendToServer(smsRelayEntity: SmsRelayEntity) {
+    private val scheduler = Executors.newScheduledThreadPool(1)
+
+    private val _events = MutableSharedFlow<Pair<SmsRelayEntity, HTTPSResponseSent>>()
+    val events = _events.asSharedFlow()
+
+    fun sendToServer(smsRelayEntity: SmsRelayEntity, coroutineScope: CoroutineScope) {
         val encryptedData = smsFormatter.getEncryptedData(smsRelayEntity)
         val httpsRequest = HTTPSRequest(smsRelayEntity.getPhoneNumber(), encryptedData)
+
         smsRelayService.postSMSRelay(httpsRequest).enqueue(
             object : Callback<HTTPSResponse> {
-            override fun onResponse(
-                call: Call<HTTPSResponse>,
-                response: retrofit2.Response<HTTPSResponse>
-            ) {
-                if (response.isSuccessful) {
-                    val httpsResponse = response.body()
-                    if (httpsResponse != null) {
-                        // using a synchronized block to ensure no two threads
-                        // can execute this block at the same time
-                        // this is a safety measure, only for a special case where a user attempts
-                        // to manually restart an incomplete relay process
-                        synchronized(this@HttpsRequestRepository) {
-                            updateSmsRelayEntity(httpsResponse.body, true, smsRelayEntity, response.code())
+                override fun onResponse(
+                    call: Call<HTTPSResponse>,
+                    response: retrofit2.Response<HTTPSResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        val httpsResponse = response.body()
+                        if (httpsResponse != null) {
+                            // using a synchronized block to ensure no two threads
+                            // can execute this block at the same time
+                            // this is a safety measure, only for a special case where a user attempts
+                            // to manually restart an incomplete relay process
+                            synchronized(this@HttpsRequestRepository) {
+                                updateSmsRelayEntity(
+                                    httpsResponse.body,
+                                    true,
+                                    smsRelayEntity,
+                                    response.code(),
+                                    coroutineScope
+                                )
+                            }
+                            return
                         }
-                        return
+                    }
+                    val errorBody = response.errorBody()
+                    val errorMessage = if (errorBody == null) {
+                        "There was an unexpected error while sending the relay request - Status ${response.code()}"
+                    }
+                    // expected errors will be inside a json which will contain the key 'message'
+                    else {
+                        JSONObject(errorBody.string()).getString("message")
+                    }
+                    // Add retry functionality here as well and look at why we are doing the
+                    //  below on failure
+                    Log.e(TAG, errorMessage)
+                    synchronized(this@HttpsRequestRepository) {
+                        updateSmsRelayEntity(
+                            errorMessage,
+                            false,
+                            smsRelayEntity,
+                            response.code(),
+                            coroutineScope
+                        )
                     }
                 }
-                val errorBody = response.errorBody()
-                val errorMessage = if (errorBody == null) {
-                    "There was an unexpected error while sending the relay request - Status ${response.code()}"
-                }
-                // expected errors will be inside a json which will contain the key 'message'
-                else {
-                    JSONObject(errorBody.string()).getString("message")
-                }
-                synchronized(this@HttpsRequestRepository) {
-                    updateSmsRelayEntity(errorMessage, false, smsRelayEntity, response.code())
-                }
-            }
 
-            // This method will only be called when there is a network error while uploading
-            override fun onFailure(call: Call<HTTPSResponse>, t: Throwable) {
-                Log.e(TAG, t.toString())
+                // This method will only be called when there is a network error while uploading
+                override fun onFailure(call: Call<HTTPSResponse>, t: Throwable) {
+                    Log.e(TAG, t.toString())
 
-                // max number of attempted uploads is 5
-                // TODO remove hardcoding and move to settings.xml
-                if (smsRelayEntity.numberOfTriesUploaded > MAX_UPLOAD_ATTEMPTS) {
-                    smsRelayEntity.isServerError = true
-                    smsRelayEntity.isServerResponseReceived = false
-                    smsRelayEntity.isCompleted = false
-                    smsRelayRepository.update(smsRelayEntity)
-                    return
+                    // max number of attempted uploads is 5
+                    // TODO remove hardcoding and move to settings.xml
+                    if (smsRelayEntity.numberOfTriesUploaded > MAX_UPLOAD_ATTEMPTS) {
+                        smsRelayEntity.isServerError = true
+                        smsRelayEntity.isServerResponseReceived = false
+                        smsRelayEntity.isCompleted = false
+                        smsRelayRepository.update(smsRelayEntity)
+                        return
+                    }
+
+                    smsRelayEntity.numberOfTriesUploaded += 1
+                    smsRelayRepository.updateBlocking(smsRelayEntity)
+
+                    sendToServer(smsRelayEntity, coroutineScope)
                 }
-
-                smsRelayEntity.numberOfTriesUploaded += 1
-                smsRelayRepository.updateBlocking(smsRelayEntity)
-
-                sendToServer(smsRelayEntity)
-            }
-        })
+            })
     }
 
-    private fun updateSmsRelayEntity(data: String, isSuccessful: Boolean, smsRelayEntity: SmsRelayEntity, code: Int) {
+    private fun updateSmsRelayEntity(
+        data: String,
+        isSuccessful: Boolean,
+        smsRelayEntity: SmsRelayEntity,
+        code: Int,
+        coroutineScope: CoroutineScope
+    ) {
         val phoneNumber: String = smsRelayEntity.getPhoneNumber()
         val requestCounter: String = smsRelayEntity.getRequestIdentifier()
-
         val smsMessages = smsFormatter.formatSMS(
             data,
             requestCounter.toLong(),
@@ -136,6 +168,18 @@ class HttpsRequestRepository(
         smsRelayRepository.updateBlocking(smsRelayEntity)
 
         smsFormatter.sendMessage(phoneNumber, firstMessage)
+        coroutineScope.launch {
+            publishEvent(
+                Pair(
+                    smsRelayEntity, HTTPSResponseSent(phoneNumber, firstMessage)
+                )
+            )
+        }
+    }
+
+    private suspend fun publishEvent(event: Pair<SmsRelayEntity, HTTPSResponseSent>) {
+        Log.d(TAG, "Publishing event with ${event.first.id}, ${event.second.phoneNumber}")
+        _events.emit(event)
     }
 
     companion object {

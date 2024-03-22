@@ -73,7 +73,7 @@ class SmsService : LifecycleService(), CoroutineScope {
             this.stopSelf()
         } else {
             if (!isMessageReceiverRegistered) {
-                smsReceiver = MessageReceiver(this)
+                smsReceiver = MessageReceiver(this, this)
                 val intentFilter = IntentFilter()
                 intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED")
                 intentFilter.priority = Int.MAX_VALUE
@@ -108,6 +108,7 @@ class SmsService : LifecycleService(), CoroutineScope {
     override fun onDestroy() {
         super.onDestroy()
         coroutineJob.cancel()
+        smsReceiver?.stop()
     }
 
     private fun createNotificationChannel() {
