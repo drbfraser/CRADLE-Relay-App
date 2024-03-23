@@ -37,7 +37,7 @@ import android.widget.ArrayAdapter
 import android.widget.Spinner
 
 @Suppress("LargeClass", "TooManyFunctions")
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickListener  {
 
     private var isServiceStarted = false
     private var selectedPhoneNumber: String? = null
@@ -66,10 +66,17 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
         mainRecyclerViewAdapter = setupRecyclerView()
+        mainRecyclerViewAdapter.setOnItemClickListener(this)
         setupToolBar()
         setupStartService()
         setupStopService()
         setupFilter()
+    }
+    override fun onItemClick(position: Int) {
+        // Handle item click here
+        // For now, let's navigate to a new screen
+        val intent = Intent(this, CardDetails::class.java)
+        startActivity(intent)
     }
 
     private fun setupFilter() {

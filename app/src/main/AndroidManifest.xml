@@ -22,7 +22,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-
+        <activity
+            android:name="com.cradleplatform.cradle_vsa_sms_relay.activities.CardDetails"
+            android:exported="false" />
         <activity
             android:name="com.cradleplatform.cradle_vsa_sms_relay.activities.SettingsActivity"
             android:label="@string/title_activity_settings"
@@ -39,6 +41,7 @@
         <activity android:name="com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity" />
 
         <service android:name="com.cradleplatform.cradle_vsa_sms_relay.service.SmsService" />
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
