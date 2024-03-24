@@ -35,9 +35,10 @@ import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
 import com.google.android.material.button.MaterialButton
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 
 @Suppress("LargeClass", "TooManyFunctions")
-class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickListener  {
+class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickListener {
 
     private var isServiceStarted = false
     private var selectedPhoneNumber: String? = null
@@ -73,9 +74,12 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
         setupFilter()
     }
     override fun onItemClick(position: Int) {
-        // Handle item click here
-        // For now, let's navigate to a new screen
-        val intent = Intent(this, CardDetails::class.java)
+        val smsRelayEntity = mainRecyclerViewAdapter.sms[position] // Access the item from the list
+        val intent = Intent(this, CardDetails::class.java).apply {
+            putExtra("date", smsRelayEntity.getDateAndTime())
+            putExtra("phoneNumber", smsRelayEntity.getPhoneNumber())
+            // Pass any other relevant data here
+        }
         startActivity(intent)
     }
 

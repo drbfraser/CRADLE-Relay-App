@@ -15,7 +15,7 @@ import com.cradleplatform.smsrelay.R
  */
 
 class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
-    private var sms: List<SmsRelayEntity> = ArrayList()
+    var sms: List<SmsRelayEntity> = ArrayList()
     private var phoneList: MutableList<String> = ArrayList()
 
     // Define a click listener interface
