@@ -6,8 +6,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.R
+import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 
 /**
  * Adapter for updating the recycler view UI in main activity
@@ -58,11 +58,11 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
             holder.receivingMobile.text = "Received all messages"
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
-            holder.imageView1.alpha = Companion.alphaDim
-            holder.imageView2.alpha = Companion.alphaDim
+            holder.imageView1.alpha = alphaDim
+            holder.imageView2.alpha = alphaDim
         }
         if (smsRelayEntity.isServerError == true || smsRelayEntity.isServerResponseReceived == true) {
-            holder.imageView1.alpha = Companion.alphaDim
+            holder.imageView1.alpha = alphaDim
             holder.imageView2.alpha = Companion.alphaDim
             holder.imageView3.alpha = Companion.alphaDim
             holder.checkMark3.visibility = View.VISIBLE
@@ -74,10 +74,10 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
             holder.checkMark3.visibility = View.VISIBLE
-            holder.imageView1.alpha = Companion.alphaDim
-            holder.imageView2.alpha = Companion.alphaDim
-            holder.imageView3.alpha = Companion.alphaDim
-            holder.imageView4.alpha = Companion.alphaDim
+            holder.imageView1.alpha = alphaDim
+            holder.imageView2.alpha = alphaDim
+            holder.imageView3.alpha = alphaDim
+            holder.imageView4.alpha = alphaDim
         }
 
         if (smsRelayEntity.isCompleted) {
@@ -87,15 +87,16 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
             holder.checkMark3.visibility = View.VISIBLE
-            holder.imageView1.alpha = Companion.alphaDim
-            holder.imageView2.alpha = Companion.alphaDim
-            holder.imageView3.alpha = Companion.alphaDim
-            holder.imageView4.alpha = Companion.alphaDim
+            holder.imageView1.alpha = alphaDim
+            holder.imageView2.alpha = alphaDim
+            holder.imageView3.alpha = alphaDim
+            holder.imageView4.alpha = alphaDim
         }
     }
 
     class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val phone: TextView = itemView.findViewById<TextView>(R.id.phone)
+
         // val error: TextView = itemView.findViewById(R.id.serverErrorText)
         val checkMark1: ImageView = itemView.findViewById(R.id.receivedMobileCheckMark)
         val checkMark2: ImageView = itemView.findViewById(R.id.UploadServerCheckMark)

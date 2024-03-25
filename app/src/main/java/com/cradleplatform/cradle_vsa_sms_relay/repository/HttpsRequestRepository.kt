@@ -137,7 +137,8 @@ class HttpsRequestRepository(
 
                     sendToServer(smsRelayEntity, coroutineScope)
                 }
-            })
+            }
+        )
     }
 
     private fun updateSmsRelayEntity(
@@ -171,7 +172,8 @@ class HttpsRequestRepository(
         coroutineScope.launch {
             publishEvent(
                 Pair(
-                    smsRelayEntity, HTTPSResponseSent(phoneNumber, firstMessage)
+                    smsRelayEntity,
+                    HTTPSResponseSent(phoneNumber, firstMessage)
                 )
             )
         }

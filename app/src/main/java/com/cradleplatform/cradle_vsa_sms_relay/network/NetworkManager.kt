@@ -3,11 +3,10 @@ package com.cradleplatform.cradle_vsa_sms_relay.network
 import android.app.Application
 import android.content.SharedPreferences
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.network.*
 import com.cradleplatform.cradle_vsa_sms_relay.network.Urls.authenticationUrl
 import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests.Companion.TOKEN
-import javax.inject.Inject
 import org.json.JSONObject
+import javax.inject.Inject
 
 /**
  * Responsible for making all the network calls for the application

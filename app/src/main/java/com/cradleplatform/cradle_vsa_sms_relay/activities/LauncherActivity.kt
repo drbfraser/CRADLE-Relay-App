@@ -44,7 +44,9 @@ class LauncherActivity : AppCompatActivity() {
         val imageButton: ImageButton = findViewById<ImageButton>(R.id.togglePasswordVisibilityImageButton)
         imageButton.setImageDrawable(
             ResourcesCompat.getDrawable(
-                resources, R.drawable.baseline_visibility_24, null
+                resources,
+                R.drawable.baseline_visibility_24,
+                null
             )
         )
 
@@ -55,7 +57,9 @@ class LauncherActivity : AppCompatActivity() {
                     imageButton.contentDescription = resources.getString(R.string.hide_password)
                     imageButton.setImageDrawable(
                         ResourcesCompat.getDrawable(
-                            resources, R.drawable.baseline_visibility_off_24, null
+                            resources,
+                            R.drawable.baseline_visibility_off_24,
+                            null
                         )
                     )
                     passwordEditText.setSelection(passwordEditText.text.length)
@@ -69,7 +73,9 @@ class LauncherActivity : AppCompatActivity() {
                     imageButton.contentDescription = resources.getString(R.string.show_password)
                     imageButton.setImageDrawable(
                         ResourcesCompat.getDrawable(
-                            resources, R.drawable.baseline_visibility_24, null
+                            resources,
+                            R.drawable.baseline_visibility_24,
+                            null
                         )
                     )
                     passwordEditText.setSelection(passwordEditText.text.length)
@@ -86,11 +92,9 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     private fun setupLogin() {
-
         val emailEditText = findViewById<TextView>(R.id.emailEditText)
         val passwordEdittext = findViewById<TextView>(R.id.passwordEditText)
         findViewById<MaterialButton>(R.id.loginButton).setOnClickListener {
-
             val progressDialog = ProgressDialog(this)
             progressDialog.setTitle("Logging In")
             progressDialog.setCancelable(false)
