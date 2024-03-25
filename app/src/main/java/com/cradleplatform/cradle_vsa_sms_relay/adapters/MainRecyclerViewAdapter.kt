@@ -117,6 +117,6 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
 
     companion object {
         private const val alphaDim = 0.2F
-        private const val alphaFull = 1F
+//        private const val alphaFull = 1F
     }
 }

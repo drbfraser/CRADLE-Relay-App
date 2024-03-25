@@ -8,5 +8,5 @@ detekt {
         html.required.set(true)
     }
 //    Optional baseline, uncomment & run gradle command detektBaseline to exclude existing issues
-    baseline = file("app/detekt-baseline.xml")
+    baseline = file("$rootDir/app/detekt-baseline.xml")
 }

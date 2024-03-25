@@ -6,7 +6,6 @@ import java.util.Date
 import java.util.TimeZone
 
 class DateTimeUtil {
-
     companion object {
         const val MS_IN_A_SEC = 1000
         fun convertUnixToTimeString(unixTime: Long): String {

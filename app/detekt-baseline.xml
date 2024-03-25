@@ -1,12 +1,9 @@
 <?xml version="1.0" ?>
 <SmellBaseline>
-  <ManuallySuppressedIssues></ManuallySuppressedIssues>
-  <CurrentIssues>
+  <ManuallySuppressedIssues>
     <ID>LoopWithTooManyJumpStatements:MessageReceiver.kt$MessageReceiver$for</ID>
-    <ID>SerialVersionUIDInSerializableClass:SmsRelayEntity.kt$SmsRelayEntity : SerializableComparable</ID>
-    <ID>UnusedPrivateProperty:HttpsRequestRepository.kt$HttpsRequestRepository$private val scheduler = Executors.newScheduledThreadPool(1)</ID>
-    <ID>UnusedPrivateProperty:MainRecyclerViewAdapter.kt$MainRecyclerViewAdapter.Companion$private const val alphaFull = 1F</ID>
-    <ID>UnusedPrivateProperty:MessageReceiverTest.kt$MessageReceiverTest$val messageReceiver: MessageReceiver? = null</ID>
+  </ManuallySuppressedIssues>
+  <CurrentIssues>
     <ID>UtilityClassWithPublicConstructor:DateTimeUtil.kt$DateTimeUtil</ID>
   </CurrentIssues>
 </SmellBaseline>
