@@ -335,6 +335,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                 HTTPSResponseSent.DEFAULT_WAIT * 2.0.pow(httpsResponseSent.numberOfRetries),
                 HTTPSResponseSent.MAX_WAIT
             ).toLong()
+            retryQueue.add(httpsResponseSent)
         }
     }
 
