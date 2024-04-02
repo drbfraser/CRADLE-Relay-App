@@ -37,7 +37,6 @@ import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
 import com.google.android.material.button.MaterialButton
 import android.widget.ArrayAdapter
 import android.widget.Spinner
-import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 
 @Suppress("LargeClass", "TooManyFunctions")
 class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickListener {
