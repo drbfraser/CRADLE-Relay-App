@@ -14,11 +14,11 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.work.WorkManager
+import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReceiver
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
-import com.cradleplatform.smsrelay.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -86,7 +86,8 @@ class SmsService : LifecycleService(), CoroutineScope {
                 this,
                 MainActivity::class.java
             )
-            val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
+            val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent,
+                PendingIntent.FLAG_MUTABLE)
             val notification = NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("SMS RELAY SERVICE RUNNING").setContentText(input)
                 .setSmallIcon(R.mipmap.ic_launcher).setContentIntent(pendingIntent)

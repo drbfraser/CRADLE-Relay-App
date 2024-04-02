@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues>
+    <ID>LoopWithTooManyJumpStatements:MessageReceiver.kt$MessageReceiver$for</ID>
+  </ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>UtilityClassWithPublicConstructor:DateTimeUtil.kt$DateTimeUtil</ID>
+  </CurrentIssues>
+</SmellBaseline>

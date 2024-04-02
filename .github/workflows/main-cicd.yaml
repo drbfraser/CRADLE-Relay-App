@@ -25,7 +25,7 @@ jobs:
     name: Code Analysis
     runs-on: [self-hosted, docker]
     container: 
-      image: cangol/android-gradle
+      image: sahilmodak/cradle-mobile
     steps:
       - name: Checkout repository into Container
         uses: bfraser/cicd/actions/checkout@v1
@@ -39,7 +39,7 @@ jobs:
     name: Build and Asemble Debug APK
     runs-on: [self-hosted, docker]
     container: 
-      image: cangol/android-gradle
+      image: sahilmodak/cradle-mobile
     steps:
       - name: Checkout repository into Container
         uses: bfraser/cicd/actions/checkout@v1
@@ -53,7 +53,7 @@ jobs:
     name: Run Local Unit Tests
     runs-on: [self-hosted, docker]
     container: 
-      image: cangol/android-gradle
+      image: sahilmodak/cradle-mobile
     needs: [ build ]
     steps:
       - name: Checkout repository into Container

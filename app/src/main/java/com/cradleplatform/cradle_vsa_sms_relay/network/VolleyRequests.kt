@@ -1,4 +1,4 @@
-package com.cradleplatform.smsrelay.network
+package com.cradleplatform.cradle_vsa_sms_relay.network
 
 import android.content.SharedPreferences
 import com.android.volley.Request.Method.GET
@@ -6,9 +6,9 @@ import com.android.volley.Request.Method.POST
 import com.android.volley.Response
 import com.android.volley.VolleyError
 import com.android.volley.toolbox.JsonObjectRequest
+import org.json.JSONObject
 import java.net.ConnectException
 import java.net.UnknownHostException
-import org.json.JSONObject
 
 /**
  * A list of requests type for Volley, Add requests type as needed
@@ -46,7 +46,8 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
                         BAD_REQUEST -> "Server rejected upload request; make sure referral is correctly formatted"
                         NOT_FOUND -> "Server rejected URL; Contact the developers for support"
                         CONFLICT -> "The referral already exists in the server"
-                        else -> "Server rejected upload; Contact developers." +
+                        else ->
+                            "Server rejected upload; Contact developers." +
                                 " Code " + error.networkResponse.statusCode
                     }
                 }

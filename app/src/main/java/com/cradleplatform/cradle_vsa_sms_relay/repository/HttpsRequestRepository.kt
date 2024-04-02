@@ -62,7 +62,7 @@ class HttpsRequestRepository(
 
     private val smsRelayService = retrofit.create(SMSRelayService::class.java)
 
-    private val scheduler = Executors.newScheduledThreadPool(1)
+//    private val scheduler = Executors.newScheduledThreadPool(1)
 
     private val _events = MutableSharedFlow<Pair<SmsRelayEntity, HTTPSResponseSent>>()
     val events = _events.asSharedFlow()
@@ -137,7 +137,8 @@ class HttpsRequestRepository(
 
                     sendToServer(smsRelayEntity, coroutineScope)
                 }
-            })
+            }
+        )
     }
 
     private fun updateSmsRelayEntity(
@@ -171,7 +172,8 @@ class HttpsRequestRepository(
         coroutineScope.launch {
             publishEvent(
                 Pair(
-                    smsRelayEntity, HTTPSResponseSent(phoneNumber, firstMessage)
+                    smsRelayEntity,
+                    HTTPSResponseSent(phoneNumber, firstMessage)
                 )
             )
         }
