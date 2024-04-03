@@ -11,10 +11,10 @@ import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSResponseSent
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
+import com.cradleplatform.cradle_vsa_sms_relay.utilities.DateTimeUtil
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Runnable
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
@@ -25,6 +25,8 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
+
+private const val MAX_HASH_SIZE = 100
 
 /**
  * detects and processes received messages
@@ -77,6 +79,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
             .apply()
     }
 
+    @Suppress("LongMethod", "CyclomaticComplexMethod")
     override fun onReceive(p0: Context?, p1: Intent?) {
         Log.d(tag, "Message Received")
         val data = p1?.extras
@@ -253,6 +256,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
         return messages
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun startExpirationCheck(interval: Long): Runnable {
         return Runnable {
             val startExe = System.currentTimeMillis()
@@ -269,7 +273,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
 
                 // Interval is dynamic to ensure sufficient clean up of resources
                 val newInterval = when {
-                    hashSize >= 100 && hash.size < hashSize * (1 - SIZE_PERCENT_THRESHOLD) -> max(
+                    hashSize >= MAX_HASH_SIZE && hash.size < hashSize * (1 - SIZE_PERCENT_THRESHOLD) -> max(
                         MIN_INTERVAL_MS,
                         interval / 2
                     )
@@ -298,7 +302,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
 
     private fun isKeyExpired(key: String, currentTime: Long = System.currentTimeMillis()): Boolean {
         val timestamp = hash[key]!!.second
-        return currentTime - timestamp > TIMEOUT_SECONDS * 1000
+        return currentTime - timestamp > TIMEOUT_SECONDS * DateTimeUtil.MS_IN_A_SEC
     }
 
     private fun subscribeToEvents() {

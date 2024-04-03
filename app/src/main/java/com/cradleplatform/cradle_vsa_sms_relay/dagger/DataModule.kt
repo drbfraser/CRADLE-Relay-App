@@ -4,13 +4,13 @@ import android.content.SharedPreferences
 import androidx.multidex.MultiDexApplication
 import androidx.preference.PreferenceManager
 import androidx.room.Room
-import com.cradleplatform.cradle_vsa_sms_relay.type_converters.SmsListConverter
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayDatabase
-import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
+import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
+import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
+import com.cradleplatform.cradle_vsa_sms_relay.type_converters.SmsListConverter
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
-import com.cradleplatform.smsrelay.network.VolleyRequests
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -22,7 +22,8 @@ class DataModule {
     @Singleton
     fun getSmsDatabase(app: MultiDexApplication): SmsRelayDatabase {
         return Room.databaseBuilder(
-            app.applicationContext, SmsRelayDatabase::class.java,
+            app.applicationContext,
+            SmsRelayDatabase::class.java,
             "relay-DB"
         ).fallbackToDestructiveMigration().build()
     }

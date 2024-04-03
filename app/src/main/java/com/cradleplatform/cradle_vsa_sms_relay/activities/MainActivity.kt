@@ -15,9 +15,11 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -29,20 +31,17 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.cradleplatform.smsrelay.R
+import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.adapters.MainRecyclerViewAdapter
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
 import com.google.android.material.button.MaterialButton
-import android.widget.ArrayAdapter
-import android.widget.Spinner
 
 @Suppress("LargeClass", "TooManyFunctions")
 class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickListener {
 
     private var isServiceStarted = false
-    private var selectedPhoneNumber: String? = null
 
     // our reference to the service
     var mService: SmsService? = null
@@ -161,7 +160,9 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
                 SmsRelayViewModel::class.java
             )
 
-        smsRelayViewModel.getAllRelayEntities().observe(this, Observer { relayEntities ->
+        smsRelayViewModel.getAllRelayEntities().observe(
+            this
+        ) { relayEntities ->
             // update the recyclerview on updating
             if (relayEntities.isNotEmpty()) {
                 emptyImageView.visibility = GONE
@@ -171,7 +172,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
 
             adapter.setRelayList(relayEntities.sortedByDescending { it.timeRequestInitiated })
             adapter.notifyDataSetChanged()
-        })
+        }
 
         return adapter
     }
@@ -244,22 +245,27 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
         ) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 ActivityCompat.requestPermissions(
-                    this, arrayOf(
+                    this,
+                    arrayOf(
                         Manifest.permission.FOREGROUND_SERVICE,
                         Manifest.permission.INTERNET,
                         Manifest.permission.READ_SMS,
                         Manifest.permission.RECEIVE_SMS,
                         Manifest.permission.SEND_SMS
-                    ), PERMISSION_REQUEST_CODE
+                    ),
+                    PERMISSION_REQUEST_CODE
                 )
             } else {
                 ActivityCompat.requestPermissions(
-                    this, arrayOf(
+                    this,
+                    arrayOf(
                         Manifest.permission.INTERNET,
                         Manifest.permission.READ_SMS,
                         Manifest.permission.RECEIVE_SMS,
-                        Manifest.permission.SEND_SMS
-                    ), PERMISSION_REQUEST_CODE
+                        Manifest.permission.SEND_SMS,
+                        Manifest.permission.READ_PHONE_STATE
+                    ),
+                    PERMISSION_REQUEST_CODE
                 )
             }
         } else {
@@ -290,8 +296,9 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
         if (requestCode == PERMISSION_REQUEST_CODE) {
             // need all the permissions
             grantResults.forEach {
-                if (it == PERMISSION_DENIED)
+                if (it == PERMISSION_DENIED) {
                     return
+                }
             }
             // do whatever when permissions are granted
             if (!isServiceStarted) {
