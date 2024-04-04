@@ -70,7 +70,7 @@ class HttpsRequestRepository(
 
     private val retryQueue: PriorityBlockingQueue<Triple<SmsRelayEntity, Long, CoroutineScope>> =
         PriorityBlockingQueue(
-            11
+            PRIORITY_QUEUE_INIT_CAP
         ) { i, j -> i.second.compareTo(j.second) }
     private val scheduler = Executors.newScheduledThreadPool(1)
 
@@ -185,7 +185,10 @@ class HttpsRequestRepository(
         val startExe = System.currentTimeMillis()
         while (retryQueue.peek()?.let { it.second <= startExe } == true) {
             val polledTriple = retryQueue.poll()
-            if (polledTriple!!.first.numberOfTriesUploaded == MAX_RETRIES || polledTriple.first.isServerResponseReceived) {
+            if (
+                polledTriple!!.first.numberOfTriesUploaded == MAX_RETRIES ||
+                polledTriple.first.isServerResponseReceived
+            ) {
                 polledTriple.first.isServerError = true
                 polledTriple.first.isServerResponseReceived = false
                 polledTriple.first.isCompleted = false
@@ -222,6 +225,7 @@ class HttpsRequestRepository(
 
     companion object {
         const val TAG = "HttpsRequestRepository"
+        private const val PRIORITY_QUEUE_INIT_CAP = 11
         private const val MAX_RETRIES = 5
         private const val DEFAULT_WAIT = 3000L
         private const val MAX_WAIT = 30000.0
