@@ -1,3 +1,4 @@
+@file:Suppress("UnusedPrivateProperty")
 package com.cradleplatform.cradle_vsa_sms_relay.utilities
 
 import android.telephony.SmsManager
@@ -8,7 +9,6 @@ import kotlin.math.min
  * class handles the parsing and formatting of all messages that are sent and received
  * class is used to retrieve information from the SMS message based on the protocol being used
  */
-
 private const val PACKET_SIZE = 153
 // private const val MAX_PACKET_NUMBER = 99
 
@@ -30,6 +30,7 @@ private const val POS_FIRST_MSG_REQUEST_COUNTER = 1
 private const val POS_ACK_MSG_REQUEST_COUNTER = 1
 private const val POS_REPLY_SUCCESS_REQUEST_COUNTER = 1
 private const val POS_REPLY_ERROR_REQUEST_COUNTER = 1
+
 // position of error code in error message
 private const val POS_REPLY_ERROR_CODE = 3
 
@@ -51,13 +52,13 @@ private const val POS_REST_CURR_FRAGMENT = 1
 private val ackRegexPattern =
     Regex(
         "^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-" +
-                "(\\d{$REQUEST_NUMBER_LENGTH})-(\\d{$FRAGMENT_HEADER_LENGTH})-$SMS_ACK_SUFFIX$"
+            "(\\d{$REQUEST_NUMBER_LENGTH})-(\\d{$FRAGMENT_HEADER_LENGTH})-$SMS_ACK_SUFFIX$"
     )
 
 private val firstRegexPattern =
     Regex(
         "^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-" +
-                "(\\d{$REQUEST_NUMBER_LENGTH})-(\\d{$FRAGMENT_HEADER_LENGTH})-(.+$)"
+            "(\\d{$REQUEST_NUMBER_LENGTH})-(\\d{$FRAGMENT_HEADER_LENGTH})-(.+$)"
     )
 
 private val restRegexPattern =
@@ -68,15 +69,15 @@ private val restRegexPattern =
 private val firstErrorReplyPattern =
     Regex(
         "^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-" +
-                "(\\d{$REQUEST_NUMBER_LENGTH})-$REPLY_ERROR-(\\d{$FRAGMENT_HEADER_LENGTH})-" +
-                "$REPLY_ERROR_CODE_PREFIX(\\d{$REPLY_ERROR_CODE_LENGTH})-(.+)$"
+            "(\\d{$REQUEST_NUMBER_LENGTH})-$REPLY_ERROR-(\\d{$FRAGMENT_HEADER_LENGTH})-" +
+            "$REPLY_ERROR_CODE_PREFIX(\\d{$REPLY_ERROR_CODE_LENGTH})-(.+)$"
     )
 
 private val firstSuccessReplyPattern =
     Regex(
         "^$SMS_TUNNEL_PROTOCOL_VERSION-$MAGIC_STRING-" +
-                "(\\d{$REQUEST_NUMBER_LENGTH})-$REPLY_SUCCESS-" +
-                "(\\d{$FRAGMENT_HEADER_LENGTH})-(.+$)"
+            "(\\d{$REQUEST_NUMBER_LENGTH})-$REPLY_SUCCESS-" +
+            "(\\d{$FRAGMENT_HEADER_LENGTH})-(.+$)"
     )
 
 @Suppress("LargeClass", "TooManyFunctions")
@@ -94,9 +95,9 @@ class SMSFormatter {
         )
 
         // Add the correct header to the list based on whether the HTTP request was successful or not
-        if (isSuccessful)
+        if (isSuccessful) {
             baseHeaderContent.add(0, REPLY_SUCCESS.length)
-        else {
+        } else {
             baseHeaderContent.add(0, REPLY_ERROR.length)
             baseHeaderContent.add(0, REPLY_ERROR_CODE_PREFIX.length)
             baseHeaderContent.add(0, REPLY_ERROR_CODE_LENGTH)
@@ -146,7 +147,7 @@ class SMSFormatter {
                     ${if (isSuccessful) REPLY_SUCCESS else REPLY_ERROR}-
                     $fragmentCountPadded-
                     ${if (isSuccessful) "" else REPLY_ERROR_CODE_PREFIX + statusCode.toString() + "-"}
-                    """.trimIndent().replace("\n", "")
+                """.trimIndent().replace("\n", "")
             } else {
                 // creating header for consequent messages
                 val fragmentNumber =

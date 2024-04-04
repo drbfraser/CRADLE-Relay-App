@@ -1,4 +1,4 @@
-package com.cradleplatform.smsrelay
+package com.cradleplatform.cradle_vsa_sms_relay
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry

@@ -135,7 +135,8 @@ class HttpsRequestRepository(
                 override fun onFailure(call: Call<HTTPSResponse>, t: Throwable) {
                     Log.e(TAG, t.toString())
                 }
-            })
+            }
+        )
     }
 
     private fun updateSmsRelayEntity(
@@ -147,7 +148,6 @@ class HttpsRequestRepository(
     ) {
         val phoneNumber: String = smsRelayEntity.getPhoneNumber()
         val requestCounter: String = smsRelayEntity.getRequestIdentifier()
-
         val smsMessages = smsFormatter.formatSMS(
             data,
             requestCounter.toLong(),
@@ -170,7 +170,8 @@ class HttpsRequestRepository(
         coroutineScope.launch {
             publishEvent(
                 Pair(
-                    smsRelayEntity, HTTPSResponseSent(phoneNumber, firstMessage)
+                    smsRelayEntity,
+                    HTTPSResponseSent(phoneNumber, firstMessage)
                 )
             )
         }

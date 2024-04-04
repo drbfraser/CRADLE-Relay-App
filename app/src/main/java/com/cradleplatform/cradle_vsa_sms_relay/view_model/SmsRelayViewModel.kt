@@ -3,9 +3,9 @@ package com.cradleplatform.cradle_vsa_sms_relay.view_model
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
-import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import javax.inject.Inject
 
 /**

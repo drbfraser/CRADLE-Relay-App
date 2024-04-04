@@ -13,9 +13,11 @@ import android.os.Bundle
 import android.os.IBinder
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -27,7 +29,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.cradleplatform.smsrelay.R
+import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.adapters.MainRecyclerViewAdapter
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
@@ -56,16 +58,45 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var smsRelayViewModel: SmsRelayViewModel
+    private lateinit var mainRecyclerViewAdapter: MainRecyclerViewAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
-
+        mainRecyclerViewAdapter = setupRecyclerView()
         setupToolBar()
         setupStartService()
         setupStopService()
-        setupRecyclerView()
+        setupFilter()
+    }
+
+    private fun setupFilter() {
+        // Get reference to the spinner
+        val phoneNumberSpinner: Spinner = findViewById(R.id.phoneNumberSpinner)
+        val filterTypeSpinner: Spinner = findViewById(R.id.filterType)
+
+        // Create an ArrayAdapter using the MainRecyclerViewAdapter's phone numbers
+        val adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            mainRecyclerViewAdapter.getPhoneNumbers()
+        )
+
+        // Set the layout for the dropdown list
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        // Set the adapter to the spinner
+        phoneNumberSpinner.adapter = adapter
+
+        // Set up filterTypeSpinner with options: None, Only Successful, and Only Failed
+        val filterAdapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.filter_options,
+            android.R.layout.simple_spinner_item
+        )
+        filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        filterTypeSpinner.adapter = filterAdapter
     }
 
     private fun setupToolBar() {
@@ -82,8 +113,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupRecyclerView() {
-
+    private fun setupRecyclerView(): MainRecyclerViewAdapter {
         val emptyImageView: ImageView = findViewById(R.id.emptyRecyclerView)
         val smsRecyclerView: RecyclerView = findViewById(R.id.messageRecyclerview)
         val adapter = MainRecyclerViewAdapter()
@@ -96,7 +126,9 @@ class MainActivity : AppCompatActivity() {
                 SmsRelayViewModel::class.java
             )
 
-        smsRelayViewModel.getAllRelayEntities().observe(this, Observer { relayEntities ->
+        smsRelayViewModel.getAllRelayEntities().observe(
+            this
+        ) { relayEntities ->
             // update the recyclerview on updating
             if (relayEntities.isNotEmpty()) {
                 emptyImageView.visibility = GONE
@@ -106,7 +138,9 @@ class MainActivity : AppCompatActivity() {
 
             adapter.setRelayList(relayEntities.sortedByDescending { it.timeRequestInitiated })
             adapter.notifyDataSetChanged()
-        })
+        }
+
+        return adapter
     }
 
     private fun setupStopService() {
@@ -177,22 +211,27 @@ class MainActivity : AppCompatActivity() {
         ) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 ActivityCompat.requestPermissions(
-                    this, arrayOf(
+                    this,
+                    arrayOf(
                         Manifest.permission.FOREGROUND_SERVICE,
                         Manifest.permission.INTERNET,
                         Manifest.permission.READ_SMS,
                         Manifest.permission.RECEIVE_SMS,
                         Manifest.permission.SEND_SMS
-                    ), PERMISSION_REQUEST_CODE
+                    ),
+                    PERMISSION_REQUEST_CODE
                 )
             } else {
                 ActivityCompat.requestPermissions(
-                    this, arrayOf(
+                    this,
+                    arrayOf(
                         Manifest.permission.INTERNET,
                         Manifest.permission.READ_SMS,
                         Manifest.permission.RECEIVE_SMS,
-                        Manifest.permission.SEND_SMS
-                    ), PERMISSION_REQUEST_CODE
+                        Manifest.permission.SEND_SMS,
+                        Manifest.permission.READ_PHONE_STATE
+                    ),
+                    PERMISSION_REQUEST_CODE
                 )
             }
         } else {
@@ -223,8 +262,9 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == PERMISSION_REQUEST_CODE) {
             // need all the permissions
             grantResults.forEach {
-                if (it == PERMISSION_DENIED)
+                if (it == PERMISSION_DENIED) {
                     return
+                }
             }
             // do whatever when permissions are granted
             if (!isServiceStarted) {
