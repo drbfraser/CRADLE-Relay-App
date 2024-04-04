@@ -12,7 +12,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreferenceCompat
-import com.cradleplatform.smsrelay.R
+import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService.Companion.isServiceRunningInForeground
 
@@ -51,7 +51,7 @@ class SettingsActivity : AppCompatActivity() {
             val signoutKey = getString(R.string.signout)
             val syncNowkey = getString(R.string.sync_now_key)
             val defaultSharedPreferences =
-                PreferenceManager.getDefaultSharedPreferences(this.context)
+                PreferenceManager.getDefaultSharedPreferences(this.requireContext())
             // show/ hide pref on default
             val syncNowPref = findPreference<Preference>(syncNowkey)
             syncNowPref?.isVisible = defaultSharedPreferences.getBoolean(reuploadSwitchKey, true)
@@ -62,8 +62,8 @@ class SettingsActivity : AppCompatActivity() {
             // setting values based on switch changes
             findPreference<SwitchPreferenceCompat>(reuploadSwitchKey)?.setOnPreferenceClickListener { preference ->
                 listPref?.isVisible =
-                    preference.sharedPreferences.getBoolean(reuploadSwitchKey, false)
-                syncNowPref?.isVisible = PreferenceManager.getDefaultSharedPreferences(context)
+                    preference.sharedPreferences?.getBoolean(reuploadSwitchKey, false) ?: false
+                syncNowPref?.isVisible = PreferenceManager.getDefaultSharedPreferences(this.requireContext())
                     .getBoolean(reuploadSwitchKey, false)
                 true
             }
@@ -94,7 +94,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         fun signout() {
-            PreferenceManager.getDefaultSharedPreferences(this.context).edit().clear().apply()
+            PreferenceManager.getDefaultSharedPreferences(this.requireContext()).edit().clear().apply()
             // stop the service if running.
             if (isServiceRunningInForeground(
                     this.requireContext(),

@@ -14,4 +14,10 @@
         <item>60</item>
         <item>120</item>
     </string-array>
+
+        <string-array name="filter_options">
+            <item>None</item>
+            <item>Only Successful</item>
+            <item>Only Failed</item>
+        </string-array>
 </resources>
