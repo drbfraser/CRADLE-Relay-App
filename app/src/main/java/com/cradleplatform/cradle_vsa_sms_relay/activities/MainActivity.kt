@@ -11,8 +11,10 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ImageButton
@@ -37,7 +39,7 @@ import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
 import com.google.android.material.button.MaterialButton
 
 @Suppress("LargeClass", "TooManyFunctions")
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickListener {
 
     private var isServiceStarted = false
 
@@ -65,10 +67,20 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         (application as MyApp).component.inject(this)
         mainRecyclerViewAdapter = setupRecyclerView()
+        mainRecyclerViewAdapter.setOnItemClickListener(this)
         setupToolBar()
         setupStartService()
         setupStopService()
         setupFilter()
+    }
+    override fun onItemClick(position: Int) {
+        val smsRelayEntity = mainRecyclerViewAdapter.sms[position] // Access the item from the list
+        val intent = Intent(this, CardDetails::class.java).apply {
+            putExtra("date", smsRelayEntity.getDateAndTime())
+            putExtra("phoneNumber", smsRelayEntity.getPhoneNumber())
+            // Pass any other relevant data here
+        }
+        startActivity(intent)
     }
 
     private fun setupFilter() {
@@ -97,8 +109,30 @@ class MainActivity : AppCompatActivity() {
         )
         filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         filterTypeSpinner.adapter = filterAdapter
-    }
 
+        // Add a listener to the phoneNumberSpinner to filter the RecyclerView based on the selected phone number
+        phoneNumberSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                // Get the selected phone number
+                selectedPhoneNumber = parent?.getItemAtPosition(position).toString()
+
+                // Filter the list of SMS relay entities based on the selected phone number
+                val filteredList = if (selectedPhoneNumber == "All") {
+                    smsRelayViewModel.getAllRelayEntities().value.orEmpty()
+                } else {
+                    smsRelayViewModel.getAllRelayEntities().value.orEmpty()
+                        .filter { it.getPhoneNumber() == selectedPhoneNumber }
+                }
+
+                // Update the RecyclerView to display only the filtered SMS relay entities
+                mainRecyclerViewAdapter.setRelayList(filteredList)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // Do nothing when nothing is selected
+            }
+        }
+    }
     private fun setupToolBar() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
