@@ -15,8 +15,22 @@ import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
  */
 
 class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
-    private var sms: List<SmsRelayEntity> = ArrayList()
+    var sms: List<SmsRelayEntity> = ArrayList()
     private var phoneList: MutableList<String> = ArrayList()
+
+    // Define a click listener interface
+    interface OnItemClickListener {
+        fun onItemClick(position: Int)
+    }
+
+    // Member variable for the listener
+    private var listener: OnItemClickListener? = null
+
+    // Method to set the listener
+    fun setOnItemClickListener(listener: OnItemClickListener) {
+        this.listener = listener
+    }
+
     init {
         // Add "ALL" to the initial phoneList
         phoneList.add("All")
@@ -94,7 +108,7 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
         }
     }
 
-    class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
         val phone: TextView = itemView.findViewById<TextView>(R.id.phone)
 
         // val error: TextView = itemView.findViewById(R.id.serverErrorText)
@@ -113,6 +127,15 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
         val receivingMobile: TextView = itemView.findViewById(R.id.sendingMobile)
         val receivedDateTime: TextView = itemView.findViewById<TextView>(R.id.receivedDateTime)
         val duration: TextView = itemView.findViewById<TextView>(R.id.duration)
+        init {
+            // Set click listener for the item view
+            itemView.setOnClickListener(this)
+        }
+
+        override fun onClick(view: View?) {
+            // Delegate click event to the listener
+            listener?.onItemClick(adapterPosition)
+        }
     }
 
     companion object {
