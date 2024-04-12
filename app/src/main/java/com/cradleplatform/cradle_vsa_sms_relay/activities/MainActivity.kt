@@ -42,6 +42,7 @@ import com.google.android.material.button.MaterialButton
 class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickListener {
 
     private var isServiceStarted = false
+    private var selectedPhoneNumber: String? = null
 
     // our reference to the service
     var mService: SmsService? = null
