@@ -158,7 +158,7 @@ class HttpsRequestRepository(
         val firstMessage = smsMessages.removeAt(0)
 
         smsRelayEntity.isServerError = !isSuccessful
-        smsRelayEntity.isServerResponseReceived = true
+        smsRelayEntity.isServerResponseReceived = isSuccessful
         smsRelayEntity.smsPacketsToMobile.addAll(smsMessages)
         smsRelayEntity.totalFragmentsFromMobile = smsMessages.size + 1
         smsRelayEntity.numFragmentsSentToMobile = 1
@@ -171,7 +171,7 @@ class HttpsRequestRepository(
             publishEvent(
                 Pair(
                     smsRelayEntity,
-                    HTTPSResponseSent(phoneNumber, firstMessage)
+                    HTTPSResponseSent(smsRelayEntity, phoneNumber, firstMessage)
                 )
             )
         }
@@ -187,11 +187,9 @@ class HttpsRequestRepository(
         while (retryQueue.peek()?.let { it.second <= startExe } == true) {
             val polledTriple = retryQueue.poll()
             if (
-                polledTriple!!.first.numberOfTriesUploaded == MAX_RETRIES ||
-                polledTriple.first.isServerResponseReceived
+                polledTriple!!.first.numberOfTriesUploaded == MAX_RETRIES &&
+                !polledTriple.first.isServerResponseReceived
             ) {
-                polledTriple.first.isServerError = true
-                polledTriple.first.isServerResponseReceived = false
                 polledTriple.first.isCompleted = false
                 smsRelayRepository.updateBlocking(polledTriple.first)
                 val removed = responseFailures.remove(polledTriple.first)
@@ -206,6 +204,9 @@ class HttpsRequestRepository(
                         )
                     }
                 }
+                continue
+            }
+            if (polledTriple.first.isServerResponseReceived) {
                 continue
             }
 
