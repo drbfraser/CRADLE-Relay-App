@@ -171,7 +171,7 @@ class HttpsRequestRepository(
             publishEvent(
                 Pair(
                     smsRelayEntity,
-                    HTTPSResponseSent(smsRelayEntity, phoneNumber, firstMessage)
+                    HTTPSResponseSent(smsRelayEntity.id, phoneNumber, firstMessage)
                 )
             )
         }

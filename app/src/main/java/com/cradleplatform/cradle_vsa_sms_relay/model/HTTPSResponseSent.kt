@@ -1,7 +1,7 @@
 package com.cradleplatform.cradle_vsa_sms_relay.model
 
 data class HTTPSResponseSent(
-    val relayEntity: SmsRelayEntity,
+    val relayEntityId: String,
     val phoneNumber: String,
     val lastEncryptedPacket: String,
     val lastEncryptedPacketNum: Int = 0,
