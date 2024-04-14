@@ -90,7 +90,13 @@ class HttpsRequestRepository(
         val encryptedData = smsFormatter.getEncryptedData(smsRelayEntity)
         val httpsRequest = HTTPSRequest(smsRelayEntity.getPhoneNumber(), encryptedData)
 
-        retryQueue.add(Triple(smsRelayEntity, System.currentTimeMillis() + DEFAULT_WAIT, coroutineScope))
+        retryQueue.add(
+            Triple(
+                smsRelayEntity,
+                System.currentTimeMillis() + DEFAULT_WAIT,
+                coroutineScope
+            )
+        )
         smsRelayService.postSMSRelay(httpsRequest).enqueue(
             object : Callback<HTTPSResponse> {
                 override fun onResponse(
@@ -135,6 +141,8 @@ class HttpsRequestRepository(
                 // This method will only be called when there is a network error while uploading
                 override fun onFailure(call: Call<HTTPSResponse>, t: Throwable) {
                     Log.e(TAG, t.toString())
+                    responseFailures[smsRelayEntity] =
+                        Pair(GENERIC_NETWORK_ERROR_MESSAGE, GENERIC_NETWORK_ERROR_STATUS_CODE)
                 }
             }
         )
@@ -191,11 +199,14 @@ class HttpsRequestRepository(
                 polledTriple!!.first.numberOfTriesUploaded == MAX_RETRIES &&
                 !polledTriple.first.isServerResponseReceived
             ) {
-                Log.d(TAG, "Attempted sending ${polledTriple.first.id} $MAX_RETRIES times; dropping")
+                Log.d(
+                    TAG,
+                    "Attempted sending ${polledTriple.first.id} $MAX_RETRIES times; dropping"
+                )
                 polledTriple.first.isCompleted = false
                 smsRelayRepository.updateBlocking(polledTriple.first)
                 val removed = responseFailures.remove(polledTriple.first)
-                @SuppressWarnings("LoopWithTooManyJumpStatements")
+                @Suppress("LoopWithTooManyJumpStatements")
                 if (removed != null) {
                     synchronized(this@HttpsRequestRepository) {
                         updateSmsRelayEntity(
@@ -209,10 +220,10 @@ class HttpsRequestRepository(
                 } else {
                     synchronized(this@HttpsRequestRepository) {
                         updateSmsRelayEntity(
-                            HTTP_RESPONSE_MESSAGE_TIMEOUT,
+                            HTTP_RESPONSE_TIMEOUT_MESSAGE,
                             false,
                             polledTriple.first,
-                            HTTP_RESPONSE_STATUS_CODE_TIMEOUT,
+                            HTTP_RESPONSE_TIMEOUT_STATUS_CODE,
                             polledTriple.third
                         )
                     }
@@ -247,7 +258,9 @@ class HttpsRequestRepository(
         private const val DEFAULT_WAIT = 3000L
         private const val MAX_WAIT = 30000.0
         private const val RETRY_CHECK_INTERVAL_MS: Long = 250
-        private const val HTTP_RESPONSE_MESSAGE_TIMEOUT = "Server took too long to respond."
-        private const val HTTP_RESPONSE_STATUS_CODE_TIMEOUT = 504
+        private const val GENERIC_NETWORK_ERROR_MESSAGE = "There was a server-side error."
+        private const val GENERIC_NETWORK_ERROR_STATUS_CODE = 500
+        private const val HTTP_RESPONSE_TIMEOUT_MESSAGE = "Server took too long to respond."
+        private const val HTTP_RESPONSE_TIMEOUT_STATUS_CODE = 504
     }
 }
