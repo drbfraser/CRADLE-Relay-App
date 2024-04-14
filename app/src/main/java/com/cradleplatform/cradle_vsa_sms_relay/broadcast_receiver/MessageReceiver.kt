@@ -140,9 +140,13 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                         relayEntity.numFragmentsSentToMobile!! + 1
                     smsRelayRepository.updateBlocking(relayEntity)
                     smsFormatter.sendMessage(phoneNumber, encryptedPacket)
-                    Log.d(tag,"id = ${relayEntity.id}. numFragmentsSentToMobile = ${relayEntity.numFragmentsSentToMobile}")
+                    Log.d(
+                        tag,
+                        "id = ${relayEntity.id}. numFragmentsSentToMobile = ${relayEntity.numFragmentsSentToMobile}"
+                    )
                     retryQueue.remove(retryHash[relayEntity])
-                    retryHash[relayEntity] = HTTPSResponseSent(relayEntity.id, phoneNumber, encryptedPacket, fragmentNum)
+                    retryHash[relayEntity] =
+                        HTTPSResponseSent(relayEntity.id, phoneNumber, encryptedPacket, fragmentNum)
                     retryQueue.add(retryHash[relayEntity])
                 } else {
                     relayEntity.isCompleted = true
@@ -324,16 +328,25 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
             val httpsResponseSent = retryQueue.poll()
             val relayEntity = smsRelayRepository.getRelayBlocking(httpsResponseSent.relayEntityId)
             if (httpsResponseSent!!.numberOfRetries == HTTPSResponseSent.MAX_RETRIES) {
-                Log.d(tag, "HTTPS response to ${relayEntity!!.id} has reached maximum number of retries; dropping. Message = ${httpsResponseSent.lastEncryptedPacket}")
+                Log.d(
+                    tag,
+                    "HTTPS response to ${relayEntity!!.id} has reached maximum number of retries; dropping. Message = ${httpsResponseSent.lastEncryptedPacket}"
+                )
                 retryHash.remove(relayEntity)
                 continue
             }
             if (httpsResponseSent.lastEncryptedPacketNum < relayEntity!!.numFragmentsSentToMobile!! - 1) {
-                Log.d(tag, "HTTPS response to ${relayEntity.id} is outdated; dropping. Message = ${httpsResponseSent.lastEncryptedPacket}")
+                Log.d(
+                    tag,
+                    "HTTPS response to ${relayEntity.id} is outdated; dropping. Message = ${httpsResponseSent.lastEncryptedPacket}"
+                )
                 retryHash.remove(relayEntity)
                 continue
             }
-            Log.d(tag, "Retrying send to ${relayEntity.id}. Message = ${httpsResponseSent.lastEncryptedPacket}. lastEncryptedPacketNum = ${httpsResponseSent.lastEncryptedPacketNum}. numFragmentsSentToMobile = ${relayEntity.numFragmentsSentToMobile}. relayEntity = $relayEntity")
+            Log.d(
+                tag,
+                "Retrying send to ${relayEntity.id}. Message = ${httpsResponseSent.lastEncryptedPacket}"
+            )
             smsFormatter.sendMessage(
                 httpsResponseSent.phoneNumber,
                 httpsResponseSent.lastEncryptedPacket
