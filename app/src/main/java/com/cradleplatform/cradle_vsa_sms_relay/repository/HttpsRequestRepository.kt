@@ -196,41 +196,45 @@ class HttpsRequestRepository(
         while (retryQueue.peek()?.let { it.second <= startExe } == true) {
             val polledTriple = retryQueue.poll()
             if (
-                (polledTriple!!.first.numberOfTriesUploaded == MAX_RETRIES &&
-                !polledTriple.first.isServerResponseReceived) || polledTriple.first.isServerResponseReceived
+                polledTriple!!.first.numberOfTriesUploaded == MAX_RETRIES &&
+                !polledTriple.first.isServerResponseReceived
             ) {
-                if (polledTriple.first.isServerResponseReceived) {
-                    Log.d(TAG, "Already received ${polledTriple.first.id}; dropping")
+                Log.d(
+                    TAG,
+                    "Attempted sending ${polledTriple.first.id} $MAX_RETRIES times; dropping"
+                )
+                polledTriple.first.isCompleted = false
+                smsRelayRepository.updateBlocking(polledTriple.first)
+                val removed = responseFailures.remove(polledTriple.first)
+                @Suppress("LoopWithTooManyJumpStatements")
+                if (removed != null) {
+                    synchronized(this@HttpsRequestRepository) {
+                        updateSmsRelayEntity(
+                            removed.first,
+                            false,
+                            polledTriple.first,
+                            removed.second,
+                            polledTriple.third
+                        )
+                    }
                 } else {
-                    Log.d(
-                        TAG,
-                        "Attempted sending ${polledTriple.first.id} $MAX_RETRIES times; dropping"
-                    )
-                    polledTriple.first.isCompleted = false
-                    smsRelayRepository.updateBlocking(polledTriple.first)
-                    val removed = responseFailures.remove(polledTriple.first)
-                    if (removed != null) {
-                        synchronized(this@HttpsRequestRepository) {
-                            updateSmsRelayEntity(
-                                removed.first,
-                                false,
-                                polledTriple.first,
-                                removed.second,
-                                polledTriple.third
-                            )
-                        }
-                    } else {
-                        synchronized(this@HttpsRequestRepository) {
-                            updateSmsRelayEntity(
-                                HTTP_RESPONSE_TIMEOUT_MESSAGE,
-                                false,
-                                polledTriple.first,
-                                HTTP_RESPONSE_TIMEOUT_STATUS_CODE,
-                                polledTriple.third
-                            )
-                        }
+                    synchronized(this@HttpsRequestRepository) {
+                        updateSmsRelayEntity(
+                            HTTP_RESPONSE_TIMEOUT_MESSAGE,
+                            false,
+                            polledTriple.first,
+                            HTTP_RESPONSE_TIMEOUT_STATUS_CODE,
+                            polledTriple.third
+                        )
                     }
                 }
+            }
+            if (polledTriple.first.isServerResponseReceived) {
+                Log.d(TAG, "Already received ${polledTriple.first.id}; dropping")
+            }
+            if ((polledTriple.first.numberOfTriesUploaded == MAX_RETRIES &&
+                        !polledTriple.first.isServerResponseReceived) || polledTriple.first.isServerResponseReceived
+            ) {
                 continue
             }
             Log.d(TAG, "Retrying send to ${polledTriple.first.id}")
