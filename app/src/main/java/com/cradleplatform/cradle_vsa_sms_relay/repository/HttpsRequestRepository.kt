@@ -90,6 +90,7 @@ class HttpsRequestRepository(
         val encryptedData = smsFormatter.getEncryptedData(smsRelayEntity)
         val httpsRequest = HTTPSRequest(smsRelayEntity.getPhoneNumber(), encryptedData)
 
+        retryQueue.add(Triple(smsRelayEntity, System.currentTimeMillis() + DEFAULT_WAIT, coroutineScope))
         smsRelayService.postSMSRelay(httpsRequest).enqueue(
             object : Callback<HTTPSResponse> {
                 override fun onResponse(
@@ -190,6 +191,7 @@ class HttpsRequestRepository(
                 polledTriple!!.first.numberOfTriesUploaded == MAX_RETRIES &&
                 !polledTriple.first.isServerResponseReceived
             ) {
+                Log.d(TAG, "Attempted sending ${polledTriple.first.id} $MAX_RETRIES times; dropping")
                 polledTriple.first.isCompleted = false
                 smsRelayRepository.updateBlocking(polledTriple.first)
                 val removed = responseFailures.remove(polledTriple.first)
@@ -203,12 +205,24 @@ class HttpsRequestRepository(
                             polledTriple.third
                         )
                     }
+                } else {
+                    synchronized(this@HttpsRequestRepository) {
+                        updateSmsRelayEntity(
+                            HTTP_RESPONSE_MESSAGE_TIMEOUT,
+                            false,
+                            polledTriple.first,
+                            HTTP_RESPONSE_STATUS_CODE_TIMEOUT,
+                            polledTriple.third
+                        )
+                    }
                 }
                 continue
             }
             if (polledTriple.first.isServerResponseReceived) {
+                Log.d(TAG, "Already received ${polledTriple.first.id}; dropping")
                 continue
             }
+            Log.d(TAG, "Retrying send to ${polledTriple.first.id}")
 
             polledTriple.first.numberOfTriesUploaded += 1
             smsRelayRepository.updateBlocking(polledTriple.first)
@@ -232,5 +246,7 @@ class HttpsRequestRepository(
         private const val DEFAULT_WAIT = 3000L
         private const val MAX_WAIT = 30000.0
         private const val RETRY_CHECK_INTERVAL_MS: Long = 250
+        private const val HTTP_RESPONSE_MESSAGE_TIMEOUT = "Server took too long to respond."
+        private const val HTTP_RESPONSE_STATUS_CODE_TIMEOUT = 504
     }
 }
