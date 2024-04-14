@@ -209,7 +209,6 @@ class HttpsRequestRepository(
                     polledTriple.first.isCompleted = false
                     smsRelayRepository.updateBlocking(polledTriple.first)
                     val removed = responseFailures.remove(polledTriple.first)
-                    @Suppress("LoopWithTooManyJumpStatements")
                     if (removed != null) {
                         synchronized(this@HttpsRequestRepository) {
                             updateSmsRelayEntity(
