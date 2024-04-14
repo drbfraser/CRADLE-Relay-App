@@ -1,8 +1,10 @@
 package com.cradleplatform.cradle_vsa_sms_relay.model
 
 data class HTTPSResponseSent(
+    val relayEntityId: String,
     val phoneNumber: String,
     val lastEncryptedPacket: String,
+    val lastEncryptedPacketNum: Int = 0,
     var timestamp: Long = System.currentTimeMillis() + DEFAULT_WAIT,
     var numberOfRetries: Int = 0
 ) : Comparable<HTTPSResponseSent> {
