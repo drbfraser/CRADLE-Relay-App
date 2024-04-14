@@ -327,19 +327,21 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
         while (retryQueue.peek()?.let { it.timestamp <= startExe } == true) {
             val httpsResponseSent = retryQueue.poll()
             val relayEntity = smsRelayRepository.getRelayBlocking(httpsResponseSent.relayEntityId)
-            if (httpsResponseSent!!.numberOfRetries == HTTPSResponseSent.MAX_RETRIES) {
-                Log.d(
-                    tag,
-                    "HTTPS response to ${relayEntity!!.id} has reached maximum number of retries; dropping. Message = ${httpsResponseSent.lastEncryptedPacket}"
-                )
-                retryHash.remove(relayEntity)
-                continue
-            }
-            if (httpsResponseSent.lastEncryptedPacketNum < relayEntity!!.numFragmentsSentToMobile!! - 1) {
-                Log.d(
-                    tag,
-                    "HTTPS response to ${relayEntity.id} is outdated; dropping. Message = ${httpsResponseSent.lastEncryptedPacket}"
-                )
+            if (httpsResponseSent!!.numberOfRetries == HTTPSResponseSent.MAX_RETRIES ||
+                httpsResponseSent.lastEncryptedPacketNum < relayEntity!!.numFragmentsSentToMobile!! - 1) {
+                if (httpsResponseSent!!.numberOfRetries == HTTPSResponseSent.MAX_RETRIES) {
+                    Log.d(
+                        tag,
+                        "HTTPS response to ${relayEntity!!.id} has reached maximum number of " +
+                                "retries; dropping. Message = ${httpsResponseSent.lastEncryptedPacket}"
+                    )
+                } else {
+                    Log.d(
+                        tag,
+                        "HTTPS response to ${relayEntity!!.id} is outdated; dropping. Message = " +
+                                httpsResponseSent.lastEncryptedPacket
+                    )
+                }
                 retryHash.remove(relayEntity)
                 continue
             }
