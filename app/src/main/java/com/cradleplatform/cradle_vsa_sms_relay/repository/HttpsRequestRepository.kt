@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.TimeUnit
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
@@ -93,10 +94,14 @@ class HttpsRequestRepository(
         retryQueue.add(
             Triple(
                 smsRelayEntity,
-                System.currentTimeMillis() + DEFAULT_WAIT,
+                System.currentTimeMillis() + min(
+                    DEFAULT_WAIT * 2.0.pow(smsRelayEntity.numberOfTriesUploaded),
+                    MAX_WAIT
+                ).toLong(),
                 coroutineScope
             )
         )
+
         smsRelayService.postSMSRelay(httpsRequest).enqueue(
             object : Callback<HTTPSResponse> {
                 override fun onResponse(
@@ -165,6 +170,9 @@ class HttpsRequestRepository(
         )
 
         val firstMessage = smsMessages.removeAt(0)
+
+        // Handles the case when there are no retry attempts
+        smsRelayEntity.numberOfTriesUploaded = max(1, smsRelayEntity.numberOfTriesUploaded)
 
         smsRelayEntity.isServerError = !isSuccessful
         smsRelayEntity.isServerResponseReceived = isSuccessful
@@ -242,15 +250,6 @@ class HttpsRequestRepository(
             polledTriple.first.numberOfTriesUploaded += 1
             smsRelayRepository.updateBlocking(polledTriple.first)
             sendToServer(polledTriple.first, polledTriple.third)
-
-            retryQueue.add(
-                Triple(
-                    polledTriple.first, System.currentTimeMillis() + min(
-                        DEFAULT_WAIT * 2.0.pow(polledTriple.first.numberOfTriesUploaded),
-                        MAX_WAIT
-                    ).toLong(), polledTriple.third
-                )
-            )
         }
     }
 

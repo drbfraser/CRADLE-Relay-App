@@ -180,10 +180,6 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                         false
                     )
 
-                    if (newRelayEntity.numFragmentsReceived == newRelayEntity.totalFragmentsFromMobile) {
-                        newRelayEntity.numberOfTriesUploaded = 1
-                    }
-
                     smsRelayRepository.insertBlocking(newRelayEntity)
 
                     smsFormatter.sendAckMessage(newRelayEntity)
@@ -218,10 +214,6 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                     relayEntity!!.timestampsDataMessagesReceived.add(currentTime)
                     relayEntity.smsPacketsFromMobile.add(message)
                     relayEntity.numFragmentsReceived += 1
-
-                    if (relayEntity.numFragmentsReceived == relayEntity.totalFragmentsFromMobile) {
-                        relayEntity.numberOfTriesUploaded = 1
-                    }
 
                     smsRelayRepository.updateBlocking(relayEntity)
 
