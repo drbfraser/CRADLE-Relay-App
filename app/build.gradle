@@ -62,8 +62,8 @@ android {
         implementation 'com.google.firebase:firebase-crashlytics:18.6.2'
 
         def retrofitVersion = "2.5.0"
-        implementation "com.squareup.retrofit2:retrofit:$retrofitVersion"
-        implementation "com.squareup.retrofit2:converter-gson:$retrofitVersion"
+        implementation "com.squareup.retrofit2:retrofit:2.5.0"
+        implementation "com.squareup.retrofit2:converter-gson:2.5.0"
     }
     namespace 'com.cradleplatform.cradle_vsa_sms_relay'
 
@@ -82,8 +82,11 @@ dependencies {
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1"
     androidTestImplementation 'androidx.test.ext:junit-ktx:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1-Beta'
     androidTestImplementation 'androidx.test:runner:1.5.2'
     androidTestImplementation 'androidx.test:rules:1.5.0'
+    androidTestImplementation 'com.squareup.okhttp3:mockwebserver:3.12.1'
+    androidTestImplementation 'com.squareup.okhttp3:okhttp:3.12.1'
 
     detekt "io.gitlab.arturbosch.detekt:detekt-formatting:$detekt_version"
     detekt("io.gitlab.arturbosch.detekt:detekt-cli:$detekt_version")
