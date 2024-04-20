@@ -22,12 +22,16 @@ class CardDetails : AppCompatActivity() {
 
         val textDate: TextView = findViewById(R.id.textDate)
         val textPhoneNumber: TextView = findViewById(R.id.textPhoneNumber)
+        val durationText: TextView = findViewById(R.id.durationtext)
+
 
         val date: String? = intent.getStringExtra("date")
         val phoneNumber: String? = intent.getStringExtra("phoneNumber")
+        val duration: String? = intent.getStringExtra("duration")
         // Retrieve other data if passed
 
         textDate.text = "Date: $date"
         textPhoneNumber.text = "Phone Number: $phoneNumber"
+        durationText.text = "Duration: $duration"
     }
 }
