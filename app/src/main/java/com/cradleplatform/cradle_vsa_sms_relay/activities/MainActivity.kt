@@ -29,6 +29,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker.PERMISSION_DENIED
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.observe
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.cradleplatform.cradle_vsa_sms_relay.R
@@ -79,6 +80,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
         val intent = Intent(this, CardDetails::class.java).apply {
             putExtra("date", smsRelayEntity.getDateAndTime())
             putExtra("phoneNumber", smsRelayEntity.getPhoneNumber())
+            putExtra("duration", smsRelayEntity.getDuration())
             // Pass any other relevant data here
         }
         startActivity(intent)
@@ -117,16 +119,20 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
                 // Get the selected phone number
                 selectedPhoneNumber = parent?.getItemAtPosition(position).toString()
 
-                // Filter the list of SMS relay entities based on the selected phone number
-                val filteredList = if (selectedPhoneNumber == "All") {
-                    smsRelayViewModel.getAllRelayEntities().value.orEmpty()
-                } else {
-                    smsRelayViewModel.getAllRelayEntities().value.orEmpty()
-                        .filter { it.getPhoneNumber() == selectedPhoneNumber }
-                }
+                // Filter the list of SMS relay entities based on the selected phone number and filter type
+                filterList()
+            }
 
-                // Update the RecyclerView to display only the filtered SMS relay entities
-                mainRecyclerViewAdapter.setRelayList(filteredList)
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // Do nothing when nothing is selected
+            }
+        }
+
+        // Add a listener to the filterTypeSpinner to filter the RecyclerView based on the selected filter type
+        filterTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                // Filter the list of SMS relay entities based on the selected filter type
+                filterList()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -134,6 +140,30 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
             }
         }
     }
+
+    private fun filterList() {
+        // Get the selected filter type
+        val selectedFilter = findViewById<Spinner>(R.id.filterType).selectedItem.toString()
+
+        // Filter the list of SMS relay entities based on the selected phone number and filter type
+        val filteredList = if (selectedPhoneNumber == "All") {
+            smsRelayViewModel.getAllRelayEntities().value.orEmpty()
+        } else {
+            smsRelayViewModel.getAllRelayEntities().value.orEmpty()
+                .filter { it.getPhoneNumber() == selectedPhoneNumber }
+        }
+
+        // Apply additional filtering based on the selected filter type
+        val finalFilteredList = when (selectedFilter) {
+            "Only Successful" -> filteredList.filter { it.isServerError == false }
+            "Only Failed" -> filteredList.filter { it.isServerError == true }
+            else -> filteredList
+        }
+
+        // Update the RecyclerView to display only the filtered SMS relay entities
+        mainRecyclerViewAdapter.setRelayList(finalFilteredList)
+    }
+
     private fun setupToolBar() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)

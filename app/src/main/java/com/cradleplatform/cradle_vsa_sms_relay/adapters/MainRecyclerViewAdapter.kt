@@ -72,45 +72,92 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
             holder.receivingMobile.text = "Received all messages"
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
-            holder.imageView1.alpha = alphaDim
-            holder.imageView2.alpha = alphaDim
+            holder.imageView1.alpha = Companion.alphaDim
+            holder.imageView2.alpha = Companion.alphaDim
+            holder.failedMark1.visibility = View.INVISIBLE
+            holder.failedMark2.visibility = View.INVISIBLE
         }
         if (smsRelayEntity.isServerError == true || smsRelayEntity.isServerResponseReceived == true) {
-            holder.imageView1.alpha = alphaDim
-            holder.imageView2.alpha = Companion.alphaDim
-            holder.imageView3.alpha = Companion.alphaDim
-            holder.checkMark3.visibility = View.VISIBLE
-            holder.checkMark1.visibility = View.VISIBLE
-            holder.checkMark2.visibility = View.VISIBLE
+            setImageViewsForServerError(holder)
         }
         if (smsRelayEntity.smsPacketsToMobile.isEmpty() && smsRelayEntity.isServerResponseReceived) {
             holder.checkMark4.visibility = View.VISIBLE
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
             holder.checkMark3.visibility = View.VISIBLE
-            holder.imageView1.alpha = alphaDim
-            holder.imageView2.alpha = alphaDim
-            holder.imageView3.alpha = alphaDim
-            holder.imageView4.alpha = alphaDim
+            holder.imageView1.alpha = Companion.alphaDim
+            holder.imageView2.alpha = Companion.alphaDim
+            holder.imageView3.alpha = Companion.alphaDim
+            holder.imageView4.alpha = Companion.alphaDim
+            // Hide failed marks if check marks are visible
+            holder.failedMark1.visibility = View.INVISIBLE
+            holder.failedMark2.visibility = View.INVISIBLE
+            holder.failedMark3.visibility = View.INVISIBLE
+            holder.failedMark4.visibility = View.INVISIBLE
+        }
+
+        if (smsRelayEntity.isServerError == true) {
+            holder.receivingMobile.text = "Something went wrong on server..."
         }
 
         if (smsRelayEntity.isCompleted) {
             holder.duration.text = smsRelayEntity.getDuration()
-            holder.receivingMobile.text = "Completed"
-            holder.checkMark4.visibility = View.VISIBLE
-            holder.checkMark1.visibility = View.VISIBLE
-            holder.checkMark2.visibility = View.VISIBLE
-            holder.checkMark3.visibility = View.VISIBLE
-            holder.imageView1.alpha = alphaDim
-            holder.imageView2.alpha = alphaDim
-            holder.imageView3.alpha = alphaDim
-            holder.imageView4.alpha = alphaDim
+            setImageViewsForComplete(holder)
+
+        }
+        else{
+            setImageViewsForNoneComplete(holder)
+        }
+    }
+
+    private fun setImageViewsForServerError(holder: SMSViewHolder) {
+        holder.imageView1.alpha = Companion.alphaDim
+        holder.imageView2.alpha = Companion.alphaDim
+        holder.imageView3.alpha = Companion.alphaDim
+        holder.checkMark3.visibility = View.VISIBLE
+        holder.checkMark1.visibility = View.VISIBLE
+        holder.checkMark2.visibility = View.VISIBLE
+        holder.failedMark1.visibility = View.INVISIBLE
+        holder.failedMark2.visibility = View.INVISIBLE
+        holder.failedMark3.visibility = View.INVISIBLE
+    }
+    private fun setImageViewsForComplete(holder: SMSViewHolder) {
+        holder.receivingMobile.text = "Completed"
+        holder.checkMark4.visibility = View.VISIBLE
+        holder.checkMark1.visibility = View.VISIBLE
+        holder.checkMark2.visibility = View.VISIBLE
+        holder.checkMark3.visibility = View.VISIBLE
+        holder.failedMark1.visibility = View.INVISIBLE
+        holder.failedMark2.visibility = View.INVISIBLE
+        holder.failedMark3.visibility = View.INVISIBLE
+        holder.failedMark4.visibility = View.INVISIBLE
+        holder.imageView1.alpha = Companion.alphaDim
+        holder.imageView2.alpha = Companion.alphaDim
+        holder.imageView3.alpha = Companion.alphaDim
+        holder.imageView4.alpha = Companion.alphaDim
+    }
+
+    private fun setImageViewsForNoneComplete(holder: SMSViewHolder) {
+        if(holder.checkMark1.visibility == View.INVISIBLE) {
+            holder.failedMark1.visibility = View.VISIBLE
+            holder.imageView1.alpha = Companion.alphaDim
+        }
+        if(holder.checkMark2.visibility == View.INVISIBLE) {
+            holder.failedMark2.visibility = View.VISIBLE
+            holder.imageView2.alpha = Companion.alphaDim
+        }
+        if(holder.checkMark3.visibility == View.INVISIBLE) {
+            holder.failedMark3.visibility = View.VISIBLE
+            holder.imageView3.alpha = Companion.alphaDim
+        }
+        if(holder.checkMark4.visibility == View.INVISIBLE) {
+            holder.failedMark4.visibility = View.VISIBLE
+            holder.imageView4.alpha = Companion.alphaDim
         }
     }
 
     inner class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
         val phone: TextView = itemView.findViewById<TextView>(R.id.phone)
-
         // val error: TextView = itemView.findViewById(R.id.serverErrorText)
         val checkMark1: ImageView = itemView.findViewById(R.id.receivedMobileCheckMark)
         val checkMark2: ImageView = itemView.findViewById(R.id.UploadServerCheckMark)
@@ -140,6 +187,5 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
 
     companion object {
         private const val alphaDim = 0.2F
-//        private const val alphaFull = 1F
     }
 }
