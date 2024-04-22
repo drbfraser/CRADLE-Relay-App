@@ -48,12 +48,9 @@ private class AuthInterceptor(private val token: String) : Interceptor {
 class HttpsRequestRepository(
     token: String,
     private val smsFormatter: SMSFormatter,
-    private val smsRelayRepository: SmsRelayRepository
+    private val smsRelayRepository: SmsRelayRepository,
+    baseUrl: String
 ) {
-
-    // Todo remove hardcoding for base url - move to settings.xml
-    private val baseUrl = "http://10.0.2.2:5000/"
-
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(AuthInterceptor(token))
         .build()

@@ -54,7 +54,9 @@ class DataModule {
         smsRelayRepository: SmsRelayRepository
     ): HttpsRequestRepository {
         val token = sharedPreference.getString(VolleyRequests.TOKEN, "") ?: ""
-        return HttpsRequestRepository(token, smsFormatter, smsRelayRepository)
+        val defaultBaseUrl = "http://10.0.2.2:5000/"
+        val baseUrl = sharedPreference.getString("base_url", defaultBaseUrl) ?: defaultBaseUrl
+        return HttpsRequestRepository(token, smsFormatter, smsRelayRepository, baseUrl)
     }
 
     @Provides

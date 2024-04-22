@@ -84,7 +84,6 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
         Log.d(tag, "Message Received")
         val data = p1?.extras
         val pdus = data?.get("pdus") as Array<*>
-
         // may receive multiple messages at the same time from different numbers so
         // we keep track of all the messages from different numbers
         val messages = processSMSMessages(pdus)
