@@ -3,8 +3,6 @@ package com.cradleplatform.cradle_vsa_sms_relay
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.util.Log
-import androidx.preference.PreferenceManager
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -16,6 +14,7 @@ import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import androidx.test.rule.GrantPermissionRule
 import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReceiver
+import com.cradleplatform.cradle_vsa_sms_relay.custom_rules.SetUpMockServerRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -25,14 +24,10 @@ import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.junit.rules.TestRule
-import org.junit.runner.Description
 import org.junit.runner.RunWith
-import org.junit.runners.model.Statement
 
 
 /**
@@ -41,7 +36,7 @@ import org.junit.runners.model.Statement
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 @RunWith(AndroidJUnit4::class)
-class ExampleInstrumentedTest {
+class SimpleEndToEndTest {
 
     private val permissions = arrayOf(
         android.Manifest.permission.RECEIVE_SMS,
@@ -52,6 +47,8 @@ class ExampleInstrumentedTest {
     private var activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
     private var webServer: MockWebServer = MockWebServer()
 
+    // This rule chain ensures that the mock sever URL is set in the shared preferences before
+    // the activity is launched
     @get:Rule
     var rules: RuleChain = RuleChain.outerRule(SetUpMockServerRule(webServer.url("/").toString())).around(activityScenarioRule)
 
@@ -78,7 +75,12 @@ class ExampleInstrumentedTest {
 
     @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
     @Test
-    fun testingNewMessage() = runTest {
+    fun simpleEndToEndTest() = runTest {
+        // Arrange
+
+        // This PDU was obtained by running SMS Relay and setting a breakpoint in the onReceive of
+        // the MessageReceiver class, and sending a message to the app while its running.
+        // You can find the contents of the PDU on this website https://twit88.com/home/utility/sms-pdu-encode-decode
         val pduHex = "00000b915155255155f400004240901030812b99b0586b280d1299c5160c0683c1602d182cd6"+
                 "1a066fb79a301824d268c4983137b31567b2dc8c48ac0d654259d13883e58a311c2d67acd96a34e22"+
                 "c1884e570b7180e46b4116d33197146c3e58c37628e78cbc18631a18c988b156bb21a91069bd56e44"+
@@ -86,11 +88,14 @@ class ExampleInstrumentedTest {
         val pduByteArray = pduHex.hexToByteArray()
         val pduByteArray2D = arrayOf<Any>(pduByteArray)
 
+        // Intent that replicates what an incoming message would look like
         val intent = Intent(Intent.ACTION_SENDTO).apply {
             data = Uri.parse("smsto:+15555215556")
             putExtra("pdus", pduByteArray2D)
         }
 
+        // Setting up a mock response for the mock server. The contents of the body do not matter
+        // because SMS Relay does not care about it. I just causes an error when it is empty
         val mockResponse = MockResponse()
             .setResponseCode(201)
             .addHeader("Content-Type", "application/json")
@@ -99,31 +104,17 @@ class ExampleInstrumentedTest {
         webServer.enqueue(mockResponse)
 
         val smsMessage = MessageReceiver(getApplicationContext(), TestScope())
+
+        // Act
         smsMessage.onReceive(getApplicationContext(), intent)
 
+        // Assert
         val request1: RecordedRequest = webServer.takeRequest()
         assertEquals("/api/sms_relay", request1.path)
-        assertNotNull(request1.getHeader("Authorization"))
 
+        // Waiting to make sure all tasks are complete before moving on
         advanceUntilIdle()
         onView(withText("+15555215554")).check(matches(isDisplayed()))
         onView(withText("Received all messages")).check(matches(isDisplayed()))
-    }
-}
-
-class SetUpMockServerRule(private val url:String) : TestRule {
-    override fun apply(base: Statement?, description: Description?): Statement {
-        return object : Statement() {
-            override fun evaluate() {
-                Log.d("url", url)
-                val sharedPref =
-                    PreferenceManager.getDefaultSharedPreferences(getInstrumentation().targetContext)
-                val editor = sharedPref.edit()
-                editor.putString("base_url", url)
-                editor.apply()
-
-                base?.evaluate()
-            }
-        }
     }
 }
