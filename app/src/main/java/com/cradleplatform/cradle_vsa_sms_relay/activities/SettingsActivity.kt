@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -50,6 +51,10 @@ class SettingsActivity : AppCompatActivity() {
             val reuploadSwitchKey = getString(R.string.reuploadSwitchPrefKey)
             val signoutKey = getString(R.string.signout)
             val syncNowkey = getString(R.string.sync_now_key)
+            val hostnameTextKey = getString(R.string.key_server_hostname)
+            val portTextKey = getString(R.string.key_server_port)
+            val httpsSwitchKey = getString(R.string.key_server_use_https)
+
             val defaultSharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(this.requireContext())
             // show/ hide pref on default
@@ -91,6 +96,13 @@ class SettingsActivity : AppCompatActivity() {
                 }
                 true
             }
+//            defaultSharedPreferences.registerOnSharedPreferenceChangeListener{prefs, key->
+//                if(key == hostnameTextKey || key == portTextKey || key == httpsSwitchKey){
+//
+//            }}
+//            val hostnamePref =  findPreference<Preference>(hostnameTextKey)
+//
+//            val portPref = findPreference<Preference>(portTextKey)
         }
 
         fun signout() {
