@@ -2,6 +2,7 @@ package com.cradleplatform.cradle_vsa_sms_relay.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -14,14 +15,20 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreferenceCompat
 import com.cradleplatform.cradle_vsa_sms_relay.R
+import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
+import com.cradleplatform.cradle_vsa_sms_relay.model.Settings
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService.Companion.isServiceRunningInForeground
+import javax.inject.Inject
+
 
 class SettingsActivity : AppCompatActivity() {
-
+    @Inject
+    lateinit var settings: Settings
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.settings_activity)
+        (application as MyApp).component.inject(this)
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.settings, SettingsFragment())
@@ -30,6 +37,7 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.back_button).setOnClickListener {
             onBackPressed()
         }
+
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -38,6 +46,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
+        Log.d("settings", "this is url ${settings.baseUrl}")
         super.onBackPressed()
         overridePendingTransition(R.anim.nothing, R.anim.slide_up)
     }

@@ -83,6 +83,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
     @Suppress("LongMethod", "CyclomaticComplexMethod")
     override fun onReceive(p0: Context?, p1: Intent?) {
         Log.d(tag, "Message Received")
+        httpsRequestRepository.printBaseUrl()
         val data = p1?.extras
         val pdus = data?.get("pdus") as Array<*>
         // may receive multiple messages at the same time from different numbers so

@@ -71,7 +71,7 @@ class DataModule {
 //        }
 //
 //        val port = sharedPreference.getString("key_server_port","5000")
-//        val defaultBaseUrl = "http://10.0.2.2:5000/"
+//        val defaultBaseUrl = "http://ti:5000/"
 //        val constructedUrl = "$protocol$hostname/$port/"
         val constructedUrl = settings.baseUrl
         Log.d(TAG, "this is url $constructedUrl")
