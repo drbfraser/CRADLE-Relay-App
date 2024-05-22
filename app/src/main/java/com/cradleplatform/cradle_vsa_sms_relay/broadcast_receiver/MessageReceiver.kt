@@ -65,6 +65,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
             RETRY_CHECK_INTERVAL_MS,
             TimeUnit.MILLISECONDS
         )
+        httpsRequestRepository.printBaseUrl()
     }
 
     fun stop() {
@@ -260,6 +261,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
             val startExe = System.currentTimeMillis()
             try {
                 Log.d(tag, "Actively checking for expired keys")
+                httpsRequestRepository.printBaseUrl()
 
                 val hashSize = hash.size
                 hash.forEach { (key, _) ->

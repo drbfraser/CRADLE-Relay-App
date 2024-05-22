@@ -56,4 +56,9 @@
     <string name="key_server_hostname">settings_server_hostname</string>
     <string name="key_server_port">settings_server_port</string>
     <string name="key_server_use_https">settings_server_use_https</string>
+
+    <string name="base_url">base_url</string>
+    <string name="default_base_url">http://10.0.2.2:5000/</string>
+
+
 </resources>
