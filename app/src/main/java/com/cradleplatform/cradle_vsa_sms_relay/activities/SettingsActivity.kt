@@ -8,7 +8,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
@@ -17,7 +16,6 @@ import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreferenceCompat
 import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.model.Settings
 import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
 import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
@@ -49,7 +47,6 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        Log.d("settings", "this is url ${urlManager.base}")
         super.onBackPressed()
         overridePendingTransition(R.anim.nothing, R.anim.slide_up)
     }
@@ -64,28 +61,25 @@ class SettingsActivity : AppCompatActivity() {
             val signoutKey = getString(R.string.signout)
             val syncNowkey = getString(R.string.sync_now_key)
             val accountSettingsKey = getString(R.string.key_account_settings)
-            val hostnameTextKey = getString(R.string.key_server_hostname)
-            val portTextKey = getString(R.string.key_server_port)
-            val httpsSwitchKey = getString(R.string.key_server_use_https)
 
             val defaultSharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(this.requireContext())
 
             val isLoggedIn = defaultSharedPreferences.contains(VolleyRequests.TOKEN)
 
-            // show/ hide pref on default and if the user is logged in
+            // show/ hide pref on default
             val syncNowPref = findPreference<Preference>(syncNowkey)
             syncNowPref?.isVisible = defaultSharedPreferences.getBoolean(reuploadSwitchKey, true)
 
             val listPref = findPreference<ListPreference>(reuploadListKey)
-            listPref?.isVisible = defaultSharedPreferences.getBoolean(reuploadSwitchKey, true) && isLoggedIn
+            listPref?.isVisible = defaultSharedPreferences.getBoolean(reuploadSwitchKey, true)
 
             // setting values based on switch changes
             findPreference<SwitchPreferenceCompat>(reuploadSwitchKey)?.setOnPreferenceClickListener { preference ->
                 listPref?.isVisible =
-                    preference.sharedPreferences?.getBoolean(reuploadSwitchKey, false) ?: false && isLoggedIn
+                    preference.sharedPreferences?.getBoolean(reuploadSwitchKey, false) ?: false
                 syncNowPref?.isVisible = PreferenceManager.getDefaultSharedPreferences(this.requireContext())
-                    .getBoolean(reuploadSwitchKey, false) && isLoggedIn
+                    .getBoolean(reuploadSwitchKey, false)
                 true
             }
 
@@ -117,13 +111,6 @@ class SettingsActivity : AppCompatActivity() {
                 }
                 true
             }
-//            defaultSharedPreferences.registerOnSharedPreferenceChangeListener{prefs, key->
-//                if(key == hostnameTextKey || key == portTextKey || key == httpsSwitchKey){
-//
-//            }}
-//            val hostnamePref =  findPreference<Preference>(hostnameTextKey)
-//
-//            val portPref = findPreference<Preference>(portTextKey)
         }
 
         fun signout() {

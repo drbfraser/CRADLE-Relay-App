@@ -27,5 +27,5 @@ interface AppComponent {
     fun inject(smsRelayRepository: SmsRelayRepository)
     fun inject(httpsRequestRepository: HttpsRequestRepository)
     fun inject(smsRelayViewModel: SmsRelayViewModel)
-    fun inject(SettingsActivity: SettingsActivity)
+    fun inject(settingsActivity: SettingsActivity)
 }

@@ -1,6 +1,5 @@
 package com.cradleplatform.cradle_vsa_sms_relay.dagger
 
-import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.multidex.MultiDexApplication
@@ -60,23 +59,7 @@ class DataModule {
         urlManager: UrlManager
     ): HttpsRequestRepository {
         val token = sharedPreference.getString(VolleyRequests.TOKEN, "") ?: ""
-//        val protocol = if(sharedPreference.getBoolean("key_server_use_https",true)){
-//            "https://"
-//        } else {
-//            "http://"
-//        }
-//        val hostname = sharedPreference.getString("key_server_hostname","cradleplatform.com")
-//        if (hostname == null) {
-//            Log.wtf(TAG, "Network hostname was null")
-//            throw NullPointerException()
-//        }
-//
-//        val port = sharedPreference.getString("key_server_port","5000")
-//        val defaultBaseUrl = "http://ti:5000/"
-//        val constructedUrl = "$protocol$hostname/$port/"
-        val constructedUrl = urlManager.base
-        Log.d(TAG, "this is url $constructedUrl")
-        val baseUrl = sharedPreference.getString("base_url", constructedUrl) ?: constructedUrl
+        val baseUrl = urlManager.base
         return HttpsRequestRepository(token, smsFormatter, smsRelayRepository, baseUrl)
     }
 
