@@ -59,6 +59,8 @@
 
     <string name="base_url">base_url</string>
     <string name="default_base_url">http://10.0.2.2:5000/</string>
+    <string name="setting_btn">settings_btn</string>
+    <string name="key_account_settings">account_settings</string>
 
 
 </resources>

@@ -1,6 +1,7 @@
 package com.cradleplatform.cradle_vsa_sms_relay.activities
 
 import android.annotation.SuppressLint
+import android.app.ActivityOptions
 import android.app.ProgressDialog
 import android.content.Intent
 import android.content.SharedPreferences
@@ -36,6 +37,7 @@ class LauncherActivity : AppCompatActivity() {
         setContentView(R.layout.activity_launcher)
         setupLogin()
         setUpTogglePasswordButton()
+        setupSettings()
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -119,5 +121,16 @@ class LauncherActivity : AppCompatActivity() {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         startActivity(intent)
+    }
+
+    private fun setupSettings() {
+        val settingsButton = findViewById<ImageButton>(R.id.loginSettingsButton)
+        settingsButton.setOnClickListener {
+            startActivity(
+                Intent(this, SettingsActivity::class.java),
+                ActivityOptions.makeCustomAnimation(this, R.anim.slide_down, R.anim.nothing)
+                    .toBundle()
+            )
+        }
     }
 }

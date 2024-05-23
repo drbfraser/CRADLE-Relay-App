@@ -27,13 +27,4 @@ open class Settings @Inject constructor(
     open val networkUseHttps:Boolean
         get() = sharedPreferences.getBoolean(context.getString(R.string.key_server_use_https),
             true)
-
-    val baseUrl:String
-        get() {
-            val protocol = if (networkUseHttps) "https://" else "http://"
-            val hostname = networkHostname
-            val port = if (networkPort.isNullOrBlank()) "" else ":$networkPort"
-            Log.d(TAG,"this is base $protocol$hostname$port")
-            return "$protocol$hostname$port"
-        }
 }

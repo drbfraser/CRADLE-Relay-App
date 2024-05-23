@@ -2,8 +2,9 @@ package com.cradleplatform.cradle_vsa_sms_relay.network
 
 import android.app.Application
 import android.content.SharedPreferences
+import android.util.Log
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.network.Urls.authenticationUrl
+import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
 import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests.Companion.TOKEN
 import org.json.JSONObject
 import javax.inject.Inject
@@ -13,8 +14,13 @@ import javax.inject.Inject
  */
 class NetworkManager(application: Application) {
 
+    val TAG = "NetworkManager"
+
     @Inject
     lateinit var sharedPreferences: SharedPreferences
+
+    @Inject
+    lateinit var urlManager: UrlManager
 
     private val volleyRequestQueue: VolleyRequestQueue by lazy { VolleyRequestQueue(application) }
 
@@ -36,7 +42,7 @@ class NetworkManager(application: Application) {
         jsonObject.put("email", email)
         jsonObject.put("password", password)
         val request =
-            volleyRequests.postJsonObjectRequest(authenticationUrl, jsonObject) { result ->
+            volleyRequests.postJsonObjectRequest(urlManager.authenticationUrl, jsonObject) { result ->
                 when (result) {
                     is Success -> {
                         // save the user credentials

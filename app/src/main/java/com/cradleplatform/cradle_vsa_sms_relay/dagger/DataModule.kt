@@ -8,6 +8,7 @@ import androidx.preference.PreferenceManager
 import androidx.room.Room
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayDatabase
 import com.cradleplatform.cradle_vsa_sms_relay.model.Settings
+import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
 import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
@@ -56,7 +57,7 @@ class DataModule {
         sharedPreference: SharedPreferences,
         smsFormatter: SMSFormatter,
         smsRelayRepository: SmsRelayRepository,
-        settings:Settings
+        urlManager: UrlManager
     ): HttpsRequestRepository {
         val token = sharedPreference.getString(VolleyRequests.TOKEN, "") ?: ""
 //        val protocol = if(sharedPreference.getBoolean("key_server_use_https",true)){
@@ -73,7 +74,7 @@ class DataModule {
 //        val port = sharedPreference.getString("key_server_port","5000")
 //        val defaultBaseUrl = "http://ti:5000/"
 //        val constructedUrl = "$protocol$hostname/$port/"
-        val constructedUrl = settings.baseUrl
+        val constructedUrl = urlManager.base
         Log.d(TAG, "this is url $constructedUrl")
         val baseUrl = sharedPreference.getString("base_url", constructedUrl) ?: constructedUrl
         return HttpsRequestRepository(token, smsFormatter, smsRelayRepository, baseUrl)
@@ -97,4 +98,8 @@ class DataModule {
         sharedPreferences: SharedPreferences,
         context: MultiDexApplication
     ) = Settings(sharedPreferences, context)
+
+    @Provides
+    @Singleton
+    fun provideUrlManager(settings: Settings) = UrlManager(settings)
 }

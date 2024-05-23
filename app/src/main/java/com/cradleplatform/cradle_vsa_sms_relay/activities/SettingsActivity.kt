@@ -11,12 +11,15 @@ import androidx.core.content.ContextCompat
 import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference
+import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreferenceCompat
 import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.model.Settings
+import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
+import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService.Companion.isServiceRunningInForeground
 import javax.inject.Inject
@@ -24,7 +27,7 @@ import javax.inject.Inject
 
 class SettingsActivity : AppCompatActivity() {
     @Inject
-    lateinit var settings: Settings
+    lateinit var urlManager: UrlManager
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.settings_activity)
@@ -46,7 +49,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        Log.d("settings", "this is url ${settings.baseUrl}")
+        Log.d("settings", "this is url ${urlManager.base}")
         super.onBackPressed()
         overridePendingTransition(R.anim.nothing, R.anim.slide_up)
     }
@@ -60,34 +63,43 @@ class SettingsActivity : AppCompatActivity() {
             val reuploadSwitchKey = getString(R.string.reuploadSwitchPrefKey)
             val signoutKey = getString(R.string.signout)
             val syncNowkey = getString(R.string.sync_now_key)
+            val accountSettingsKey = getString(R.string.key_account_settings)
             val hostnameTextKey = getString(R.string.key_server_hostname)
             val portTextKey = getString(R.string.key_server_port)
             val httpsSwitchKey = getString(R.string.key_server_use_https)
 
             val defaultSharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(this.requireContext())
-            // show/ hide pref on default
+
+            val isLoggedIn = defaultSharedPreferences.contains(VolleyRequests.TOKEN)
+
+            // show/ hide pref on default and if the user is logged in
             val syncNowPref = findPreference<Preference>(syncNowkey)
             syncNowPref?.isVisible = defaultSharedPreferences.getBoolean(reuploadSwitchKey, true)
 
             val listPref = findPreference<ListPreference>(reuploadListKey)
-            listPref?.isVisible = defaultSharedPreferences.getBoolean(reuploadSwitchKey, true)
+            listPref?.isVisible = defaultSharedPreferences.getBoolean(reuploadSwitchKey, true) && isLoggedIn
 
             // setting values based on switch changes
             findPreference<SwitchPreferenceCompat>(reuploadSwitchKey)?.setOnPreferenceClickListener { preference ->
                 listPref?.isVisible =
-                    preference.sharedPreferences?.getBoolean(reuploadSwitchKey, false) ?: false
+                    preference.sharedPreferences?.getBoolean(reuploadSwitchKey, false) ?: false && isLoggedIn
                 syncNowPref?.isVisible = PreferenceManager.getDefaultSharedPreferences(this.requireContext())
-                    .getBoolean(reuploadSwitchKey, false)
+                    .getBoolean(reuploadSwitchKey, false) && isLoggedIn
                 true
             }
-            findPreference<Preference>(signoutKey)?.setOnPreferenceClickListener {
+
+            val signoutPref = findPreference<Preference>(signoutKey)
+            findPreference<PreferenceCategory>(accountSettingsKey)?.isVisible = isLoggedIn
+            signoutPref?.isVisible = isLoggedIn
+            signoutPref?.setOnPreferenceClickListener {
                 AlertDialog.Builder(this.requireContext()).setTitle("Sign out?")
                     .setMessage("You will be required to sign in again")
                     .setPositiveButton("YES") { _, _ -> signout() }
                     .setNegativeButton("NO") { _, _ -> }.show()
                 true
             }
+
 
             syncNowPref?.setOnPreferenceClickListener {
                 if (!isServiceRunningInForeground(this.requireContext(), SmsService::class.java)) {

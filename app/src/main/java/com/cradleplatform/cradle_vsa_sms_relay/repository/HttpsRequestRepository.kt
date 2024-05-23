@@ -51,7 +51,6 @@ class HttpsRequestRepository(
     private val smsRelayRepository: SmsRelayRepository,
     baseUrl: String
 ) {
-    private val baseUrl = baseUrl
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(AuthInterceptor(token))
         .build()
@@ -83,10 +82,6 @@ class HttpsRequestRepository(
             RETRY_CHECK_INTERVAL_MS,
             TimeUnit.MILLISECONDS
         )
-    }
-
-    fun printBaseUrl(){
-        Log.d(TAG, "this is base URl $baseUrl")
     }
 
     fun sendToServer(smsRelayEntity: SmsRelayEntity, coroutineScope: CoroutineScope) {
