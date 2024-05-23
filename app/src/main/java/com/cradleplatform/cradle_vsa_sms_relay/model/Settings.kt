@@ -15,7 +15,7 @@ open class Settings @Inject constructor(
     val sharedPreferences: SharedPreferences,
     val context: Context
 ) {
-    val TAG = "Settings"
+    val tag = "Settings"
     open val networkHostname:String?
         get() = sharedPreferences.getString(context.getString(R.string.key_server_hostname),
             context.getString(R.string.settings_default_server_hostname))

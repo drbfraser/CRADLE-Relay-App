@@ -29,7 +29,6 @@ class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.settings_activity)
-        (application as MyApp).component.inject(this)
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.settings, SettingsFragment())

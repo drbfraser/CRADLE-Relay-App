@@ -14,7 +14,7 @@ import javax.inject.Inject
  */
 class NetworkManager(application: Application) {
 
-    val TAG = "NetworkManager"
+    val tag = "NetworkManager"
 
     @Inject
     lateinit var sharedPreferences: SharedPreferences

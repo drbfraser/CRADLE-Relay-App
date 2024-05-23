@@ -20,7 +20,6 @@ import javax.inject.Singleton
 
 @Module
 class DataModule {
-    val TAG = "DataModule"
 
     @Provides
     @Singleton
