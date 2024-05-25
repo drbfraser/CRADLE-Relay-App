@@ -49,4 +49,18 @@
     <string name="uploading_to_server">Uploading data to server...</string>
     <string name="receiving_from_server">Receiving data from server...</string>
     <string name="sending_to_mobile">Sending data to Mobile...</string>
+    <!-- Network -->
+    <string name="settings_default_server_hostname">cradleplatform.com</string>
+    <string name="settings_default_server_port" />
+    <string name="settings_default_server_use_https">true</string>
+    <string name="key_server_hostname">settings_server_hostname</string>
+    <string name="key_server_port">settings_server_port</string>
+    <string name="key_server_use_https">settings_server_use_https</string>
+
+    <string name="base_url">base_url</string>
+    <string name="default_base_url">http://10.0.2.2:5000/</string>
+    <string name="setting_btn">settings_btn</string>
+    <string name="key_account_settings">account_settings</string>
+
+
 </resources>

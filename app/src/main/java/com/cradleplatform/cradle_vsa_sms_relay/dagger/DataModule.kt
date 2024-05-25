@@ -1,10 +1,13 @@
 package com.cradleplatform.cradle_vsa_sms_relay.dagger
 
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.multidex.MultiDexApplication
 import androidx.preference.PreferenceManager
 import androidx.room.Room
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayDatabase
+import com.cradleplatform.cradle_vsa_sms_relay.model.Settings
+import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
 import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
@@ -51,11 +54,11 @@ class DataModule {
     fun getHttpsRequestRepository(
         sharedPreference: SharedPreferences,
         smsFormatter: SMSFormatter,
-        smsRelayRepository: SmsRelayRepository
+        smsRelayRepository: SmsRelayRepository,
+        urlManager: UrlManager
     ): HttpsRequestRepository {
         val token = sharedPreference.getString(VolleyRequests.TOKEN, "") ?: ""
-        val defaultBaseUrl = "http://10.0.2.2:5000/"
-        val baseUrl = sharedPreference.getString("base_url", defaultBaseUrl) ?: defaultBaseUrl
+        val baseUrl = urlManager.base
         return HttpsRequestRepository(token, smsFormatter, smsRelayRepository, baseUrl)
     }
 
@@ -70,4 +73,15 @@ class DataModule {
     fun provideStringListConverter(): SmsListConverter {
         return SmsListConverter()
     }
+
+    @Provides
+    @Singleton
+    fun provideSettings(
+        sharedPreferences: SharedPreferences,
+        context: MultiDexApplication
+    ) = Settings(sharedPreferences, context)
+
+    @Provides
+    @Singleton
+    fun provideUrlManager(settings: Settings) = UrlManager(settings)
 }

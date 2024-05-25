@@ -2,6 +2,7 @@ package com.cradleplatform.cradle_vsa_sms_relay.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -9,15 +10,22 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.preference.ListPreference
 import androidx.preference.Preference
+import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreferenceCompat
 import com.cradleplatform.cradle_vsa_sms_relay.R
+import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
+import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
+import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService.Companion.isServiceRunningInForeground
+import javax.inject.Inject
+
 
 class SettingsActivity : AppCompatActivity() {
-
+    @Inject
+    lateinit var urlManager: UrlManager
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.settings_activity)
@@ -29,6 +37,7 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.back_button).setOnClickListener {
             onBackPressed()
         }
+
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -50,8 +59,13 @@ class SettingsActivity : AppCompatActivity() {
             val reuploadSwitchKey = getString(R.string.reuploadSwitchPrefKey)
             val signoutKey = getString(R.string.signout)
             val syncNowkey = getString(R.string.sync_now_key)
+            val accountSettingsKey = getString(R.string.key_account_settings)
+
             val defaultSharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(this.requireContext())
+
+            val isLoggedIn = defaultSharedPreferences.contains(VolleyRequests.TOKEN)
+
             // show/ hide pref on default
             val syncNowPref = findPreference<Preference>(syncNowkey)
             syncNowPref?.isVisible = defaultSharedPreferences.getBoolean(reuploadSwitchKey, true)
@@ -67,13 +81,18 @@ class SettingsActivity : AppCompatActivity() {
                     .getBoolean(reuploadSwitchKey, false)
                 true
             }
-            findPreference<Preference>(signoutKey)?.setOnPreferenceClickListener {
+
+            val signoutPref = findPreference<Preference>(signoutKey)
+            findPreference<PreferenceCategory>(accountSettingsKey)?.isVisible = isLoggedIn
+            signoutPref?.isVisible = isLoggedIn
+            signoutPref?.setOnPreferenceClickListener {
                 AlertDialog.Builder(this.requireContext()).setTitle("Sign out?")
                     .setMessage("You will be required to sign in again")
                     .setPositiveButton("YES") { _, _ -> signout() }
                     .setNegativeButton("NO") { _, _ -> }.show()
                 true
             }
+
 
             syncNowPref?.setOnPreferenceClickListener {
                 if (!isServiceRunningInForeground(this.requireContext(), SmsService::class.java)) {

@@ -2,6 +2,7 @@ package com.cradleplatform.cradle_vsa_sms_relay.dagger
 
 import com.cradleplatform.cradle_vsa_sms_relay.activities.LauncherActivity
 import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
+import com.cradleplatform.cradle_vsa_sms_relay.activities.SettingsActivity
 import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReceiver
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository

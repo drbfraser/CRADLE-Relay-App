@@ -31,6 +31,30 @@
 
     <PreferenceCategory
         app:iconSpaceReserved="false"
+        android:title="Network">
+        <EditTextPreference
+            android:defaultValue="@string/settings_default_server_hostname"
+            android:key="@string/key_server_hostname"
+            android:title="Hostname"
+            app:useSimpleSummaryProvider="true"/>
+
+        <EditTextPreference
+            android:defaultValue="@string/settings_default_server_port"
+            android:key="@string/key_server_port"
+            android:title="Port"
+            app:useSimpleSummaryProvider="true"/>
+
+        <SwitchPreference
+            android:defaultValue="@string/settings_default_server_use_https"
+            android:enabled="true"
+            android:key="@string/key_server_use_https"
+            android:title="Use HTTPS"
+            app:isPreferenceVisible="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="@string/key_account_settings"
+        app:iconSpaceReserved="false"
         app:title="@string/accountSetting">
         <Preference
             app:iconSpaceReserved="true"
