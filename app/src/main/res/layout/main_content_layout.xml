@@ -85,7 +85,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|center_horizontal"
-                android:layout_marginBottom="105dp"
+                android:layout_marginBottom="110dp"
                 android:text="@string/no_referrals"
                 android:textColor="@color/black"
                 android:textSize="14sp" />
@@ -95,7 +95,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|center_horizontal"
-                android:layout_marginBottom="75dp"
+                android:layout_marginBottom="80dp"
                 android:text="@string/press_start_button"
                 android:textColor="@color/black"
                 android:textSize="17sp" />
