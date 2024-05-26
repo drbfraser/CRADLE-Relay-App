@@ -30,6 +30,9 @@
     <string name="sync_now_key">syncNowKey</string>
     <string name="service_running_sync_toast">All the failed referrals are being uploaded</string>
     <string name="service_not_running_sync_toast">Referral service is not running, please start the service</string>
+    <string name="notifications">NOTIFICATIONS</string>
+    <string name="no_referrals">There are no referrals to show</string>
+    <string name="press_start_button">Press the start button</string>
     <string name="stop_service_status">The service is not running, press the START SERVICE button</string>
     <string name="start_service_status">The service is running, please DO NOT STOP it unless necessary</string>
     <string name="stop_service_dialog_title">Are you sure you want to STOP the service?</string>
