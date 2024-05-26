@@ -5,7 +5,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/gradient_background"
+
     tools:context="com.cradleplatform.cradle_vsa_sms_relay.activities.LauncherActivity">
+
+    <ImageButton
+        android:id="@+id/loginSettingsButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="#00FFFFFF"
+        android:contentDescription="@string/setting_btn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:scaleType="centerInside"
+        app:srcCompat="@drawable/ic_settings_black_24dp" />
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="0dp"
