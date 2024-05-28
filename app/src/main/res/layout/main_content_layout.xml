@@ -50,7 +50,7 @@
             app:strokeColor="@color/redDown"
             app:strokeWidth="2dp" />
 
-        <ImageView
+        <FrameLayout
             android:id="@+id/emptyRecyclerView"
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -58,11 +58,49 @@
             android:layout_marginTop="25dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
-            android:src="@drawable/doctor"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/serviceStatusTxt" />
+            app:layout_constraintTop_toBottomOf="@+id/serviceStatusTxt" >
+
+            <ImageView
+                android:id="@+id/doctorImageView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="40dp"
+                android:src="@drawable/doctor" />
+
+            <TextView
+                android:id="@+id/notificationsTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="85dp"
+                android:text="@string/notifications"
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/noReferralsTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="110dp"
+                android:text="@string/no_referrals"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/startButtonTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="80dp"
+                android:text="@string/press_start_button"
+                android:textColor="@color/black"
+                android:textSize="17sp" />
+
+        </FrameLayout>
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/serviceStatusTxt"
