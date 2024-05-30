@@ -157,6 +157,7 @@ class HttpsRequestRepository(
         code: Int,
         coroutineScope: CoroutineScope
     ) {
+        Log.d("look here", "updating sms relay entity")
         val phoneNumber: String = smsRelayEntity.getPhoneNumber()
         val requestCounter: String = smsRelayEntity.getRequestIdentifier()
         val smsMessages = smsFormatter.formatSMS(
@@ -197,6 +198,7 @@ class HttpsRequestRepository(
     }
 
     private fun retrySendMessageToHTTPServer() {
+        Log.d("look", "retrying sending sms to http server")
         val startExe = System.currentTimeMillis()
         while (retryQueue.peek()?.let { it.second <= startExe } == true) {
             val polledTriple = retryQueue.poll()
@@ -246,6 +248,7 @@ class HttpsRequestRepository(
 
             polledTriple.first.numberOfTriesUploaded += 1
             smsRelayRepository.updateBlocking(polledTriple.first)
+            polledTriple.first.isSentToServer = true
             sendToServer(polledTriple.first, polledTriple.third)
         }
     }

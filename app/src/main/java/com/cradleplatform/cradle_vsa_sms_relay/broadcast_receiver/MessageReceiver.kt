@@ -148,6 +148,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                         HTTPSResponseSent(relayEntity.id, phoneNumber, encryptedPacket, fragmentNum)
                     retryQueue.add(retryHash[relayEntity])
                 } else {
+                    Log.d("look", "setting completed to true")
                     relayEntity.isCompleted = true
                     smsRelayRepository.update(relayEntity)
                     retryQueue.remove(retryHash[relayEntity])
@@ -174,6 +175,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                         mutableListOf(),
                         null,
                         null,
+                        false,
                         0,
                         false,
                         false
@@ -186,6 +188,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                     hash[phoneNumber] = Pair(requestIdentifier, System.currentTimeMillis())
 
                     if (newRelayEntity.numFragmentsReceived == newRelayEntity.totalFragmentsFromMobile) {
+                        newRelayEntity.isSentToServer = true
                         httpsRequestRepository.sendToServer(newRelayEntity, coroutineScope)
                     }
                 }.start()
@@ -219,6 +222,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                     smsFormatter.sendAckMessage(relayEntity)
 
                     if (relayEntity.numFragmentsReceived == relayEntity.totalFragmentsFromMobile) {
+                        relayEntity.isSentToServer = true
                         httpsRequestRepository.sendToServer(relayEntity, coroutineScope)
                     }
 

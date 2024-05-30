@@ -202,6 +202,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
             }
 
             adapter.setRelayList(relayEntities.sortedByDescending { it.timeRequestInitiated })
+//            adapter.setRelayList(relayEntities)
             adapter.notifyDataSetChanged()
         }
 

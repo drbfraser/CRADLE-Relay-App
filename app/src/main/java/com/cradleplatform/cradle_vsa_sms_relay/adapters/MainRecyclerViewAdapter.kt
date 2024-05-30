@@ -1,5 +1,6 @@
 package com.cradleplatform.cradle_vsa_sms_relay.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -59,67 +60,110 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
     // TODO add onclicklistener for item
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
         val smsRelayEntity: SmsRelayEntity = sms[position]
+        Log.d("look here", "inside bind view holder ${smsRelayEntity.id} ")
         val numFragmentsReceived = smsRelayEntity.numFragmentsReceived
         val totalFragmentsFromMobile = smsRelayEntity.totalFragmentsFromMobile
+        val isServerError = smsRelayEntity.isServerError
+        val isSentToServer = smsRelayEntity.isSentToServer
+
         holder.receivedDateTime.text = smsRelayEntity.getDateAndTime()
         holder.duration.text = ""
         holder.phone.text = smsRelayEntity.getPhoneNumber()
+
+        // Reset visibility for all views to default states
+        holder.checkMark1.visibility = View.INVISIBLE
+        holder.checkMark2.visibility = View.INVISIBLE
+        holder.failedMark1.visibility = View.INVISIBLE
+        holder.failedMark2.visibility = View.INVISIBLE
+        holder.failedMark3.visibility = View.INVISIBLE
+        holder.failedMark4.visibility = View.INVISIBLE
+        holder.imageView1.alpha = Companion.alphaDefault
+        holder.imageView2.alpha = Companion.alphaDefault
+        holder.imageView3.alpha = Companion.alphaDefault
+        holder.imageView4.alpha = Companion.alphaDefault
+
 
         if (numFragmentsReceived <= totalFragmentsFromMobile) {
             holder.receivingMobile.text = "Receiving $numFragmentsReceived out of $totalFragmentsFromMobile messages"
         }
         if (numFragmentsReceived == totalFragmentsFromMobile) {
-            holder.receivingMobile.text = "Received all messages"
+            Log.d("look here","in 2 ${smsRelayEntity.id}")
+            holder.receivingMobile.text = "Received all messages. Forwarding it to the server"
             holder.checkMark1.visibility = View.VISIBLE
-            holder.checkMark2.visibility = View.VISIBLE
+//            holder.checkMark2.visibility = View.VISIBLE
             holder.imageView1.alpha = Companion.alphaDim
-            holder.imageView2.alpha = Companion.alphaDim
+//            holder.imageView2.alpha = Companion.alphaDim
             holder.failedMark1.visibility = View.INVISIBLE
-            holder.failedMark2.visibility = View.INVISIBLE
+//            holder.failedMark2.visibility = View.INVISIBLE
+
         }
-        if (smsRelayEntity.isServerError == true || smsRelayEntity.isServerResponseReceived == true) {
+        if (isServerError == true) {
+            Log.d("look here","in 3 ${smsRelayEntity.id}")
+            holder.receivingMobile.text = "Something went wrong on server..."
             setImageViewsForServerError(holder)
         }
-        if (smsRelayEntity.smsPacketsToMobile.isEmpty() && smsRelayEntity.isServerResponseReceived) {
-            holder.checkMark4.visibility = View.VISIBLE
+        if(isSentToServer && isServerError != true) { // second conditional so that the text is not changed after server error
+            Log.d("look here", "in 7 ${smsRelayEntity.id}")
+            holder.receivingMobile.text = "Waiting for response from the server.."
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
-            holder.checkMark3.visibility = View.VISIBLE
             holder.imageView1.alpha = Companion.alphaDim
             holder.imageView2.alpha = Companion.alphaDim
-            holder.imageView3.alpha = Companion.alphaDim
-            holder.imageView4.alpha = Companion.alphaDim
-            // Hide failed marks if check marks are visible
             holder.failedMark1.visibility = View.INVISIBLE
             holder.failedMark2.visibility = View.INVISIBLE
-            holder.failedMark3.visibility = View.INVISIBLE
-            holder.failedMark4.visibility = View.INVISIBLE
         }
-
-        if (smsRelayEntity.isServerError == true) {
-            holder.receivingMobile.text = "Something went wrong on server..."
-        }
-
-        if (smsRelayEntity.isCompleted) {
-            holder.duration.text = smsRelayEntity.getDuration()
+        if (smsRelayEntity.smsPacketsToMobile.isEmpty() && smsRelayEntity.isServerResponseReceived) {
+            Log.d("look here","in 1 ${smsRelayEntity.id}")
+//            holder.checkMark4.visibility = View.VISIBLE
+//            holder.checkMark1.visibility = View.VISIBLE
+//            holder.checkMark2.visibility = View.VISIBLE
+//            holder.checkMark3.visibility = View.VISIBLE
+//            holder.imageView1.alpha = Companion.alphaDim
+//            holder.imageView2.alpha = Companion.alphaDim
+//            holder.imageView3.alpha = Companion.alphaDim
+//            holder.imageView4.alpha = Companion.alphaDim
+//            // Hide failed marks if check marks are visible
+//            holder.failedMark1.visibility = View.INVISIBLE
+//            holder.failedMark2.visibility = View.INVISIBLE
+//            holder.failedMark3.visibility = View.INVISIBLE
+//            holder.failedMark4.visibility = View.INVISIBLE
             setImageViewsForComplete(holder)
+        }
 
-        }
-        else{
-            setImageViewsForNoneComplete(holder)
-        }
+//        if (smsRelayEntity.isServerError == true) {
+//            Log.d("look here","in 4 ${smsRelayEntity.id}")
+//            holder.receivingMobile.text = "Something went wrong on server..."
+//        }
+
+//        if (smsRelayEntity.isCompleted) {
+//            Log.d("look here","in 5 ${smsRelayEntity.id}")
+//            holder.duration.text = smsRelayEntity.getDuration()
+//            setImageViewsForComplete(holder)
+//
+//        }
+//        else{
+//            Log.d("look here","in 6 ${smsRelayEntity.id}")
+//            setImageViewsForNoneComplete(holder)
+//        }
+//        if(smsRelayEntity.isServerError && )
     }
 
     private fun setImageViewsForServerError(holder: SMSViewHolder) {
         holder.imageView1.alpha = Companion.alphaDim
         holder.imageView2.alpha = Companion.alphaDim
         holder.imageView3.alpha = Companion.alphaDim
-        holder.checkMark3.visibility = View.VISIBLE
-        holder.checkMark1.visibility = View.VISIBLE
-        holder.checkMark2.visibility = View.VISIBLE
-        holder.failedMark1.visibility = View.INVISIBLE
-        holder.failedMark2.visibility = View.INVISIBLE
-        holder.failedMark3.visibility = View.INVISIBLE
+        holder.imageView4.alpha = Companion.alphaDim
+
+        holder.checkMark3.visibility = View.INVISIBLE // maybe should only change this
+        holder.checkMark4.visibility = View.INVISIBLE // maybe should only change this
+
+        holder.checkMark1.visibility = View.VISIBLE // we got the messages, which is why we are sending it tp the server, hence check mark is visible
+        holder.checkMark2.visibility = View.VISIBLE //same here - it was sent to the server fine
+//        holder.failedMark1.visibility = View.VISIBLE
+//        holder.failedMark2.visibility = View.VISIBLE
+         holder.failedMark4.visibility = View.VISIBLE
+         holder.failedMark3.visibility = View.VISIBLE
+
     }
     private fun setImageViewsForComplete(holder: SMSViewHolder) {
         holder.receivingMobile.text = "Completed"
@@ -138,7 +182,7 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
     }
 
     private fun setImageViewsForNoneComplete(holder: SMSViewHolder) {
-        if(holder.checkMark1.visibility == View.INVISIBLE) {
+        if(holder.checkMark1.visibility == View.INVISIBLE) { //it was invisible why?
             holder.failedMark1.visibility = View.VISIBLE
             holder.imageView1.alpha = Companion.alphaDim
         }
@@ -187,5 +231,7 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
 
     companion object {
         private const val alphaDim = 0.2F
+        private const val alphaDefault = 1.0F
+
     }
 }
