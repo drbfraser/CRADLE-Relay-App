@@ -129,6 +129,21 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
 //            holder.failedMark4.visibility = View.INVISIBLE
             setImageViewsForComplete(holder)
         }
+        if(smsRelayEntity.isKeyExpired){
+            Log.d("look here","in 8 ${smsRelayEntity.id}")
+            holder.receivingMobile.text = "Something went wrong with the mobile"
+            holder.checkMark1.visibility = View.INVISIBLE
+            holder.checkMark2.visibility = View.INVISIBLE
+            holder.checkMark3.visibility = View.INVISIBLE
+            holder.imageView1.alpha = Companion.alphaDim
+            holder.imageView2.alpha = Companion.alphaDim
+            holder.imageView3.alpha = Companion.alphaDim
+            holder.imageView4.alpha = Companion.alphaDim
+            holder.failedMark1.visibility = View.VISIBLE
+            holder.failedMark2.visibility = View.VISIBLE
+            holder.failedMark3.visibility = View.VISIBLE
+            holder.failedMark4.visibility = View.VISIBLE
+        }
 
 //        if (smsRelayEntity.isServerError == true) {
 //            Log.d("look here","in 4 ${smsRelayEntity.id}")

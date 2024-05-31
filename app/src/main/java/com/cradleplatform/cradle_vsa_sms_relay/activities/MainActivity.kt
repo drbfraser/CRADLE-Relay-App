@@ -156,8 +156,8 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
 
         // Apply additional filtering based on the selected filter type
         val finalFilteredList = when (selectedFilter) {
-            "Only Successful" -> filteredList.filter { it.isServerError == false }
-            "Only Failed" -> filteredList.filter { it.isServerError == true }
+            "Only Successful" -> filteredList.filter { || it.isServerError == false }
+            "Only Failed" -> filteredList.filter { it.isKeyExpired || it.isServerError == true }
             else -> filteredList
         }
 
@@ -203,7 +203,6 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
             }
 
             adapter.setRelayList(relayEntities.sortedByDescending { it.timeRequestInitiated })
-//            adapter.setRelayList(relayEntities)
             adapter.notifyDataSetChanged()
         }
 

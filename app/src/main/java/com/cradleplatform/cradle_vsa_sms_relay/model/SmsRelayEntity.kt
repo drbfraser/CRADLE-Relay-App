@@ -45,6 +45,7 @@ data class SmsRelayEntity(
 
     // extras
     var isSentToServer: Boolean,
+    var isKeyExpired: Boolean,
     var numberOfTriesUploaded: Int,
     var deliveryReportSent: Boolean,
     var isCompleted: Boolean
