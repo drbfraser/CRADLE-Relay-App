@@ -73,6 +73,8 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
         // Reset visibility for all views to default states
         holder.checkMark1.visibility = View.INVISIBLE
         holder.checkMark2.visibility = View.INVISIBLE
+        holder.checkMark3.visibility = View.INVISIBLE
+        holder.checkMark4.visibility = View.INVISIBLE
         holder.failedMark1.visibility = View.INVISIBLE
         holder.failedMark2.visibility = View.INVISIBLE
         holder.failedMark3.visibility = View.INVISIBLE
@@ -129,7 +131,7 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
 //            holder.failedMark4.visibility = View.INVISIBLE
             setImageViewsForComplete(holder)
         }
-        if(smsRelayEntity.isKeyExpired){
+        if(smsRelayEntity.isKeyExpired && !isSentToServer){ //when the user clicks cancel, key is expired but its never sent to the server
             Log.d("look here","in 8 ${smsRelayEntity.id}")
             holder.receivingMobile.text = "Something went wrong with the mobile"
             holder.checkMark1.visibility = View.INVISIBLE

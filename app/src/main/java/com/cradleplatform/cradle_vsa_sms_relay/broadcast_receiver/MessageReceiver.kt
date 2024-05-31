@@ -282,6 +282,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                         val relayEntity = smsRelayRepository.getRelayBlocking(id)
                         relayEntity?.isKeyExpired = true
                         relayEntity?.let { smsRelayRepository.update(it) }
+                        Log.d("look","this is server error: ${relayEntity?.isServerError}")
                         Log.d(tag, "$key has expired, evicting it from the hash")
                         hash.remove(key)
                     }
