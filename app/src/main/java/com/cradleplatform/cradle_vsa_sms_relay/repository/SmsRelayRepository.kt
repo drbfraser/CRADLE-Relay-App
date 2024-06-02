@@ -28,7 +28,6 @@ class SmsRelayRepository(database: SmsRelayDatabase) {
     fun insertBlocking(smsRelayEntity: SmsRelayEntity) {
         runBlocking {
             MainScope().launch(Dispatchers.IO) {
-                Log.d("look","inserting sms in db")
                 smsRelayDao.insertSmsRelayEntity(smsRelayEntity)
             }
         }

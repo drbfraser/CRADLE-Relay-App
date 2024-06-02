@@ -148,7 +148,6 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                         HTTPSResponseSent(relayEntity.id, phoneNumber, encryptedPacket, fragmentNum)
                     retryQueue.add(retryHash[relayEntity])
                 } else {
-                    Log.d("look", "setting completed to true")
                     relayEntity.isCompleted = true
                     smsRelayRepository.update(relayEntity)
                     retryQueue.remove(retryHash[relayEntity])
@@ -282,8 +281,6 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                         val relayEntity = smsRelayRepository.getRelayBlocking(id)
                         relayEntity?.isKeyExpired = true
                         relayEntity?.let { smsRelayRepository.update(it) }
-                        Log.d("look","this is server error: ${relayEntity?.isServerError}")
-                        Log.d(tag, "$key has expired, evicting it from the hash")
                         hash.remove(key)
                     }
                 }
@@ -375,7 +372,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
     companion object {
         private const val LAST_RUN_PREF = "sharedPrefLastTimeServiceRun"
         private const val LAST_RUN_TIME = "lastTimeServiceRun"
-        private const val TIMEOUT_SECONDS = 80
+        private const val TIMEOUT_SECONDS = 200
         private const val SIZE_PERCENT_THRESHOLD = 0.25
         private const val MIN_INTERVAL_MS: Long = 1000
         private const val MAX_INTERVAL_MS: Long = 32000
