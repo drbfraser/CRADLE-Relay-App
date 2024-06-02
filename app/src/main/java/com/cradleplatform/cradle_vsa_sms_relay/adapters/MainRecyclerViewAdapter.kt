@@ -57,7 +57,7 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
 
     // TODO Update bind function to use UI prototype
     // TODO add onclicklistener for item
-    @Suppress("LongMethod")
+    @Suppress("LongMethod","MaxLineLength")
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
         val smsRelayEntity: SmsRelayEntity = sms[position]
         val numFragmentsReceived = smsRelayEntity.numFragmentsReceived
@@ -89,7 +89,8 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
 
 
         if (numFragmentsReceived <= totalFragmentsFromMobile) {
-            holder.receivingMobile.text = "Receiving $numFragmentsReceived out of $totalFragmentsFromMobile messages"
+            holder.receivingMobile.text = "Receiving $numFragmentsReceived out of " +
+                    "$totalFragmentsFromMobile messages"
             holder.loadingMark1.visibility = View.VISIBLE
             holder.imageView1.alpha = Companion.alphaDim
         }
@@ -119,10 +120,11 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
             holder.loadingMark3.visibility = View.VISIBLE
             holder.imageView3.alpha = Companion.alphaDim
         }
-        if (smsRelayEntity.smsPacketsToMobile.isEmpty() && smsRelayEntity.isServerResponseReceived) {
+        if (smsRelayEntity.smsPacketsToMobile.isEmpty() && smsRelayEntity.isServerResponseReceived){
             setImageViewsForComplete(holder)
         }
-        if(smsRelayEntity.isKeyExpired && !isSentToServer){ //when the user clicks cancel, key is expired but its never sent to the server
+        //when the user clicks cancel, key is expired but its never sent to the server
+        if(smsRelayEntity.isKeyExpired && !isSentToServer){
             holder.receivingMobile.text = "Something went wrong with the mobile"
             holder.checkMark1.visibility = View.INVISIBLE
             holder.checkMark2.visibility = View.INVISIBLE
@@ -147,7 +149,9 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
 
         holder.checkMark3.visibility = View.INVISIBLE
         holder.checkMark4.visibility = View.INVISIBLE
-        holder.checkMark1.visibility = View.VISIBLE // we got the messages, which is why we are sending it tp the server, hence check mark is visible
+        // we got the messages, which is why we are sending it to the server, hence check mark is
+        // visible
+        holder.checkMark1.visibility = View.VISIBLE
         holder.checkMark2.visibility = View.VISIBLE // same here - it was sent to the server fine
          holder.failedMark4.visibility = View.VISIBLE
          holder.failedMark3.visibility = View.VISIBLE
