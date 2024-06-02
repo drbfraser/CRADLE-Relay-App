@@ -1,7 +1,5 @@
 package com.cradleplatform.cradle_vsa_sms_relay.adapters
 
-import android.media.Image
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -59,6 +57,7 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
 
     // TODO Update bind function to use UI prototype
     // TODO add onclicklistener for item
+    @Suppress("LongMethod")
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
         val smsRelayEntity: SmsRelayEntity = sms[position]
         val numFragmentsReceived = smsRelayEntity.numFragmentsReceived
@@ -107,7 +106,8 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
             holder.receivingMobile.text = "Something went wrong on server..."
             setImageViewsForServerError(holder)
         }
-        if(isSentToServer && isServerError != true) { // second conditional so that the text is not changed after server error
+        // second conditional so that the text is not changed after server error
+        if(isSentToServer && isServerError != true) {
             holder.receivingMobile.text = "Waiting for response from the server.."
             holder.checkMark1.visibility = View.VISIBLE
             holder.checkMark2.visibility = View.VISIBLE
