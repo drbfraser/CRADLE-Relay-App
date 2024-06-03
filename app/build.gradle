@@ -87,7 +87,8 @@ dependencies {
     androidTestImplementation 'androidx.test:rules:1.5.0'
     androidTestImplementation 'com.squareup.okhttp3:mockwebserver:3.12.1'
     androidTestImplementation 'com.squareup.okhttp3:okhttp:3.12.1'
-
+    androidTestImplementation 'junit:junit:4.13.2'
+    androidTestImplementation "org.mockito:mockito-core:5.10.0"
     detekt "io.gitlab.arturbosch.detekt:detekt-formatting:$detekt_version"
     detekt("io.gitlab.arturbosch.detekt:detekt-cli:$detekt_version")
 }
