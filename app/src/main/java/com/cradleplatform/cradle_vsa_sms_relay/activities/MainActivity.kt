@@ -19,7 +19,6 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -28,9 +27,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker.PERMISSION_DENIED
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.observe
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.cradleplatform.cradle_vsa_sms_relay.R
@@ -78,10 +75,12 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
     }
     override fun onItemClick(position: Int) {
         val smsRelayEntity = mainRecyclerViewAdapter.sms[position] // Access the item from the list
-        val intent = Intent(this, CardDetails::class.java).apply {
+        val intent = Intent(this, CardDetailsActivity::class.java).apply {
             putExtra("date", smsRelayEntity.getDateAndTime())
             putExtra("phoneNumber", smsRelayEntity.getPhoneNumber())
             putExtra("duration", smsRelayEntity.getDuration())
+            putExtra("id", smsRelayEntity.id)
+
             // Pass any other relevant data here
         }
         startActivity(intent)

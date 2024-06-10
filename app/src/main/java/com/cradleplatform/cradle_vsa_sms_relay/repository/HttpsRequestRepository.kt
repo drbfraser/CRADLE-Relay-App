@@ -126,6 +126,7 @@ class HttpsRequestRepository(
                         }
                     }
                     val errorBody = response.errorBody()
+                    Log.d("look","errorBody: $errorBody")
                     val errorMessage = if (errorBody == null) {
                         "There was an unexpected error while sending the relay request - Status ${response.code()}"
                     }

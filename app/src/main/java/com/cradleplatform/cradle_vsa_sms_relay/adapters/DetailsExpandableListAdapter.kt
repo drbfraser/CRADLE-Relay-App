@@ -5,12 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseExpandableListAdapter
+import android.widget.ExpandableListView
 import android.widget.TextView
 import com.cradleplatform.cradle_vsa_sms_relay.R
 
 class DetailsExpandableListAdapter(private val context: Context,
                                    private val groupList: List<String>,
-                                   private val childList: HashMap<String, List<String>>)
+                                   private val childList: HashMap<String, List<Map<String, String>>>
+)
     : BaseExpandableListAdapter() {
     override fun getGroupCount(): Int {
         return this.groupList.size
@@ -48,6 +50,8 @@ class DetailsExpandableListAdapter(private val context: Context,
                 this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             convertView = layoutInflater.inflate(R.layout.details_list_group, null)
         }
+        val expandableListView = parent as ExpandableListView
+        if(isExpanded) expandableListView.expandGroup(listPosition)
         val listTitle = getGroup(listPosition) as String
         val listTitleTextView = convertView!!.findViewById<TextView>(R.id.listTitle)
         listTitleTextView.text = listTitle
@@ -62,7 +66,9 @@ class DetailsExpandableListAdapter(private val context: Context,
                 this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             convertView = layoutInflater.inflate(R.layout.details_list_item, null)
         }
-        val expandedListText = getChild(listPosition, expandableListPosition) as String
+        val childDict =  getChild(listPosition, expandableListPosition) as Map<String,String>
+        var expandedListText = childDict.entries.joinToString(separator = "\n") { "${it.key}: ${it.value}" }
+        if (expandedListText.isNullOrBlank()) {expandedListText = "No content to show"}
         val expandedListTextView = convertView!!.findViewById<TextView>(R.id.expandedListItemText)
         expandedListTextView.text = expandedListText
         return convertView
