@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import org.json.JSONException
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
@@ -131,7 +132,12 @@ class HttpsRequestRepository(
                     }
                     // expected errors will be inside a json which will contain the key 'message'
                     else {
-                        JSONObject(errorBody.string()).getString("message")
+                        val errorBodyString = errorBody.string()
+                        try {
+                            JSONObject(errorBodyString).getString("message")
+                        } catch (e: JSONException) {
+                            "Unexpected error format: $errorBodyString"
+                        }
                     }
                     // Add retry functionality here as well and look at why we are doing the
                     //  below on failure

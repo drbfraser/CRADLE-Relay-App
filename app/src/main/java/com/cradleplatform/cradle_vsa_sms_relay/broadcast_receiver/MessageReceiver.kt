@@ -6,7 +6,9 @@ import android.content.Intent
 import android.telephony.SmsMessage
 import android.util.Log
 import android.widget.Toast
+import androidx.preference.PreferenceManager
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
+import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSRequest
 import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSResponseSent
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
@@ -81,6 +83,12 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
 
     @Suppress("LongMethod", "CyclomaticComplexMethod")
     override fun onReceive(p0: Context?, p1: Intent?) {
+
+        // 读取并记录请求的 URL
+        val sharedPref = PreferenceManager.getDefaultSharedPreferences(context)
+        val baseUrl = sharedPref.getString("base_url", "default_base_url")
+        Log.d("MESSAGE_RECEIVER", "Base URL: $baseUrl")
+
         Log.d(tag, "Message Received")
         val data = p1?.extras
         val pdus = data?.get("pdus") as Array<*>
