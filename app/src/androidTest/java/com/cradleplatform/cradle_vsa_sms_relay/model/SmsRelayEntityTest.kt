@@ -1,6 +1,5 @@
-package com.cradleplatform.cradle_vsa_sms_relay
+package com.cradleplatform.cradle_vsa_sms_relay.model
 
-import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -72,6 +71,8 @@ class SmsRelayEntityTest {
         )
 
         assertTrue(smsRelay1 < smsRelay2)
+        println(smsRelay2.compareTo(smsRelay1))
+        println(smsRelay2.getDuration())
     }
 
 }
