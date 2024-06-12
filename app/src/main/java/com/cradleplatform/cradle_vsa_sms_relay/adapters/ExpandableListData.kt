@@ -18,19 +18,34 @@ class ExpandableListData(private val smsRelayEntity: SmsRelayEntity) {
 
             val timestampsDataMessagesReceived = smsRelayEntity?.timestampsDataMessagesReceived
             val timestampsDataMessagesSent = smsRelayEntity?.timestampsDataMessagesSent
+            Log.d("look","in data timestamp data msg sent $timestampsDataMessagesSent")
 
             smsRelayEntity.smsPacketsFromMobile?.forEachIndexed{index, msg ->
-                receiveMobileDetails.add(mapOf("content" to msg,"timestamp" to getRelativeTime(index,timestampsDataMessagesReceived)))
+                val timeKey = if (index == 0) "time received" else "relative time"
+                if(index == 0){
+                    receiveMobileDetails.add(mapOf("content" to msg,timeKey to getRelativeTime(index,timestampsDataMessagesReceived)))
+                }
+                else {
+                    receiveMobileDetails.add(mapOf("content" to msg,timeKey to getRelativeTime(index,timestampsDataMessagesReceived)))
+                }
             }
 
+            sendServerDetails.add(mapOf("sentToServer" to smsRelayEntity?.isSentToServer.toString(), "retries" to smsRelayEntity?.numberOfTriesUploaded.toString()))
 
-            sendServerDetails.add(mapOf("sentToServer" to smsRelayEntity?.isSentToServer.toString()))
+            if(smsRelayEntity?.isServerError == true){
+                receiveServerDetails.add(mapOf("receivedFromServer" to smsRelayEntity?.isServerResponseReceived.toString(), "error message" to smsRelayEntity?.errorMessage.toString() ))
+            }
+            else {
+                if(smsRelayEntity?.isKeyExpired == true){
+                    receiveServerDetails.add(mapOf("receivedFromServer" to smsRelayEntity?.isServerResponseReceived.toString(), "isKeyExpired" to smsRelayEntity?.isKeyExpired.toString() ))
+                }
+                receiveServerDetails.add(mapOf("receivedFromServer" to smsRelayEntity?.isServerResponseReceived.toString() ))
+            }
 
-            receiveServerDetails.add(mapOf("receivedFromServer" to smsRelayEntity?.isServerResponseReceived.toString(), "error message" to smsRelayEntity?.errorMessage.toString() ))
-
-
-            smsRelayEntity?.smsPacketsToMobile?.forEachIndexed{index, msg ->
-                sendMobileDetails.add(mapOf("content" to msg,"timestamp" to getRelativeTime(index,timestampsDataMessagesSent)))
+            timestampsDataMessagesSent?.forEachIndexed{index, _ ->
+                val timeKey = if (index == 0) "time sent" else "relative time"
+                Log.d("look", "this is inside timestamp $timestampsDataMessagesSent")
+                sendMobileDetails.add(mapOf(timeKey to getRelativeTime(index,timestampsDataMessagesSent)))
             }
 
             expandableListDetail["Message received from mobile"] = receiveMobileDetails
@@ -41,10 +56,10 @@ class ExpandableListData(private val smsRelayEntity: SmsRelayEntity) {
             return expandableListDetail
         }
 
-    private fun getRelativeTime(msgPos: Int, timestampsDataMessagesReceived: MutableList<Long>? ): String {
+    private fun getRelativeTime(msgPos: Int, timestampList: MutableList<Long>? ): String {
         val format = SimpleDateFormat("HH:mm:ss")
-        if(msgPos != 0 && timestampsDataMessagesReceived != null){
-            val diff = timestampsDataMessagesReceived[msgPos] - timestampsDataMessagesReceived[msgPos - 1]
+        if(msgPos != 0 && timestampList != null){
+            val diff = timestampList[msgPos] - timestampList[msgPos - 1]
             val seconds = TimeUnit.MILLISECONDS.toSeconds(diff) % 60
             val minutes = TimeUnit.MILLISECONDS.toMinutes(diff) % 60
             val hours = TimeUnit.MILLISECONDS.toHours(diff) % 24
@@ -55,7 +70,7 @@ class ExpandableListData(private val smsRelayEntity: SmsRelayEntity) {
                 else -> "$seconds sec"
             }
         }
-        return format.format(timestampsDataMessagesReceived?.get(msgPos))
+        return format.format(timestampList?.get(msgPos))
     }
 
 }

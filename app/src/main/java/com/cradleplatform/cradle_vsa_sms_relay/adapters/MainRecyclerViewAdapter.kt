@@ -72,7 +72,7 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
         setImageViewsForDefault(holder)
 
         if (numFragmentsReceived <= totalFragmentsFromMobile) {
-            Log.d("look","this is id in adapter view ${smsRelayEntity.id}")
+//            Log.d("look","this is id in adapter view ${smsRelayEntity.id}")
             holder.receivingMobile.text = "Receiving $numFragmentsReceived out of " +
                     "$totalFragmentsFromMobile messages"
             holder.loadingMark1.visibility = View.VISIBLE

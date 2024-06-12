@@ -85,6 +85,7 @@ class HttpsRequestRepository(
     }
 
     fun sendToServer(smsRelayEntity: SmsRelayEntity, coroutineScope: CoroutineScope) {
+        Log.d("look", "sending to server here")
         val encryptedData = smsFormatter.getEncryptedData(smsRelayEntity)
         val httpsRequest = HTTPSRequest(smsRelayEntity.getPhoneNumber(), encryptedData)
 
@@ -107,6 +108,7 @@ class HttpsRequestRepository(
                 ) {
                     if (response.isSuccessful) {
                         val httpsResponse = response.body()
+                        Log.d("look", "success res here")
                         if (httpsResponse != null) {
                             responseFailures.remove(smsRelayEntity)
                             // using a synchronized block to ensure no two threads
@@ -116,6 +118,7 @@ class HttpsRequestRepository(
                             synchronized(this@HttpsRequestRepository) {
                                 updateSmsRelayEntity(
                                     httpsResponse.body,
+                                    true,
                                     true,
                                     smsRelayEntity,
                                     response.code(),
@@ -127,6 +130,7 @@ class HttpsRequestRepository(
                     }
                     val errorBody = response.errorBody()
                     Log.d("look","errorBody: $errorBody")
+//                    smsRelayEntity.isServerResponseReceived = true
                     val errorMessage = if (errorBody == null) {
                         "There was an unexpected error while sending the relay request - Status ${response.code()}"
                     }
@@ -154,6 +158,7 @@ class HttpsRequestRepository(
     private fun updateSmsRelayEntity(
         data: String,
         isSuccessful: Boolean,
+        isServerResponseReceived: Boolean,
         smsRelayEntity: SmsRelayEntity,
         code: Int,
         coroutineScope: CoroutineScope
@@ -173,13 +178,16 @@ class HttpsRequestRepository(
         smsRelayEntity.numberOfTriesUploaded = max(1, smsRelayEntity.numberOfTriesUploaded)
 
         smsRelayEntity.isServerError = !isSuccessful
-        smsRelayEntity.isServerResponseReceived = isSuccessful
+        smsRelayEntity.isServerResponseReceived = isServerResponseReceived
         smsRelayEntity.smsPacketsToMobile.addAll(smsMessages)
         smsRelayEntity.totalFragmentsFromMobile = smsMessages.size + 1
         smsRelayEntity.numFragmentsSentToMobile = 1
         smsRelayEntity.timestampsDataMessagesSent.add(System.currentTimeMillis())
-
-        smsRelayRepository.updateBlocking(smsRelayEntity)
+        Log.d("look","update sms relay -timestamp data messages sent ${smsRelayEntity.timestampsDataMessagesSent}")
+        Log.d("look","sending message now with this info $data ${smsRelayEntity.id} ${smsRelayEntity.isServerResponseReceived}")
+        if(!isSuccessful){
+            smsRelayEntity.errorMessage = data
+        }
 
         smsFormatter.sendMessage(phoneNumber, firstMessage)
         coroutineScope.launch {
@@ -199,7 +207,9 @@ class HttpsRequestRepository(
 
     private fun retrySendMessageToHTTPServer() {
         val startExe = System.currentTimeMillis()
+
         while (retryQueue.peek()?.let { it.second <= startExe } == true) {
+        Log.d("look", "in retry http")
             val polledTriple = retryQueue.poll()
             if (
                 polledTriple!!.first.numberOfTriesUploaded == MAX_RETRIES &&
@@ -214,19 +224,23 @@ class HttpsRequestRepository(
                 val removed = responseFailures.remove(polledTriple.first)
                 @Suppress("LoopWithTooManyJumpStatements")
                 if (removed != null) {
+                    Log.d("look", "in retry http removed is not null")
                     synchronized(this@HttpsRequestRepository) {
                         updateSmsRelayEntity(
                             removed.first,
                             false,
+                            true,
                             polledTriple.first,
                             removed.second,
                             polledTriple.third
                         )
                     }
                 } else {
+                    Log.d("look", "in retry http remove is null")
                     synchronized(this@HttpsRequestRepository) {
                         updateSmsRelayEntity(
                             HTTP_RESPONSE_TIMEOUT_MESSAGE,
+                            false,
                             false,
                             polledTriple.first,
                             HTTP_RESPONSE_TIMEOUT_STATUS_CODE,
