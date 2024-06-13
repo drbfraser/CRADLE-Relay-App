@@ -183,11 +183,12 @@ class HttpsRequestRepository(
         smsRelayEntity.totalFragmentsFromMobile = smsMessages.size + 1
         smsRelayEntity.numFragmentsSentToMobile = 1
         smsRelayEntity.timestampsDataMessagesSent.add(System.currentTimeMillis())
-        Log.d("look","update sms relay -timestamp data messages sent ${smsRelayEntity.timestampsDataMessagesSent}")
+        Log.d("look","update sms relay -timestamp data messages sent $smsRelayEntity")
         Log.d("look","sending message now with this info $data ${smsRelayEntity.id} ${smsRelayEntity.isServerResponseReceived}")
         if(!isSuccessful){
             smsRelayEntity.errorMessage = data
         }
+        smsRelayRepository.updateBlocking(smsRelayEntity)
 
         smsFormatter.sendMessage(phoneNumber, firstMessage)
         coroutineScope.launch {
