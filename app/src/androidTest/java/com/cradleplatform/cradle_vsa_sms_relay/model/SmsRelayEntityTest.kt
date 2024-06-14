@@ -1,5 +1,6 @@
 package com.cradleplatform.cradle_vsa_sms_relay.model
 
+import com.cradleplatform.cradle_vsa_sms_relay.utilities.DateTimeUtil
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -8,15 +9,16 @@ class SmsRelayEntityTest {
     @Test
     fun testInitialization() {
         val smsRelayEntity = SmsRelayEntity(
-            id = "12345",
-            numFragmentsReceived = 0,
+            id = "12-345",
+            numFragmentsReceived = 1,
             totalFragmentsFromMobile = 5,
-            smsPacketsFromMobile = mutableListOf(),
-            timestampsDataMessagesReceived = mutableListOf(),
-            timestampsDataMessagesSent = mutableListOf(),
+            smsPacketsFromMobile = mutableListOf("message1", "message2"),
+            timeRequestInitiated = System.currentTimeMillis(),
+            timestampsDataMessagesReceived = mutableListOf(100000L),
+            timestampsDataMessagesSent = mutableListOf(200000L),
             isServerResponseReceived = false,
             isServerError = null,
-            errorMessage = null,
+            errorMessage = "timeout",
             smsPacketsToMobile = mutableListOf(),
             numFragmentsSentToMobile = null,
             totalFragmentsFromServer = null,
@@ -24,16 +26,16 @@ class SmsRelayEntityTest {
             deliveryReportSent = false,
             isCompleted = false
         )
-
-        assertEquals("12345", smsRelayEntity.id)
-        assertEquals(0, smsRelayEntity.numFragmentsReceived)
-        assertFalse(smsRelayEntity.isServerResponseReceived)
+        assertEquals("12", smsRelayEntity.getPhoneNumber())
+        assertEquals("345", smsRelayEntity.getRequestIdentifier())
+        assertEquals(DateTimeUtil.convertUnixToTimeString(System.currentTimeMillis()), smsRelayEntity.getDateAndTime())
+        assertEquals("1m 40s", smsRelayEntity.getDuration())
     }
 
     @Test
     fun testComparison() {
-        val smsRelay1 = SmsRelayEntity(
-            id = "12345",
+        val smsRelayEntity1 = SmsRelayEntity(
+            id = "1",
             numFragmentsReceived = 1,
             totalFragmentsFromMobile = 3,
             smsPacketsFromMobile = mutableListOf("message1", "message2"),
@@ -51,8 +53,8 @@ class SmsRelayEntityTest {
             isCompleted = false
         )
 
-        val smsRelay2 = SmsRelayEntity(
-            id = "67890",
+        val smsRelayEntity2 = SmsRelayEntity(
+            id = "2",
             numFragmentsReceived = 2,
             totalFragmentsFromMobile = 4,
             smsPacketsFromMobile = mutableListOf("message3", "message4"),
@@ -61,7 +63,7 @@ class SmsRelayEntityTest {
             timestampsDataMessagesSent = mutableListOf(2100L, 2110L),
             isServerResponseReceived = false,
             isServerError = true,
-            errorMessage = "Timeout",
+            errorMessage = null,
             smsPacketsToMobile = mutableListOf("response2"),
             numFragmentsSentToMobile = 2,
             totalFragmentsFromServer = 3,
@@ -69,10 +71,7 @@ class SmsRelayEntityTest {
             deliveryReportSent = false,
             isCompleted = true
         )
-
-        assertTrue(smsRelay1 < smsRelay2)
-        println(smsRelay2.compareTo(smsRelay1))
-        println(smsRelay2.getDuration())
+        assertEquals(1000, smsRelayEntity2.compareTo(smsRelayEntity1))
     }
 
 }

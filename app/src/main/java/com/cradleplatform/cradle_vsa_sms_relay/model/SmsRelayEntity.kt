@@ -75,6 +75,6 @@ data class SmsRelayEntity(
     }
     companion object {
         private const val SIXTY = 60
-        private const val THOUSAND = 60
+        private const val THOUSAND = 1000
     }
 }
