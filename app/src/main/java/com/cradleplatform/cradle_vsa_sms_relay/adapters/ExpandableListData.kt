@@ -16,30 +16,35 @@ class ExpandableListData(private val smsRelayEntity: SmsRelayEntity) {
             val receiveServerDetails = ArrayList<Map<String,String>>()
             val sendMobileDetails = ArrayList<Map<String,String>>()
 
-            val timestampsDataMessagesReceived = smsRelayEntity?.timestampsDataMessagesReceived
-            val timestampsDataMessagesSent = smsRelayEntity?.timestampsDataMessagesSent
+            val timestampsDataMessagesReceived = smsRelayEntity.timestampsDataMessagesReceived
+            val timestampsDataMessagesSent = smsRelayEntity.timestampsDataMessagesSent
             Log.d("look","in data timestamp data msg sent $timestampsDataMessagesSent")
 
             smsRelayEntity.smsPacketsFromMobile?.forEachIndexed{index, msg ->
-                val timeKey = if (index == 0) "time received" else "relative time"
-                if(index == 0){
-                    receiveMobileDetails.add(mapOf("content" to msg,timeKey to getRelativeTime(index,timestampsDataMessagesReceived)))
+                val timeKey = if (index == 0) "Time received" else "Relative time"
+                if(index == 0) {
+                    val content = msg.split("-")[4]
+                    receiveMobileDetails.add(mapOf("Content" to content,timeKey to getRelativeTime(index,timestampsDataMessagesReceived)))
                 }
                 else {
-                    receiveMobileDetails.add(mapOf("content" to msg,timeKey to getRelativeTime(index,timestampsDataMessagesReceived)))
+                    val content = msg.split("-")[1]
+                    receiveMobileDetails.add(mapOf("Message" to "${index}/${smsRelayEntity.totalFragmentsFromMobile}","Content" to content,timeKey to getRelativeTime(index,timestampsDataMessagesReceived)))
                 }
+
             }
 
-            sendServerDetails.add(mapOf("sentToServer" to smsRelayEntity?.isSentToServer.toString(), "retries" to smsRelayEntity?.numberOfTriesUploaded.toString()))
+            sendServerDetails.add(mapOf("sentToServer" to smsRelayEntity.isSentToServer.toString(), "retries" to smsRelayEntity.numberOfTriesUploaded.toString()))
 
-            if(smsRelayEntity?.isServerError == true){
-                receiveServerDetails.add(mapOf("receivedFromServer" to smsRelayEntity?.isServerResponseReceived.toString(), "error message" to smsRelayEntity?.errorMessage.toString() ))
+            if(smsRelayEntity.isServerError == true){
+                receiveServerDetails.add(mapOf("receivedFromServer" to smsRelayEntity.isServerResponseReceived.toString(), "error message" to smsRelayEntity?.errorMessage.toString() ))
             }
             else {
-                if(smsRelayEntity?.isKeyExpired == true){
-                    receiveServerDetails.add(mapOf("receivedFromServer" to smsRelayEntity?.isServerResponseReceived.toString(), "isKeyExpired" to smsRelayEntity?.isKeyExpired.toString() ))
+                if(smsRelayEntity.isKeyExpired == true){
+                    receiveServerDetails.add(mapOf("receivedFromServer" to smsRelayEntity.isServerResponseReceived.toString(), "isKeyExpired" to smsRelayEntity?.isKeyExpired.toString() ))
                 }
-                receiveServerDetails.add(mapOf("receivedFromServer" to smsRelayEntity?.isServerResponseReceived.toString() ))
+                else {
+                    receiveServerDetails.add(mapOf("receivedFromServer" to smsRelayEntity.isServerResponseReceived.toString()))
+                }
             }
 
             timestampsDataMessagesSent?.forEachIndexed{index, _ ->

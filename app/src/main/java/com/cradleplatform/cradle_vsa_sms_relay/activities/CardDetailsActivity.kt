@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.ExpandableListAdapter
 import android.widget.ExpandableListView
+import android.widget.TextView
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import com.cradleplatform.cradle_vsa_sms_relay.R
@@ -13,14 +14,13 @@ import com.cradleplatform.cradle_vsa_sms_relay.adapters.DetailsExpandableListAda
 import com.cradleplatform.cradle_vsa_sms_relay.adapters.ExpandableListData
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.DetailsViewModel
+import org.w3c.dom.Text
 
 class CardDetailsActivity : AppCompatActivity() {
     private var expandableListView: ExpandableListView? = null
     private var adapter: ExpandableListAdapter? = null
     private var titleList: List<String>? = null
     private lateinit var cardDetailsViewModel: DetailsViewModel
-    private var relayEntity: LiveData<SmsRelayEntity>? = null
-    private var relayEntitySplit: LiveData<SmsRelayEntity>? = null
     private lateinit var expandableListData: ExpandableListData
 
 
@@ -35,16 +35,15 @@ class CardDetailsActivity : AppCompatActivity() {
                 ViewModelProvider.AndroidViewModelFactory(application)
             )[DetailsViewModel::class.java]
 
-        val date: String? = intent.getStringExtra("date")
-        val phoneNumber: String? = intent.getStringExtra("phoneNumber")
-        val duration: String? = intent.getStringExtra("duration")
         val id: String? = intent.getStringExtra("id")
-        val idSplit: String? = intent.getStringExtra("idSplit")
+        val messageNoTextView = findViewById<TextView>(R.id.messageNoTextView)
 
         if (id != null) {
+            val messageNo = id.split('-')[1]
+            messageNoTextView.text = "Message Number $messageNo"
+
             cardDetailsViewModel.getRelayEntity(id)?.observe(this){
                 Log.d("look here", "im updating $it")
-//                makeDataToDisplay(it)
                 expandableListData = ExpandableListData(it)
                 expandableListView = findViewById(R.id.detailsList)
                 if (expandableListView != null) {
@@ -66,19 +65,5 @@ class CardDetailsActivity : AppCompatActivity() {
             // Call finish to close the current activity and return to the previous one
             finish()
         }
-
-
-
-//        val textDate: TextView = findViewById(R.id.textDate)
-//        val textPhoneNumber: TextView = findViewById(R.id.textPhoneNumber)
-//        val durationText: TextView = findViewById(R.id.durationtext)
-
-
-
-        // Retrieve other data if passed
-
-//        textDate.text = "Date: $date"
-//        textPhoneNumber.text = "Phone Number: $phoneNumber"
-//        durationText.text = "Duration: $duration"
     }
 }

@@ -138,11 +138,28 @@ class HttpsRequestRepository(
                     else {
                         JSONObject(errorBody.string()).getString("message")
                     }
+
+                    responseFailures.remove(smsRelayEntity)
+                    // using a synchronized block to ensure no two threads
+                    // can execute this block at the same time
+                    // this is a safety measure, only for a special case where a user attempts
+                    // to manually restart an incomplete relay process
+                    synchronized(this@HttpsRequestRepository) {
+                        updateSmsRelayEntity(
+                            errorMessage,
+                            false,
+                            true,
+                            smsRelayEntity,
+                            response.code(),
+                            coroutineScope
+                        )
+                    }
+
                     // Add retry functionality here as well and look at why we are doing the
                     //  below on failure
                     Log.e(TAG, errorMessage)
 
-                    responseFailures[smsRelayEntity] = Pair(errorMessage, response.code())
+//                    responseFailures[smsRelayEntity] = Pair(errorMessage, response.code())
                 }
 
                 // This method will only be called when there is a network error while uploading
@@ -184,7 +201,7 @@ class HttpsRequestRepository(
         smsRelayEntity.numFragmentsSentToMobile = 1
         smsRelayEntity.timestampsDataMessagesSent.add(System.currentTimeMillis())
         Log.d("look","update sms relay -timestamp data messages sent $smsRelayEntity")
-        Log.d("look","sending message now with this info $data ${smsRelayEntity.id} ${smsRelayEntity.isServerResponseReceived}")
+        Log.d("look","sending message now with this info $data ${smsRelayEntity.id} ${smsRelayEntity.totalFragmentsFromMobile}")
         if(!isSuccessful){
             smsRelayEntity.errorMessage = data
         }
