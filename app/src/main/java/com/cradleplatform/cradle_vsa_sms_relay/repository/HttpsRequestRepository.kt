@@ -136,6 +136,7 @@ class HttpsRequestRepository(
                         try {
                             JSONObject(errorBodyString).getString("message")
                         } catch (e: JSONException) {
+                            Log.e(TAG, "Error parsing JSON error message", e)
                             "Unexpected error format: $errorBodyString"
                         }
                     }

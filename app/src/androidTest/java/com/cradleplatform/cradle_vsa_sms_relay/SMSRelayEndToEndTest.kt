@@ -16,6 +16,7 @@ import androidx.test.rule.GrantPermissionRule
 import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReceiver
 import com.cradleplatform.cradle_vsa_sms_relay.custom_rules.SetUpMockServerRule
+import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -109,7 +110,7 @@ class SMSRelayEndToEndTest {
 
         // Assert with timeout
         try {
-            val request1: RecordedRequest? = webServer.takeRequest(10, TimeUnit.SECONDS) // 设置超时时间为10秒
+            val request1: RecordedRequest? = webServer.takeRequest(10, TimeUnit.SECONDS)
             if (request1 != null) {
                 Log.d("TEST_REQUEST", "Request path: ${request1.path}")
                 assertEquals("/api/sms_relay", request1.path)
@@ -120,8 +121,93 @@ class SMSRelayEndToEndTest {
             Log.e("TEST_REQUEST", "Request was not received within the timeout period")
         }
 
+        @Test
+        fun testSendAckMessage() = runTest {
+            Log.d("TEST", "Starting testSendAckMessage")
 
+            // Arrange
+            val phoneNumber = "+15555215556"
+            val ackMessage = "ACK"
+            val requestIdentifier = "000000"
+            val id = "$phoneNumber-$requestIdentifier"
+            val relayEntity = SmsRelayEntity(id, 1, 1, mutableListOf(ackMessage), System.currentTimeMillis(), mutableListOf(), mutableListOf(), false, false, null, mutableListOf(), null, null, 1, false, false)
 
+            // Set up MockWebServer response
+            val mockResponse = MockResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody("{\"body\": \"ACK_RECEIVED\", \"code\": 200}")
+            webServer.enqueue(mockResponse)
+
+            // Simulate receiving an ACK message
+            val pduHex = "00000b915155255155f400004240901030812b99b0586b280d1299c5160c0683c1602d182cd6" // This should be the actual PDU hex string of an ACK message
+            val pduByteArray = pduHex.hexToByteArray()
+            val pduByteArray2D = arrayOf<Any>(pduByteArray)
+            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                data = Uri.parse("smsto:$phoneNumber")
+                putExtra("pdus", pduByteArray2D)
+            }
+
+            // Act
+            Log.d("TEST", "Sending ACK intent to MessageReceiver")
+            smsMessage.onReceive(getApplicationContext(), intent)
+
+            // Assert
+            val request1: RecordedRequest? = webServer.takeRequest(10, TimeUnit.SECONDS)
+            if (request1 != null) {
+                Log.d("TEST_REQUEST", "Request path: ${request1.path}")
+                assertEquals("/api/sms_relay", request1.path)
+                Log.d("TEST_REQUEST", "Request body: ${request1.body.readUtf8()}") // 打印请求体
+            } else {
+                Log.e("TEST_REQUEST", "No request received within the timeout period")
+            }
+        }
+
+        testSendAckMessage()
+
+        @Test
+        fun testSendDataToServer() = runTest {
+            Log.d("TEST", "Starting testSendDataToServer")
+
+            // Arrange
+            val phoneNumber = "+15555215556"
+            val restMessage = "REST"
+            val requestIdentifier = "000002"
+            val id = "$phoneNumber-$requestIdentifier"
+            val relayEntity = SmsRelayEntity(id, 1, 1, mutableListOf(restMessage), System.currentTimeMillis(), mutableListOf(), mutableListOf(), false, false, null, mutableListOf(), null, null, 1, false, false)
+
+            // Set up MockWebServer response
+            val mockResponse = MockResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody("{\"body\": \"REST_RECEIVED\", \"code\": 200}")
+            webServer.enqueue(mockResponse)
+
+            // Simulate receiving a rest message
+            val pduHex = "00000b915155255155f400004240901030812b99b0586b280d1299c5160c0683c1602d182cd6" // This should be the actual PDU hex string of a rest message
+            val pduByteArray = pduHex.hexToByteArray()
+            val pduByteArray2D = arrayOf<Any>(pduByteArray)
+            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                data = Uri.parse("smsto:$phoneNumber")
+                putExtra("pdus", pduByteArray2D)
+            }
+
+            // Act
+            Log.d("TEST", "Sending rest intent to MessageReceiver")
+            smsMessage.onReceive(getApplicationContext(), intent)
+
+            // Assert
+            val request1: RecordedRequest? = webServer.takeRequest(10, TimeUnit.SECONDS)
+            if (request1 != null) {
+                Log.d("TEST_REQUEST", "Request path: ${request1.path}")
+                assertEquals("/api/sms_relay", request1.path)
+                Log.d("TEST_REQUEST", "Request body: ${request1.body.readUtf8()}") // 打印请求体
+            } else {
+                Log.e("TEST_REQUEST", "No request received within the timeout period")
+            }
+        }
+
+        testSendDataToServer()
 
         // Waiting to make sure all tasks are complete before moving on
         Log.d("TEST", "Waiting for tasks to complete")
@@ -134,4 +220,6 @@ class SMSRelayEndToEndTest {
 
         Log.d("TEST", "Test completed")
     }
+
+
 }
