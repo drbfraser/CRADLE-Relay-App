@@ -55,9 +55,7 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
         return phoneList
     }
 
-    // TODO Update bind function to use UI prototype
-    // TODO add onclicklistener for item
-    @Suppress("LongMethod","MaxLineLength")
+    @Suppress("LongMethod","TooManyFunctions")
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
         val smsRelayEntity: SmsRelayEntity = sms[position]
         val numFragmentsReceived = smsRelayEntity.numFragmentsReceived
@@ -189,7 +187,8 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
     }
 
 
-    inner class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+    inner class SMSViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
+        View.OnClickListener {
         val phone: TextView = itemView.findViewById<TextView>(R.id.phone)
         val checkMark1: ImageView = itemView.findViewById(R.id.receivedMobileCheckMark)
         val checkMark2: ImageView = itemView.findViewById(R.id.UploadServerCheckMark)
