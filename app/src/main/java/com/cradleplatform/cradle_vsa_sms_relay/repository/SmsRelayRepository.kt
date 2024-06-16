@@ -1,6 +1,5 @@
 package com.cradleplatform.cradle_vsa_sms_relay.repository
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import com.cradleplatform.cradle_vsa_sms_relay.dao.SmsRelayDao
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayDatabase
