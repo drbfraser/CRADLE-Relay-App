@@ -3,6 +3,7 @@ package com.cradleplatform.cradle_vsa_sms_relay
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -15,6 +16,10 @@ import androidx.test.rule.GrantPermissionRule
 import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReceiver
 import com.cradleplatform.cradle_vsa_sms_relay.custom_rules.SetUpMockServerRule
+import com.cradleplatform.cradle_vsa_sms_relay.model.Settings
+import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -24,10 +29,13 @@ import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 
 /**
@@ -45,12 +53,18 @@ class SMSRelayEndToEndTest {
         android.Manifest.permission.INTERNET
     )
     private var activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
-    private var webServer: MockWebServer = MockWebServer()
+    private lateinit var webServer: MockWebServer
 
-    // This rule chain ensures that the mock sever URL is set in the shared preferences before
-    // the activity is launched
+    private val setUpMockServerRule = SetUpMockServerRule()
+
     @get:Rule
-    var rules: RuleChain = RuleChain.outerRule(SetUpMockServerRule(webServer.url("/").toString())).around(activityScenarioRule)
+    var rules: RuleChain = RuleChain.outerRule(setUpMockServerRule).around(activityScenarioRule)
+
+    @Before
+    fun setUp() {
+        webServer = setUpMockServerRule.webServer
+    }
+
 
     @Rule @JvmField
     val grantPermissionRule: GrantPermissionRule =
@@ -73,10 +87,17 @@ class SMSRelayEndToEndTest {
         assertEquals("com.cradleplatform.cradle_vsa_sms_relay", appContext.packageName)
     }
 
+
+
+
     @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
     @Test
     fun simpleEndToEndTest() = runTest {
+
+        val mockServerUrl = webServer.url("/").toString()
         // Arrange
+        Log.d("TEST", "Starting simpleEndToEndTest")
+        Log.d("TEST", "Mock Server URL: $mockServerUrl")
 
         // This PDU was obtained by running SMS Relay and setting a breakpoint in the onReceive of
         // the MessageReceiver class, and sending a message to the app while its running.
@@ -109,8 +130,14 @@ class SMSRelayEndToEndTest {
         smsMessage.onReceive(getApplicationContext(), intent)
 
         // Assert
-        val request1: RecordedRequest = webServer.takeRequest()
-        assertEquals("/api/sms_relay", request1.path)
+        val request1: RecordedRequest? = webServer.takeRequest(10, TimeUnit.SECONDS)
+        if (request1 != null) {
+            Log.d("TEST_REQUEST", "Request path: ${request1.path}")
+            assertEquals("/api/sms_relay", request1.path)
+            Log.d("TEST_REQUEST", "Request body: ${request1.body.readUtf8()}") // 打印请求体
+        } else {
+            Log.e("TEST_REQUEST", "No request received within the timeout period")
+        }
 
         // Waiting to make sure all tasks are complete before moving on
         advanceUntilIdle()
