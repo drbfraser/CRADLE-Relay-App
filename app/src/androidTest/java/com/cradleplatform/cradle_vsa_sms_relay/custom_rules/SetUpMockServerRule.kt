@@ -36,6 +36,7 @@ class SetUpMockServerRule : TestRule {
                 // Initialize the MockWebServer with the hostname and port from SharedPreferences
                 mockWebServer = MockWebServer()
                 mockWebServer.start(InetAddress.getByName(hostname), port)
+
                 val mockServerUrl = mockWebServer.url("/").toString()
 
                 // Store the URL in SharedPreferences

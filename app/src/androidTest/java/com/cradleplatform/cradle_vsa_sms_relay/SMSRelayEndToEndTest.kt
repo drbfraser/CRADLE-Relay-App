@@ -50,9 +50,12 @@ class SMSRelayEndToEndTest {
     private lateinit var webServer: MockWebServer
     private val setUpMockServerRule = SetUpMockServerRule()
 
+    // This rule chain ensures that the mock sever URL is set the same as settings use the shared preferences
+    // the activity is launched
     @get:Rule
     var rules: RuleChain = RuleChain.outerRule(setUpMockServerRule).around(activityScenarioRule)
 
+    // set up mock server
     @Before
     fun setUp() {
         webServer = setUpMockServerRule.mockWebServer
