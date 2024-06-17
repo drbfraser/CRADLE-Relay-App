@@ -12,7 +12,7 @@ import java.net.InetAddress
 
 class SetUpMockServerRule : TestRule {
 
-    lateinit var webServer: MockWebServer
+    lateinit var mockWebServer: MockWebServer
         private set
 
     override fun apply(base: Statement?, description: Description?): Statement {
@@ -34,9 +34,9 @@ class SetUpMockServerRule : TestRule {
                 val port = sharedPref.getString(context.getString(R.string.key_server_port), "8080")?.toIntOrNull() ?: 8080
 
                 // Initialize the MockWebServer with the hostname and port from SharedPreferences
-                webServer = MockWebServer()
-                webServer.start(InetAddress.getByName(hostname), port)
-                val mockServerUrl = webServer.url("/").toString()
+                mockWebServer = MockWebServer()
+                mockWebServer.start(InetAddress.getByName(hostname), port)
+                val mockServerUrl = mockWebServer.url("/").toString()
 
                 // Store the URL in SharedPreferences
                 editor.putString("base_url", mockServerUrl)
@@ -47,7 +47,7 @@ class SetUpMockServerRule : TestRule {
                 try {
                     base?.evaluate()
                 } finally {
-                    webServer.shutdown()
+                    mockWebServer.shutdown()
                 }
             }
         }

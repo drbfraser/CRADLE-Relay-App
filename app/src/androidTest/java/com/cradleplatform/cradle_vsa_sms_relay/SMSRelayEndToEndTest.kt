@@ -16,10 +16,6 @@ import androidx.test.rule.GrantPermissionRule
 import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReceiver
 import com.cradleplatform.cradle_vsa_sms_relay.custom_rules.SetUpMockServerRule
-import com.cradleplatform.cradle_vsa_sms_relay.model.Settings
-import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
-import io.mockk.every
-import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -35,8 +31,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
-
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -54,7 +48,6 @@ class SMSRelayEndToEndTest {
     )
     private var activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
     private lateinit var webServer: MockWebServer
-
     private val setUpMockServerRule = SetUpMockServerRule()
 
     @get:Rule
@@ -62,9 +55,8 @@ class SMSRelayEndToEndTest {
 
     @Before
     fun setUp() {
-        webServer = setUpMockServerRule.webServer
+        webServer = setUpMockServerRule.mockWebServer
     }
-
 
     @Rule @JvmField
     val grantPermissionRule: GrantPermissionRule =
@@ -86,9 +78,6 @@ class SMSRelayEndToEndTest {
         val appContext = getInstrumentation().targetContext
         assertEquals("com.cradleplatform.cradle_vsa_sms_relay", appContext.packageName)
     }
-
-
-
 
     @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
     @Test
@@ -134,7 +123,7 @@ class SMSRelayEndToEndTest {
         if (request1 != null) {
             Log.d("TEST_REQUEST", "Request path: ${request1.path}")
             assertEquals("/api/sms_relay", request1.path)
-            Log.d("TEST_REQUEST", "Request body: ${request1.body.readUtf8()}") // 打印请求体
+            Log.d("TEST_REQUEST", "Request body: ${request1.body.readUtf8()}")
         } else {
             Log.e("TEST_REQUEST", "No request received within the timeout period")
         }
