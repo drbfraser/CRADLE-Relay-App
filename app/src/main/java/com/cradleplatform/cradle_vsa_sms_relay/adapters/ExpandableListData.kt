@@ -74,15 +74,16 @@ class ExpandableListData(private val smsRelayEntity: SmsRelayEntity) {
         val format = SimpleDateFormat("HH:mm:ss")
         if(msgPos != 0 && timestampList != null){
             val diff = timestampList[msgPos] - timestampList[msgPos - 1]
-            val seconds = TimeUnit.MILLISECONDS.toSeconds(diff) % 60
-            val minutes = TimeUnit.MILLISECONDS.toMinutes(diff) % 60
-            val hours = TimeUnit.MILLISECONDS.toHours(diff) % 24
+            val seconds = TimeUnit.MILLISECONDS.toSeconds(diff) % MessageDeconstructionConstants.SECONDS_PER_MINUTE
+            val minutes = TimeUnit.MILLISECONDS.toMinutes(diff) % MessageDeconstructionConstants.MINUTES_PER_HOUR
+            val hours = TimeUnit.MILLISECONDS.toHours(diff) % MessageDeconstructionConstants.HOURS_IN_DAY
 
             return when {
                 hours > 0 -> "$hours hr $minutes min $seconds sec"
                 minutes > 0 -> "$minutes min $seconds sec"
                 else -> "$seconds sec"
             }
+
         }
         return format.format(timestampList?.get(msgPos))
     }

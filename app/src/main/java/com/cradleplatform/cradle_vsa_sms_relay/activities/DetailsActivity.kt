@@ -66,4 +66,8 @@ object MessageDeconstructionConstants {
     const val MESSAGE_NUMBER_INDEX = 1
     const val MESSAGE_CONTENT_INDEX = 1
     const val FIRST_MESSAGE_CONTENT_INDEX = 4
+    const val SECONDS_PER_MINUTE = 60
+    const val MINUTES_PER_HOUR = 60
+    const val HOURS_IN_DAY = 60
+
 }
