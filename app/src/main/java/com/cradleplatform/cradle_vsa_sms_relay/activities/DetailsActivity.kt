@@ -7,14 +7,11 @@ import android.widget.Button
 import android.widget.ExpandableListAdapter
 import android.widget.ExpandableListView
 import android.widget.TextView
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.adapters.DetailsExpandableListAdapter
 import com.cradleplatform.cradle_vsa_sms_relay.adapters.ExpandableListData
-import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.DetailsViewModel
-import org.w3c.dom.Text
 
 class CardDetailsActivity : AppCompatActivity() {
     private var expandableListView: ExpandableListView? = null
@@ -43,7 +40,6 @@ class CardDetailsActivity : AppCompatActivity() {
             messageNoTextView.text = "Message Number $messageNo"
 
             cardDetailsViewModel.getRelayEntity(id)?.observe(this){
-                Log.d("look here", "im updating $it")
                 expandableListData = ExpandableListData(it)
                 expandableListView = findViewById(R.id.detailsList)
                 if (expandableListView != null) {

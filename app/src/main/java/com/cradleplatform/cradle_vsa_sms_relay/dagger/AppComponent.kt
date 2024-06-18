@@ -16,6 +16,7 @@ import javax.inject.Singleton
 
 @Singleton
 @Component(modules = [AppModule::class, DataModule::class])
+@Suppress("TooManyFunctions")
 interface AppComponent {
 
     fun inject(app: MyApp)

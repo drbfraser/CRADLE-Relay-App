@@ -1,9 +1,7 @@
 package com.cradleplatform.cradle_vsa_sms_relay.adapters
 
-import android.util.Log
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.concurrent.TimeUnit
 
 class ExpandableListData(private val smsRelayEntity: SmsRelayEntity) {
@@ -18,39 +16,47 @@ class ExpandableListData(private val smsRelayEntity: SmsRelayEntity) {
 
             val timestampsDataMessagesReceived = smsRelayEntity.timestampsDataMessagesReceived
             val timestampsDataMessagesSent = smsRelayEntity.timestampsDataMessagesSent
-            Log.d("look","in data timestamp data msg sent $timestampsDataMessagesSent")
 
-            smsRelayEntity.smsPacketsFromMobile?.forEachIndexed{index, msg ->
-                val timeKey = if (index == 0) "Time received" else "Relative time"
-                if(index == 0) {
+            smsRelayEntity.smsPacketsFromMobile?.forEachIndexed{idx, msg ->
+                val timeKey = if (idx == 0) "Time received" else "Relative time"
+                if(idx == 0) {
                     val content = msg.split("-")[4]
-                    receiveMobileDetails.add(mapOf("Content" to content,timeKey to getRelativeTime(index,timestampsDataMessagesReceived)))
+                    receiveMobileDetails.add(mapOf("Content" to content,timeKey to
+                            getRelativeTime(idx,timestampsDataMessagesReceived)))
                 }
                 else {
                     val content = msg.split("-")[1]
-                    receiveMobileDetails.add(mapOf("Message" to "${index}/${smsRelayEntity.totalFragmentsFromMobile}","Content" to content,timeKey to getRelativeTime(index,timestampsDataMessagesReceived)))
+                    receiveMobileDetails.add(mapOf("Message" to "${idx}/$" +
+                            "{smsRelayEntity.totalFragmentsFromMobile}","Content" to content,
+                        timeKey to getRelativeTime(idx,timestampsDataMessagesReceived)))
                 }
 
             }
 
-            sendServerDetails.add(mapOf("sentToServer" to smsRelayEntity.isSentToServer.toString(), "retries" to smsRelayEntity.numberOfTriesUploaded.toString()))
+            sendServerDetails.add(mapOf("sentToServer" to smsRelayEntity.isSentToServer.toString(),
+                "retries" to smsRelayEntity.numberOfTriesUploaded.toString()))
 
             if(smsRelayEntity.isServerError == true){
-                receiveServerDetails.add(mapOf("receivedFromServer" to smsRelayEntity.isServerResponseReceived.toString(), "error message" to smsRelayEntity?.errorMessage.toString() ))
+                receiveServerDetails.add(mapOf(
+                    "receivedFromServer" to smsRelayEntity.isServerResponseReceived.toString(),
+                    "error message" to smsRelayEntity?.errorMessage.toString() ))
             }
             else {
-                if(smsRelayEntity.isKeyExpired == true){
-                    receiveServerDetails.add(mapOf("receivedFromServer" to smsRelayEntity.isServerResponseReceived.toString(), "isKeyExpired" to smsRelayEntity?.isKeyExpired.toString() ))
+                if(smsRelayEntity.isKeyExpired){
+                    receiveServerDetails.add(mapOf(
+                        "receivedFromServer" to smsRelayEntity.isServerResponseReceived.toString(),
+                        "isKeyExpired" to smsRelayEntity?.isKeyExpired.toString() ))
                 }
                 else {
-                    receiveServerDetails.add(mapOf("receivedFromServer" to smsRelayEntity.isServerResponseReceived.toString()))
+                    receiveServerDetails.add(mapOf(
+                        "receivedFromServer" to smsRelayEntity.isServerResponseReceived.toString()))
                 }
             }
 
-            timestampsDataMessagesSent?.forEachIndexed{index, _ ->
-                val timeKey = if (index == 0) "time sent" else "relative time"
-                Log.d("look", "this is inside timestamp $timestampsDataMessagesSent")
-                sendMobileDetails.add(mapOf(timeKey to getRelativeTime(index,timestampsDataMessagesSent)))
+            timestampsDataMessagesSent?.forEachIndexed{idx, _ ->
+                val timeKey = if (idx == 0) "time sent" else "relative time"
+                sendMobileDetails.add(mapOf(
+                    timeKey to getRelativeTime(idx,timestampsDataMessagesSent)))
             }
 
             expandableListDetail["Message received from mobile"] = receiveMobileDetails
@@ -77,5 +83,4 @@ class ExpandableListData(private val smsRelayEntity: SmsRelayEntity) {
         }
         return format.format(timestampList?.get(msgPos))
     }
-
 }

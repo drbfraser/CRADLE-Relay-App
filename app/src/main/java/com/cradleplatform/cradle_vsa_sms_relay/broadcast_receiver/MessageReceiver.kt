@@ -125,8 +125,6 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                 val relayEntity = smsRelayRepository.getRelayBlocking(id)
 
                 val fragmentNum = smsFormatter.getAckFragmentNumber(message)
-                Log.d("look","this was the relay entity for ack received ${relayEntity?.numFragmentsSentToMobile} ${relayEntity?.isServerResponseReceived} $fragmentNum")
-
                 // Ack was for previous fragment in retry case
                 if (fragmentNum < relayEntity!!.numFragmentsSentToMobile!! - 1) {
                     Log.d(tag, "Ack received for outdated fragment; dropping. Message = $message")
@@ -323,7 +321,6 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
     private fun retrySendMessageToMobile() {
         val startExe = System.currentTimeMillis()
         while (retryQueue.peek()?.let { it.timestamp <= startExe } == true) {
-            Log.d("look", "in retrying sending msg to mobile")
             val httpsResponseSent = retryQueue.poll()
             val relayEntity = smsRelayRepository.getRelayBlocking(httpsResponseSent.relayEntityId)
             if (httpsResponseSent!!.numberOfRetries == HTTPSResponseSent.MAX_RETRIES ||
@@ -348,7 +345,6 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                 tag,
                 "Retrying send to ${relayEntity.id}. Message = ${httpsResponseSent.lastEncryptedPacket}"
             )
-            Log.d("look", "sending msg to mobile noq")
             smsFormatter.sendMessage(
                 httpsResponseSent.phoneNumber,
                 httpsResponseSent.lastEncryptedPacket

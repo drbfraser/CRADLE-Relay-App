@@ -43,7 +43,8 @@ class DetailsExpandableListAdapter(private val context: Context,
        return false
     }
 
-    override fun getGroupView(listPosition: Int, isExpanded: Boolean, convertView: View?, parent: ViewGroup?): View {
+    override fun getGroupView(listPosition: Int, isExpanded: Boolean, convertView: View?,
+                              parent: ViewGroup?): View {
         var convertView = convertView
         if(convertView == null){
             val layoutInflater =
@@ -67,7 +68,8 @@ class DetailsExpandableListAdapter(private val context: Context,
             convertView = layoutInflater.inflate(R.layout.details_list_item, null)
         }
         val childDict =  getChild(listPosition, expandableListPosition) as Map<String,String>
-        var expandedListText = childDict.entries.joinToString(separator = "\n") { "${it.key}: ${it.value}" }
+        var expandedListText = childDict.entries.joinToString(separator = "\n") { "${it.key}:" +
+                " ${it.value}" }
         if (expandedListText.isNullOrBlank()) {expandedListText = "No content to show"}
         val expandedListTextView = convertView!!.findViewById<TextView>(R.id.expandedListItemText)
         expandedListTextView.text = expandedListText

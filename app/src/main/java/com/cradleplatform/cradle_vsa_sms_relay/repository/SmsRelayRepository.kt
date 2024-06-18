@@ -41,7 +41,6 @@ class SmsRelayRepository(database: SmsRelayDatabase) {
     }
 
     fun getRelayLiveData(id: String): LiveData<SmsRelayEntity>? {
-        Log.d("look","getting")
         return  smsRelayDao.getRelayEntityLiveData(id)
     }
 
