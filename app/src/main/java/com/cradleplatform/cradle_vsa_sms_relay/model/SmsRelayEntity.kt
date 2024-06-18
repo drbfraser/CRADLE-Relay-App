@@ -70,13 +70,13 @@ data class SmsRelayEntity(
     fun getDuration(): String {
         val receivedTime = if (timestampsDataMessagesReceived.isNotEmpty()) timestampsDataMessagesReceived[0] else 0
         val sentTime = if (timestampsDataMessagesSent.isNotEmpty()) timestampsDataMessagesSent[0] else 0
-        val durationInSeconds = (sentTime - receivedTime) / THOUSAND
+        val durationInSeconds = (sentTime - receivedTime) / MILLISECONDS_PER_SECOND
         val minutes = durationInSeconds / SIXTY
         val seconds = durationInSeconds % SIXTY
         return String.format("%dm %ds", minutes, seconds)
     }
     companion object {
         private const val SIXTY = 60
-        private const val THOUSAND = 60
+        private const val MILLISECONDS_PER_SECOND = 1000
     }
 }
