@@ -174,6 +174,8 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                         mutableListOf(),
                         null,
                         null,
+                        false,
+                        false,
                         0,
                         false,
                         false
@@ -186,6 +188,8 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                     hash[phoneNumber] = Pair(requestIdentifier, System.currentTimeMillis())
 
                     if (newRelayEntity.numFragmentsReceived == newRelayEntity.totalFragmentsFromMobile) {
+                        newRelayEntity.isSentToServer = true
+                        smsRelayRepository.update(newRelayEntity)
                         httpsRequestRepository.sendToServer(newRelayEntity, coroutineScope)
                     }
                 }.start()
@@ -198,9 +202,10 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                     }
                     // Passive expiry check
                     else if (isKeyExpired(phoneNumber)) {
-                        Log.d(tag, "$phoneNumber has expired, evicting it from the hash")
-                        hash.remove(phoneNumber)
+                        removeExpiredKeyFromHash(phoneNumber)
                         shouldContinue = false
+
+
                         return@Thread
                     }
 
@@ -219,6 +224,8 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                     smsFormatter.sendAckMessage(relayEntity)
 
                     if (relayEntity.numFragmentsReceived == relayEntity.totalFragmentsFromMobile) {
+                        relayEntity.isSentToServer = true
+                        smsRelayRepository.update(relayEntity)
                         httpsRequestRepository.sendToServer(relayEntity, coroutineScope)
                     }
 
@@ -264,8 +271,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                 val hashSize = hash.size
                 hash.forEach { (key, _) ->
                     if (isKeyExpired(key, startExe)) {
-                        Log.d(tag, "$key has expired, evicting it from the hash")
-                        hash.remove(key)
+                        removeExpiredKeyFromHash(key)
                     }
                 }
 
@@ -351,6 +357,16 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
             ).toLong()
             retryQueue.add(httpsResponseSent)
         }
+    }
+
+    private fun removeExpiredKeyFromHash(phoneNumber: String, ){
+        val requestIdentifier = hash[phoneNumber]!!.first
+        val id = "$phoneNumber-$requestIdentifier"
+        val relayEntity = smsRelayRepository.getRelayBlocking(id)
+        relayEntity?.isKeyExpired = true
+        relayEntity?.let { smsRelayRepository.update(it) }
+        Log.d(tag, "$phoneNumber has expired, evicting it from the hash")
+        hash.remove(phoneNumber)
     }
 
     companion object {

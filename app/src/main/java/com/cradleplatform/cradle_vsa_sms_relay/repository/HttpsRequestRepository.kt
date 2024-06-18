@@ -246,6 +246,7 @@ class HttpsRequestRepository(
 
             polledTriple.first.numberOfTriesUploaded += 1
             smsRelayRepository.updateBlocking(polledTriple.first)
+            polledTriple.first.isSentToServer = true
             sendToServer(polledTriple.first, polledTriple.third)
         }
     }

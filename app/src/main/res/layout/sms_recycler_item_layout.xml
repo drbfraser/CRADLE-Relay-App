@@ -83,6 +83,14 @@
                     android:paddingTop="5dp"
                     android:src="@drawable/failed_icon"
                     android:visibility="invisible" />
+                <ImageView
+                    android:id="@+id/receivedMobileLoadingMark"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_margin="2dp"
+                    android:paddingTop="5dp"
+                    android:src="@drawable/in_process"
+                    android:visibility="invisible" />
 
             </FrameLayout>
 
@@ -115,6 +123,14 @@
                     android:layout_margin="2dp"
                     android:paddingTop="5dp"
                     android:src="@drawable/failed_icon"
+                    android:visibility="invisible" />
+                <ImageView
+                    android:id="@+id/UploadServerLoadingMark"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_margin="2dp"
+                    android:paddingTop="5dp"
+                    android:src="@drawable/in_process"
                     android:visibility="invisible" />
 
             </FrameLayout>
@@ -149,6 +165,15 @@
                     android:paddingTop="5dp"
                     android:src="@drawable/failed_icon"
                     android:visibility="invisible" />
+                <ImageView
+                    android:id="@+id/receiveServerLoadingMark"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_margin="2dp"
+                    android:paddingTop="5dp"
+                    android:src="@drawable/in_process"
+                    android:visibility="invisible" />
+
 
             </FrameLayout>
 
@@ -183,6 +208,16 @@
                     android:paddingTop="5dp"
                     android:src="@drawable/failed_icon"
                     android:visibility="invisible" />
+                <ImageView
+                    android:id="@+id/sentMobileLoadingMark"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_margin="2dp"
+                    android:paddingTop="5dp"
+                    android:src="@drawable/in_process"
+                    android:visibility="invisible" />
+
+
             </FrameLayout>
                 <FrameLayout
                     android:layout_width="wrap_content"

@@ -157,7 +157,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
         // Apply additional filtering based on the selected filter type
         val finalFilteredList = when (selectedFilter) {
             "Only Successful" -> filteredList.filter { it.isServerError == false }
-            "Only Failed" -> filteredList.filter { it.isServerError == true }
+            "Only Failed" -> filteredList.filter { it.isKeyExpired || it.isServerError == true }
             else -> filteredList
         }
 

@@ -12,7 +12,7 @@ import com.cradleplatform.cradle_vsa_sms_relay.type_converters.TimeStampListConv
  * database that stores data on all sms transactions that were initiated
  */
 
-@Database(entities = [SmsRelayEntity::class], version = 6, exportSchema = false)
+@Database(entities = [SmsRelayEntity::class], version = 7, exportSchema = false)
 @TypeConverters(SmsListConverter::class, TimeStampListConverter::class)
 abstract class SmsRelayDatabase : RoomDatabase() {
     abstract fun smsRelayDao(): SmsRelayDao
