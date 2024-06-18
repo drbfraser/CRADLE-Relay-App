@@ -13,7 +13,7 @@ import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
  * Adapter for updating the recycler view UI in main activity
  * to display the status of a SMS Relay transaction
  */
-
+@Suppress("TooManyFunctions")
 class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
     var sms: List<SmsRelayEntity> = ArrayList()
     private var phoneList: MutableList<String> = ArrayList()
@@ -55,7 +55,7 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
         return phoneList
     }
 
-    @Suppress("LongMethod","TooManyFunctions")
+    @Suppress("LongMethod")
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
         val smsRelayEntity: SmsRelayEntity = sms[position]
         val numFragmentsReceived = smsRelayEntity.numFragmentsReceived
