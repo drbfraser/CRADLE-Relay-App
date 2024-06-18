@@ -125,6 +125,7 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
                 val relayEntity = smsRelayRepository.getRelayBlocking(id)
 
                 val fragmentNum = smsFormatter.getAckFragmentNumber(message)
+
                 // Ack was for previous fragment in retry case
                 if (fragmentNum < relayEntity!!.numFragmentsSentToMobile!! - 1) {
                     Log.d(tag, "Ack received for outdated fragment; dropping. Message = $message")

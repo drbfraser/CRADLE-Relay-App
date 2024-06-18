@@ -30,5 +30,4 @@ interface AppComponent {
     fun inject(httpsRequestRepository: HttpsRequestRepository)
     fun inject(smsRelayViewModel: SmsRelayViewModel)
     fun inject(detailsViewModel: DetailsViewModel)
-
 }
