@@ -2,7 +2,6 @@ package com.cradleplatform.cradle_vsa_sms_relay.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.ExpandableListAdapter
 import android.widget.ExpandableListView
@@ -13,13 +12,12 @@ import com.cradleplatform.cradle_vsa_sms_relay.adapters.DetailsExpandableListAda
 import com.cradleplatform.cradle_vsa_sms_relay.adapters.ExpandableListData
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.DetailsViewModel
 
-class CardDetailsActivity : AppCompatActivity() {
+class DetailsActivity : AppCompatActivity() {
     private var expandableListView: ExpandableListView? = null
     private var adapter: ExpandableListAdapter? = null
     private var titleList: List<String>? = null
     private lateinit var cardDetailsViewModel: DetailsViewModel
     private lateinit var expandableListData: ExpandableListData
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +34,7 @@ class CardDetailsActivity : AppCompatActivity() {
         val messageNoTextView = findViewById<TextView>(R.id.messageNoTextView)
 
         if (id != null) {
-            val messageNo = id.split('-')[1]
+            val messageNo = id.split('-')[MessageDeconstructionConstants.MESSAGE_NUMBER_INDEX]
             messageNoTextView.text = "Message Number $messageNo"
 
             cardDetailsViewModel.getRelayEntity(id)?.observe(this){
@@ -62,4 +60,10 @@ class CardDetailsActivity : AppCompatActivity() {
             finish()
         }
     }
+}
+
+object MessageDeconstructionConstants {
+    const val MESSAGE_NUMBER_INDEX = 1
+    const val MESSAGE_CONTENT_INDEX = 1
+    const val FIRST_MESSAGE_CONTENT_INDEX = 4
 }

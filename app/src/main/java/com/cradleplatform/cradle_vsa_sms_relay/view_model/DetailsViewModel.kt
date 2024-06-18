@@ -29,5 +29,4 @@ class DetailsViewModel(application: Application): AndroidViewModel(application) 
     init {
         (application as MyApp).component.inject(this)
     }
-
 }

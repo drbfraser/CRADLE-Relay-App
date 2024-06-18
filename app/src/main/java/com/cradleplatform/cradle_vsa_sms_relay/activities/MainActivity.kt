@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
     }
     override fun onItemClick(position: Int) {
         val smsRelayEntity = mainRecyclerViewAdapter.sms[position] // Access the item from the list
-        val intent = Intent(this, CardDetailsActivity::class.java).apply {
+        val intent = Intent(this, DetailsActivity::class.java).apply {
             putExtra("date", smsRelayEntity.getDateAndTime())
             putExtra("phoneNumber", smsRelayEntity.getPhoneNumber())
             putExtra("duration", smsRelayEntity.getDuration())

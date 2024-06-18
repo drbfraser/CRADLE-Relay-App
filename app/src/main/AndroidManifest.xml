@@ -24,7 +24,7 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
         <activity
-            android:name="com.cradleplatform.cradle_vsa_sms_relay.activities.CardDetailsActivity"
+            android:name="com.cradleplatform.cradle_vsa_sms_relay.activities.DetailsActivity"
             android:exported="false" />
         <activity
             android:name="com.cradleplatform.cradle_vsa_sms_relay.activities.SettingsActivity"

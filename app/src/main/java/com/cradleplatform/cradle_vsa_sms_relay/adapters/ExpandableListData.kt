@@ -1,5 +1,6 @@
 package com.cradleplatform.cradle_vsa_sms_relay.adapters
 
+import com.cradleplatform.cradle_vsa_sms_relay.activities.MessageDeconstructionConstants
 import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
@@ -20,14 +21,16 @@ class ExpandableListData(private val smsRelayEntity: SmsRelayEntity) {
             smsRelayEntity.smsPacketsFromMobile?.forEachIndexed{idx, msg ->
                 val timeKey = if (idx == 0) "Time received" else "Relative time"
                 if(idx == 0) {
-                    val content = msg.split("-")[4]
+                    val content = msg.split("-")[MessageDeconstructionConstants.
+                    FIRST_MESSAGE_CONTENT_INDEX]
                     receiveMobileDetails.add(mapOf("Content" to content,timeKey to
                             getRelativeTime(idx,timestampsDataMessagesReceived)))
                 }
                 else {
-                    val content = msg.split("-")[1]
-                    receiveMobileDetails.add(mapOf("Message" to "${idx}/$" +
-                            "{smsRelayEntity.totalFragmentsFromMobile}","Content" to content,
+                    val content = msg.split("-")[MessageDeconstructionConstants.
+                    MESSAGE_CONTENT_INDEX]
+                    receiveMobileDetails.add(mapOf("Message" to "${idx}/" +
+                            "${smsRelayEntity.totalFragmentsFromMobile}","Content" to content,
                         timeKey to getRelativeTime(idx,timestampsDataMessagesReceived)))
                 }
 
