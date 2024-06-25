@@ -106,6 +106,9 @@ class HttpsRequestRepository(
                     call: Call<HTTPSResponse>,
                     response: retrofit2.Response<HTTPSResponse>
                 ) {
+                    // Log the server URL
+                    Log.d(TAG, "TEST Server URL: ${call.request().url()}")
+                    Log.d(TAG, "TEST Server Port: ${call.request().url().port()}")
                     if (response.isSuccessful) {
                         val httpsResponse = response.body()
                         if (httpsResponse != null) {
