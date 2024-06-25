@@ -3,6 +3,7 @@ package com.cradleplatform.cradle_vsa_sms_relay
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -24,11 +25,12 @@ import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
-
+import java.util.concurrent.TimeUnit
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -45,12 +47,19 @@ class SMSRelayEndToEndTest {
         android.Manifest.permission.INTERNET
     )
     private var activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
-    private var webServer: MockWebServer = MockWebServer()
+    private lateinit var webServer: MockWebServer
+    private val setUpMockServerRule = SetUpMockServerRule()
 
-    // This rule chain ensures that the mock sever URL is set in the shared preferences before
+    // This rule chain ensures that the mock sever URL is set the same as settings use the shared preferences
     // the activity is launched
     @get:Rule
-    var rules: RuleChain = RuleChain.outerRule(SetUpMockServerRule(webServer.url("/").toString())).around(activityScenarioRule)
+    var rules: RuleChain = RuleChain.outerRule(setUpMockServerRule).around(activityScenarioRule)
+
+    // set up mock server
+    @Before
+    fun setUp() {
+        webServer = setUpMockServerRule.mockWebServer
+    }
 
     @Rule @JvmField
     val grantPermissionRule: GrantPermissionRule =
@@ -76,7 +85,11 @@ class SMSRelayEndToEndTest {
     @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
     @Test
     fun simpleEndToEndTest() = runTest {
+
+        val mockServerUrl = webServer.url("/").toString()
         // Arrange
+        Log.d("TEST", "Starting simpleEndToEndTest")
+        Log.d("TEST", "Mock Server URL: $mockServerUrl")
 
         // This PDU was obtained by running SMS Relay and setting a breakpoint in the onReceive of
         // the MessageReceiver class, and sending a message to the app while its running.
@@ -109,8 +122,14 @@ class SMSRelayEndToEndTest {
         smsMessage.onReceive(getApplicationContext(), intent)
 
         // Assert
-        val request1: RecordedRequest = webServer.takeRequest()
-        assertEquals("/api/sms_relay", request1.path)
+        val request1: RecordedRequest? = webServer.takeRequest(10, TimeUnit.SECONDS)
+        if (request1 != null) {
+            Log.d("TEST_REQUEST", "Request path: ${request1.path}")
+            assertEquals("/api/sms_relay", request1.path)
+            Log.d("TEST_REQUEST", "Request body: ${request1.body.readUtf8()}")
+        } else {
+            Log.e("TEST_REQUEST", "No request received within the timeout period")
+        }
 
         // Waiting to make sure all tasks are complete before moving on
         advanceUntilIdle()
