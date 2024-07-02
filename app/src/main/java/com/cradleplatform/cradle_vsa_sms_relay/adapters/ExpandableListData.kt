@@ -30,7 +30,7 @@ class ExpandableListData(private val smsRelayEntity: SmsRelayEntity) {
                     val content = msg.split("-")[MessageDeconstructionConstants.
                     MESSAGE_CONTENT_INDEX]
                     receiveMobileDetails.add(mapOf("Message" to "${idx}/" +
-                            "${smsRelayEntity.totalFragmentsFromMobile}","Content" to content,
+                            "${smsRelayEntity.totalFragmentsFromMobile - 1} ","Content" to content,
                         timeKey to getRelativeTime(idx,timestampsDataMessagesReceived)))
                 }
 
