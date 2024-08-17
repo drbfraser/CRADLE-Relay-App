@@ -59,7 +59,7 @@ class DataModule {
     ): HttpsRequestRepository {
         val token = sharedPreference.getString(VolleyRequests.TOKEN, "") ?: ""
         val baseUrl = urlManager.base
-        return HttpsRequestRepository(token, smsFormatter, smsRelayRepository, baseUrl)
+        return HttpsRequestRepository(token, baseUrl)
     }
 
     @Provides

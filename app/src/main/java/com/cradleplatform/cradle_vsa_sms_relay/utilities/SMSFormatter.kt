@@ -2,7 +2,9 @@
 package com.cradleplatform.cradle_vsa_sms_relay.utilities
 
 import android.telephony.SmsManager
-import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
+import android.telephony.SmsMessage
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequest
+//import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import kotlin.math.min
 
 /**
@@ -26,7 +28,7 @@ private const val FRAGMENT_HEADER_LENGTH = 3
 private const val REQUEST_NUMBER_LENGTH = 6
 
 // positions of request identifiers inside different messages of the SMS protocol
-private const val POS_FIRST_MSG_REQUEST_COUNTER = 1
+private const val  POS_FIRST_MSG_REQUEST_COUNTER = 1
 private const val POS_ACK_MSG_REQUEST_COUNTER = 1
 private const val POS_REPLY_SUCCESS_REQUEST_COUNTER = 1
 private const val POS_REPLY_ERROR_REQUEST_COUNTER = 1
@@ -80,6 +82,30 @@ private val firstSuccessReplyPattern =
             "(\\d{$FRAGMENT_HEADER_LENGTH})-(.+$)"
     )
 
+// RelayPacket is Sum type (Basically an enum that can have different types)
+sealed class RelayPacket {
+    data class AckPacket(
+        val phoneNumber: String,
+        val requestId: Int,
+        val packetNumber: Int,
+    ) : RelayPacket()
+
+    data class FirstPacket(
+        val phoneNumber: String,
+        val requestId: Int,
+        val packetNumber: Int,
+        val data: String,
+        val expectedNumPackets: Int
+    ) : RelayPacket()
+
+    data class RestPacket(
+        val phoneNumber: String,
+        val packetNumber: Int,
+        val data: String,
+    ) : RelayPacket()
+}
+
+
 @Suppress("LargeClass", "TooManyFunctions")
 class SMSFormatter {
 
@@ -109,7 +135,7 @@ class SMSFormatter {
     // Format the input message into SMS packets
     fun formatSMS(
         msg: String,
-        currentRequestCounter: Long,
+        currentRequestCounter: Int,
         isSuccessful: Boolean,
         statusCode: Int?
     ): MutableList<String> {
@@ -173,23 +199,16 @@ class SMSFormatter {
         return packets
     }
 
-    fun sendAckMessage(smsRelayEntity: SmsRelayEntity) {
-        val phoneNumber = smsRelayEntity.getPhoneNumber()
-        val requestIdentifier = smsRelayEntity.getRequestIdentifier()
-        val ackFragmentNumber = String.format(
-            "%03d",
-            smsRelayEntity.numFragmentsReceived - 1
-        )
-
+    fun sendAckMessage(relayRequest: RelayRequest, packetNumber: Int) {
         val ackMessage: String = """
         $SMS_TUNNEL_PROTOCOL_VERSION
         $MAGIC_STRING
-        $requestIdentifier
-        $ackFragmentNumber
+        ${relayRequest.requestId.toString().padStart(REQUEST_NUMBER_LENGTH, '0')}
+        ${packetNumber.toString().padStart(FRAGMENT_HEADER_LENGTH, '0')}
         $SMS_ACK_SUFFIX
         """.trimIndent().replace("\n", "-")
 
-        sendMessage(phoneNumber, ackMessage)
+        sendMessage(relayRequest.phoneNumber, ackMessage)
     }
 
     // Extract the request identifier from an acknowledgment message
@@ -222,9 +241,9 @@ class SMSFormatter {
         return ackRegexPattern.find(ackMessage)?.groupValues!![POS_ACK_CURR_FRAGMENT].toInt()
     }
 
-    // Extract the fragment number from a subsequent messagex`
-    fun getRestFragmentNumber(ackMessage: String): Int {
-        return ackRegexPattern.find(ackMessage)?.groupValues!![POS_REST_CURR_FRAGMENT].toInt()
+    // Extract the fragment number from a subsequent messages
+    fun getRestFragmentNumber(restMessage: String): Int {
+        return restRegexPattern.find(restMessage)?.groupValues!![POS_REST_CURR_FRAGMENT].toInt()
     }
 
     // Check if a message is the first fragment
@@ -253,15 +272,36 @@ class SMSFormatter {
         )
     }
 
-    fun getEncryptedData(smsRelayEntity: SmsRelayEntity): String {
-        var encryptedData = ""
-        smsRelayEntity.smsPacketsFromMobile.forEach {
-            if (isFirstMessage(it)) {
-                encryptedData = getEncryptedDataFromFirstMessage(it)
-            } else {
-                encryptedData += getEncryptedDataFromRestMessage(it)
-            }
+    fun smsMessageToRelayPacket(smsMsg: SmsMessage): RelayPacket? {
+        // If we cannot know the origin phone number, we don't care about the message
+        val phoneNumber: String = smsMsg.originatingAddress ?: return null
+
+        val msgBody: String = smsMsg.messageBody
+
+        // ATTENTION: It is important isAckMessage comes before isFirstMessage because isFirstMessage
+        // will also match isAckMessage
+        if(isAckMessage(msgBody)) {
+            return RelayPacket.AckPacket(
+                phoneNumber=phoneNumber,
+                requestId=getAckRequestIdentifier(msgBody).toInt(),
+                packetNumber=getAckFragmentNumber(msgBody),
+            )
+        } else if (isFirstMessage(msgBody)) {
+            return RelayPacket.FirstPacket(
+                phoneNumber=phoneNumber,
+                requestId=getNewRequestIdentifier(msgBody).toInt(),
+                data=getEncryptedDataFromFirstMessage(msgBody),
+                packetNumber=0,
+                expectedNumPackets=getTotalNumOfFragments(msgBody)
+            )
+        } else if (isRestMessage(msgBody)) {
+            return RelayPacket.RestPacket(
+                phoneNumber=phoneNumber,
+                data=getEncryptedDataFromRestMessage(msgBody),
+                packetNumber=getRestFragmentNumber(msgBody),
+            )
+        } else {
+            return null // A message not meant for the relay app
         }
-        return encryptedData
     }
 }

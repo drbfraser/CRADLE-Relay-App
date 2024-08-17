@@ -3,38 +3,39 @@ package com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.telephony.SmsMessage
+import android.provider.Telephony
 import android.util.Log
-import android.widget.Toast
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.model.HTTPSResponseSent
-import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
+import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayResponse
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestData
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequest
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestResult
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestPhase
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayResponseData
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
-import com.cradleplatform.cradle_vsa_sms_relay.utilities.DateTimeUtil
+import com.cradleplatform.cradle_vsa_sms_relay.utilities.RelayPacket
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
+import org.json.JSONObject
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Runnable
-import kotlinx.coroutines.launch
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executors
-import java.util.concurrent.PriorityBlockingQueue
-import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import javax.inject.Inject
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.pow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.jvm.Throws
 
-private const val MAX_HASH_SIZE = 100
 
-/**
- * detects and processes received messages
- */
+class RelayRequestFailedException(message: String) : Exception(message)
 
-class MessageReceiver(private val context: Context, private val coroutineScope: CoroutineScope) :
+class MessageReceiver(
+    private val context: Context,
+    private val coroutineScope: CoroutineScope
+) :
     BroadcastReceiver() {
-    private val tag = "MESSAGE_RECEIVER"
 
     @Inject
     lateinit var smsFormatter: SMSFormatter
@@ -45,337 +46,303 @@ class MessageReceiver(private val context: Context, private val coroutineScope: 
     @Inject
     lateinit var httpsRequestRepository: HttpsRequestRepository
 
-    // TODO: Maybe use a thread-safe TTL cache
-    private val hash: ConcurrentHashMap<String, Pair<String, Long>> = ConcurrentHashMap()
-
-    private val retryHash: ConcurrentHashMap<SmsRelayEntity, HTTPSResponseSent> =
+    private val requestChannels: ConcurrentHashMap<String, Channel<RelayPacket>> =
         ConcurrentHashMap()
-    private val retryQueue: PriorityBlockingQueue<HTTPSResponseSent> = PriorityBlockingQueue()
-
-    private val schedulerTimeout = Executors.newScheduledThreadPool(1)
-    private val schedulerRetry = Executors.newScheduledThreadPool(1)
 
     init {
         (context.applicationContext as MyApp).component.inject(this)
-        schedulerTimeout.schedule(startExpirationCheck(MAX_INTERVAL_MS), 0, TimeUnit.MILLISECONDS)
-        subscribeToEvents()
-        schedulerRetry.scheduleWithFixedDelay(
-            { retrySendMessageToMobile() },
-            0,
-            RETRY_CHECK_INTERVAL_MS,
-            TimeUnit.MILLISECONDS
-        )
-    }
-
-    fun stop() {
-        Log.d(tag, "Shutting down scheduled thread pool")
-        schedulerTimeout.shutdownNow()
-    }
-
-    fun updateLastRunPref() {
-        // update time last listened to sms
-        val sharedPreferences = context.getSharedPreferences(LAST_RUN_PREF, Context.MODE_PRIVATE)
-        sharedPreferences.edit().putLong(LAST_RUN_TIME, System.currentTimeMillis())
-            .apply()
-    }
-
-    @Suppress("LongMethod", "CyclomaticComplexMethod")
-    override fun onReceive(p0: Context?, p1: Intent?) {
-        Log.d(tag, "Message Received")
-        val data = p1?.extras
-        val pdus = data?.get("pdus") as Array<*>
-        // may receive multiple messages at the same time from different numbers so
-        // we keep track of all the messages from different numbers
-        val messages = processSMSMessages(pdus)
-
-        var shouldContinue = true
-        messages.entries.forEach { entry ->
-            if (!shouldContinue) return@forEach
-
-            val message = entry.value
-            Log.d(tag, "Message = $message")
-            val phoneNumber = entry.key
-
-            // Exceptions. Escape forEach and show error message.
-            if (message.isEmpty()) {
-                Log.w(tag, "message is empty")
-                Toast.makeText(
-                    context,
-                    "Warning: received a message that is empty.",
-                    Toast.LENGTH_SHORT
-                ).show()
-                return@forEach
-            }
-
-            if (phoneNumber.isEmpty()) {
-                Log.w(tag, "phone number is empty")
-                Toast.makeText(
-                    context,
-                    "Warning: received a message without a phone number.",
-                    Toast.LENGTH_SHORT
-                ).show()
-                return@forEach
-            }
-
-            // Process SMS
-            if (smsFormatter.isAckMessage(message)) {
-                val requestIdentifier = smsFormatter.getAckRequestIdentifier(message)
-                val id = "$phoneNumber-$requestIdentifier"
-
-                val relayEntity = smsRelayRepository.getRelayBlocking(id)
-
-                val fragmentNum = smsFormatter.getAckFragmentNumber(message)
-
-                // Ack was for previous fragment in retry case
-                if (fragmentNum < relayEntity!!.numFragmentsSentToMobile!! - 1) {
-                    Log.d(tag, "Ack received for outdated fragment; dropping. Message = $message")
-                    return
-                }
-
-                // ignore ACK message if there are no more packets to send
-                if (relayEntity.smsPacketsToMobile.isNotEmpty()) {
-                    val encryptedPacket = relayEntity.smsPacketsToMobile.removeAt(0)
-                    relayEntity.numFragmentsSentToMobile =
-                        relayEntity.numFragmentsSentToMobile!! + 1
-                    smsRelayRepository.updateBlocking(relayEntity)
-                    smsFormatter.sendMessage(phoneNumber, encryptedPacket)
-                    Log.d(
-                        tag,
-                        "id = ${relayEntity.id}. numFragmentsSentToMobile = ${relayEntity.numFragmentsSentToMobile}"
-                    )
-                    retryQueue.remove(retryHash[relayEntity])
-                    retryHash[relayEntity] =
-                        HTTPSResponseSent(relayEntity.id, phoneNumber, encryptedPacket, fragmentNum)
-                    retryQueue.add(retryHash[relayEntity])
-                } else {
-                    relayEntity.isCompleted = true
-                    smsRelayRepository.update(relayEntity)
-                    retryQueue.remove(retryHash[relayEntity])
-                    retryHash.remove(relayEntity)
-                }
-            } else if (smsFormatter.isFirstMessage(message)) {
-                // create new relay entity
-                Thread {
-                    val requestIdentifier = smsFormatter.getNewRequestIdentifier(message)
-                    val id = "$phoneNumber-$requestIdentifier"
-                    val totalFragments = smsFormatter.getTotalNumOfFragments(message)
-                    val currentTime = System.currentTimeMillis()
-                    val newRelayEntity = SmsRelayEntity(
-                        id,
-                        1,
-                        totalFragments,
-                        mutableListOf(message),
-                        currentTime,
-                        mutableListOf(currentTime),
-                        mutableListOf(),
-                        false,
-                        false,
-                        null,
-                        mutableListOf(),
-                        null,
-                        null,
-                        false,
-                        false,
-                        0,
-                        false,
-                        false
-                    )
-
-                    smsRelayRepository.insertBlocking(newRelayEntity)
-
-                    smsFormatter.sendAckMessage(newRelayEntity)
-
-                    hash[phoneNumber] = Pair(requestIdentifier, System.currentTimeMillis())
-
-                    if (newRelayEntity.numFragmentsReceived == newRelayEntity.totalFragmentsFromMobile) {
-                        newRelayEntity.isSentToServer = true
-                        smsRelayRepository.update(newRelayEntity)
-                        httpsRequestRepository.sendToServer(newRelayEntity, coroutineScope)
-                    }
-                }.start()
-            } else if (smsFormatter.isRestMessage(message)) {
-                Thread {
-                    // Exit early because this hash key expired
-                    if (!hash.containsKey(phoneNumber)) {
-                        shouldContinue = false
-                        return@Thread
-                    }
-                    // Passive expiry check
-                    else if (isKeyExpired(phoneNumber)) {
-                        removeExpiredKeyFromHash(phoneNumber)
-                        shouldContinue = false
-
-
-                        return@Thread
-                    }
-
-                    val requestIdentifier = hash[phoneNumber]!!.first
-                    val id = "$phoneNumber-$requestIdentifier"
-                    val currentTime = System.currentTimeMillis()
-                    val relayEntity = smsRelayRepository.getRelayBlocking(id)
-
-                    // update required fields
-                    relayEntity!!.timestampsDataMessagesReceived.add(currentTime)
-                    relayEntity.smsPacketsFromMobile.add(message)
-                    relayEntity.numFragmentsReceived += 1
-
-                    smsRelayRepository.updateBlocking(relayEntity)
-
-                    smsFormatter.sendAckMessage(relayEntity)
-
-                    if (relayEntity.numFragmentsReceived == relayEntity.totalFragmentsFromMobile) {
-                        relayEntity.isSentToServer = true
-                        smsRelayRepository.update(relayEntity)
-                        httpsRequestRepository.sendToServer(relayEntity, coroutineScope)
-                    }
-
-                    // Update last received timestamp
-                    hash[phoneNumber] =
-                        hash[phoneNumber]!!.copy(second = System.currentTimeMillis())
-                }.start()
-            }
-        }
-    }
-
-    private fun processSMSMessages(pdus: Array<*>): HashMap<String, String> {
-        val messages = HashMap<String, String>()
-        for (element in pdus) {
-            // if smsMessage is null, we continue to the next one
-            val smsMessage = SmsMessage.createFromPdu(element as ByteArray?) ?: continue
-            // one message has length of 153 chars, 7 other chars for user data header
-
-            val originatingPhoneNumber = smsMessage.originatingAddress ?: continue
-
-            // We are assuming that no one phone can send multiple long messages at ones.
-            // since there is some user delay in either typing or copy/pasting the message
-            // or typing 1 char at  a time
-            if (messages.containsKey(originatingPhoneNumber)) {
-                // concatenating messages
-                val newMsg: String = smsMessage.messageBody
-                val oldMsg: String = messages[originatingPhoneNumber]!!
-                messages[originatingPhoneNumber] = oldMsg + newMsg
-            } else {
-                messages[originatingPhoneNumber] = smsMessage.messageBody
-            }
-        }
-        return messages
-    }
-
-    @Suppress("TooGenericExceptionCaught")
-    private fun startExpirationCheck(interval: Long): Runnable {
-        return Runnable {
-            val startExe = System.currentTimeMillis()
-            try {
-                Log.d(tag, "Actively checking for expired keys")
-
-                val hashSize = hash.size
-                hash.forEach { (key, _) ->
-                    if (isKeyExpired(key, startExe)) {
-                        removeExpiredKeyFromHash(key)
-                    }
-                }
-
-                // Interval is dynamic to ensure sufficient clean up of resources
-                val newInterval = when {
-                    hashSize >= MAX_HASH_SIZE && hash.size < hashSize * (1 - SIZE_PERCENT_THRESHOLD) -> max(
-                        MIN_INTERVAL_MS,
-                        interval / 2
-                    )
-
-                    else -> min(MAX_INTERVAL_MS, interval * 2)
-                }
-
-                Log.d(tag, "Previous interval: $interval; new interval: $newInterval")
-
-                schedulerTimeout.schedule(
-                    startExpirationCheck(newInterval),
-                    abs(newInterval - (System.currentTimeMillis() - startExe)),
-                    TimeUnit.MILLISECONDS
-                )
-            } catch (e: Exception) {
-                Log.e(tag, "Exception occurred in startExpirationCheck", e)
-                schedulerTimeout.schedule(
-                    startExpirationCheck(interval),
-                    // TODO: It may be useful to reduce the interval in half due to failure
-                    abs(interval - (System.currentTimeMillis() - startExe)),
-                    TimeUnit.MILLISECONDS
-                )
-            }
-        }
-    }
-
-    private fun isKeyExpired(key: String, currentTime: Long = System.currentTimeMillis()): Boolean {
-        val timestamp = hash[key]!!.second
-        return currentTime - timestamp > TIMEOUT_SECONDS * DateTimeUtil.MS_IN_A_SEC
-    }
-
-    private fun subscribeToEvents() {
         coroutineScope.launch {
-            httpsRequestRepository.events.collect { event ->
-                Log.d(tag, "Received event with ${event.first.id}, ${event.second.phoneNumber}")
-                retryQueue.add(event.second)
-                retryHash[event.first] = event.second
+            withContext(Dispatchers.IO) {
+                smsRelayRepository.terminateAllActiveRequests()
             }
         }
     }
 
-    private fun retrySendMessageToMobile() {
-        val startExe = System.currentTimeMillis()
-        while (retryQueue.peek()?.let { it.timestamp <= startExe } == true) {
-            val httpsResponseSent = retryQueue.poll()
-            val relayEntity = smsRelayRepository.getRelayBlocking(httpsResponseSent.relayEntityId)
-            if (httpsResponseSent!!.numberOfRetries == HTTPSResponseSent.MAX_RETRIES ||
-                httpsResponseSent.lastEncryptedPacketNum < relayEntity!!.numFragmentsSentToMobile!! - 1) {
-                if (httpsResponseSent!!.numberOfRetries == HTTPSResponseSent.MAX_RETRIES) {
-                    Log.d(
-                        tag,
-                        "HTTPS response to ${relayEntity!!.id} has reached maximum number of " +
-                                "retries; dropping. Message = ${httpsResponseSent.lastEncryptedPacket}"
-                    )
-                } else {
-                    Log.d(
-                        tag,
-                        "HTTPS response to ${relayEntity!!.id} is outdated; dropping. Message = " +
-                                httpsResponseSent.lastEncryptedPacket
-                    )
+    override fun onReceive(context: Context, intent: Intent) {
+        // getMessagesFromIntent returns an array because long SMS Messages (above 160 characters)
+        // will be split into multiple messages. However, in the context of our SMS Tunnelling
+        // protocol, we always stay under that limit. So, we can consider each element in this array
+        // to be a standalone packet. This is different from our old code which assumed packets
+        // maybe split across multiple array elements.
+        val relayPackets = Telephony.Sms.Intents.getMessagesFromIntent(intent)
+            .mapNotNull { smsFormatter.smsMessageToRelayPacket(it) }
+
+        // Its important to note that in the 99.99% of cases, relayPackets will be an array of length 1.
+        for (pkt in relayPackets) {
+            when {
+                pkt is RelayPacket.AckPacket && requestChannels.containsKey(pkt.phoneNumber) -> {
+                    coroutineScope.launch {
+                        requestChannels[pkt.phoneNumber]!!.send(pkt)
+                    }
                 }
-                retryHash.remove(relayEntity)
-                continue
+
+                pkt is RelayPacket.FirstPacket -> {
+                    if (requestChannels.containsKey(pkt.phoneNumber)) {
+                        coroutineScope.launch {
+                            requestChannels[pkt.phoneNumber]!!.send(pkt)
+                        }
+                    } else {
+                        coroutineScope.launch {
+                            handleRequest(pkt)
+                        }
+                    }
+                }
+
+                pkt is RelayPacket.RestPacket && requestChannels.containsKey(pkt.phoneNumber) -> {
+                    coroutineScope.launch {
+                        requestChannels[pkt.phoneNumber]!!.send(pkt)
+                    }
+                }
+
+                else -> {
+                    Log.d(TAG, "Discarding unexpected packet")
+                }
             }
-            Log.d(
-                tag,
-                "Retrying send to ${relayEntity.id}. Message = ${httpsResponseSent.lastEncryptedPacket}"
-            )
-            smsFormatter.sendMessage(
-                httpsResponseSent.phoneNumber,
-                httpsResponseSent.lastEncryptedPacket
-            )
-            httpsResponseSent.numberOfRetries++
-            httpsResponseSent.timestamp = System.currentTimeMillis() + min(
-                HTTPSResponseSent.DEFAULT_WAIT * 2.0.pow(httpsResponseSent.numberOfRetries),
-                HTTPSResponseSent.MAX_WAIT
-            ).toLong()
-            retryQueue.add(httpsResponseSent)
         }
     }
 
-    private fun removeExpiredKeyFromHash(phoneNumber: String, ){
-        val requestIdentifier = hash[phoneNumber]!!.first
-        val id = "$phoneNumber-$requestIdentifier"
-        val relayEntity = smsRelayRepository.getRelayBlocking(id)
-        relayEntity?.isKeyExpired = true
-        relayEntity?.let { smsRelayRepository.update(it) }
-        Log.d(tag, "$phoneNumber has expired, evicting it from the hash")
-        hash.remove(phoneNumber)
+    private suspend fun handleRequest(relayPacket: RelayPacket.FirstPacket) {
+        val (request, channel) = startNewRequest(relayPacket)
+        try {
+            // PHASE 1: Receive HTTP Request from CRADLE-Mobile via SMS
+            receiveFromMobile(request, channel)
+
+            // PHASE 2: Relay HTTP Request from CRADLE-Mobile to server &
+            // PHASE 3: Receive HTTP Response from server (TODO: Useless phase)
+            val response = relayToServer(request)
+
+            // PHASE 3: Relay the HTTP Response from server to CRADLE-Mobile
+            relayToMobile(request, channel, response)
+
+            smsRelayRepository.markRelayRequestSuccess(request)
+            Log.d(
+                TAG,
+                "Request success: Phone=${relayPacket.phoneNumber} ID=${relayPacket.requestId}"
+            )
+        } catch (e: RelayRequestFailedException) {
+            smsRelayRepository.markRelayRequestError(
+                request,
+                errorMessage = e.message ?: "Unknown error"
+            )
+            Log.d(
+                TAG,
+                "Request error: Phone=${relayPacket.phoneNumber} ID=${relayPacket.requestId} error=${e.message}"
+            )
+        } catch (e: CancellationException) {
+            smsRelayRepository.markRelayRequestError(request, errorMessage = "Request cancelled")
+            Log.d(
+                TAG,
+                "Request cancelled: Phone=${relayPacket.phoneNumber} ID=${relayPacket.requestId}"
+            )
+            throw e
+        } finally {
+            requestChannels.remove(relayPacket.phoneNumber)
+        }
+    }
+
+    private fun startNewRequest(relayPacket: RelayPacket.FirstPacket): Pair<RelayRequest, Channel<RelayPacket>> {
+        requestChannels[relayPacket.phoneNumber]?.cancel()
+
+        val newChannel = Channel<RelayPacket>()
+        requestChannels[relayPacket.phoneNumber] = newChannel
+
+        val currTimeMs = System.currentTimeMillis()
+
+        val dataPacketsFromMobile: MutableList<RelayRequestData?> =
+            MutableList(relayPacket.expectedNumPackets) { null }
+
+        dataPacketsFromMobile[0] = RelayRequestData(
+            data = relayPacket.data,
+            timeMsReceived = currTimeMs
+        )
+
+        val newRelayRequest = RelayRequest(
+            requestId = relayPacket.requestId,
+            requestPhase = RelayRequestPhase.RECEIVING_FROM_MOBILE,
+            expectedNumPackets = relayPacket.expectedNumPackets,
+            timeMsInitiated = currTimeMs,
+            timeMsLastReceived = currTimeMs,
+            phoneNumber = relayPacket.phoneNumber,
+            requestResult = RelayRequestResult.PENDING,
+            dataPacketsFromMobile = dataPacketsFromMobile,
+            dataPacketsToMobile = mutableListOf()
+        )
+
+        smsRelayRepository.insertRelayRequest(newRelayRequest)
+        smsFormatter.sendAckMessage(newRelayRequest, relayPacket.packetNumber)
+
+        return Pair(newRelayRequest, newChannel)
+    }
+
+    private suspend fun receiveFromMobile(request: RelayRequest, channel: Channel<RelayPacket>) {
+        // NOTE: Cannot use a simple counter because there could be duplicates of each packet
+        var numReceivedPackets = request.dataPacketsFromMobile.count { it != null }
+
+        while (numReceivedPackets < request.expectedNumPackets) {
+            val pkt = withTimeoutOrNull(TIMEOUT_MS_FOR_RECEIVING_FROM_MOBILE) {
+                channel.receive()
+            }
+            when (pkt) {
+                is RelayPacket.FirstPacket -> {
+                    if (pkt.requestId == request.requestId) {
+                        Log.d(TAG, "Received duplicate first packet, sending ACK again")
+                        smsFormatter.sendAckMessage(request, packetNumber = 0)
+                    } else {
+                        Log.d(TAG, "Discarding because another request is in progress")
+                    }
+                }
+
+                is RelayPacket.AckPacket -> Log.d(TAG, "Discarding unexpected AckPacket")
+
+                is RelayPacket.RestPacket -> {
+                    if (pkt.packetNumber >= request.expectedNumPackets) {
+                        Log.d(TAG, "Discarding because another request in progress")
+                        continue
+                    } else {
+                        // It is possible for us to receive a rest packet that we received before. For example, our
+                        // ACK message arrived too late to CRADLE-Mobile and it resend that packet. We choose to
+                        // overwrite data in this scenario.
+                        val currTime = System.currentTimeMillis()
+
+                        request.dataPacketsFromMobile[pkt.packetNumber] = RelayRequestData(
+                            data = pkt.data,
+                            timeMsReceived = currTime,
+                        )
+                        request.timeMsLastReceived = currTime
+                        smsRelayRepository.updateRelayRequest(request)
+
+                        smsFormatter.sendAckMessage(request, pkt.packetNumber)
+                    }
+                }
+
+                null -> {
+                    throw RelayRequestFailedException("Timed out waiting for packets")
+                }
+            }
+            numReceivedPackets = request.dataPacketsFromMobile.count { it != null }
+        }
+    }
+
+    private suspend fun relayToServer(relayRequest: RelayRequest): retrofit2.Response<HttpRelayResponse> {
+        // This method should only be called when we have the entire request
+        assert(relayRequest.dataPacketsFromMobile.all { it != null })
+
+        smsRelayRepository.updateRequestPhase(relayRequest, RelayRequestPhase.RELAYING_TO_SERVER)
+        val data = relayRequest.dataPacketsFromMobile.joinToString(separator = "") { it!!.data }
+
+        val response = httpsRequestRepository.relayRequestToServer(
+            phoneNumber = relayRequest.phoneNumber,
+            data = data
+        )
+
+        // TODO: This phase change is basically useless because it will be changed immediately to
+        // TODO: RELAYING_TO_MOBILE, but removing this requires UI design changes
+        smsRelayRepository.updateRequestPhase(relayRequest, RelayRequestPhase.RECEIVING_FROM_SERVER)
+
+        return response
+    }
+
+    @Throws(RelayRequestFailedException::class)
+    private suspend fun relayToMobile(
+        request: RelayRequest,
+        channel: Channel<RelayPacket>,
+        response: retrofit2.Response<HttpRelayResponse>
+    ) {
+        smsRelayRepository.updateRequestPhase(request, RelayRequestPhase.RELAYING_TO_MOBILE)
+
+        val dataPacketsToMobile = if (response.isSuccessful && response.body() != null) {
+            smsFormatter.formatSMS(
+                msg = response.body()!!.body,
+                currentRequestCounter = request.requestId,
+                isSuccessful = true,
+                statusCode = response.code()
+            )
+        } else {
+            smsFormatter.formatSMS(
+                msg = processHttpRelayResponseErrorBody(response.errorBody()?.string()),
+                currentRequestCounter = request.requestId,
+                isSuccessful = false,
+                statusCode = response.code()
+            )
+        }
+
+        request.dataPacketsToMobile.addAll(dataPacketsToMobile.map {
+            RelayResponseData(
+                data = it,
+                isAcked = false
+            )
+        })
+
+        // Send first packet to mobile
+        var nextPacketToMobile = request.dataPacketsToMobile.find { !it.isAcked }
+        smsFormatter.sendMessage(request.phoneNumber, nextPacketToMobile!!.data)
+
+        var retriesForPacket = 0
+        while (nextPacketToMobile != null) {
+            val packet = withTimeoutOrNull(TIMEOUT_MS_FOR_RECEIVING_FROM_MOBILE) {
+                channel.receive()
+            }
+
+            when (packet) {
+                is RelayPacket.FirstPacket -> Log.d(TAG, "Discarding unexpected FirstPacket")
+                is RelayPacket.RestPacket -> Log.d(TAG, "Discarding unexpected RestPacket")
+                is RelayPacket.AckPacket -> {
+                    if (packet.packetNumber < request.dataPacketsToMobile.size) {
+                        val wasAckedBefore =
+                            request.dataPacketsToMobile[packet.packetNumber].isAcked
+                        request.dataPacketsToMobile[packet.packetNumber].isAcked = true
+
+                        request.timeMsLastReceived = System.currentTimeMillis()
+                        smsRelayRepository.updateRelayRequest(request)
+
+                        nextPacketToMobile = request.dataPacketsToMobile.find { !it.isAcked }
+                        if (!wasAckedBefore && nextPacketToMobile != null) {
+                            smsFormatter.sendMessage(request.phoneNumber, nextPacketToMobile.data)
+                            retriesForPacket = 0
+                        }
+                    } else {
+                        Log.d(TAG, "Discarding unexpected RestPacket")
+                    }
+                }
+
+                null -> {
+                    Log.d(TAG, "Timed out waiting for ACK, retrying")
+                    retriesForPacket++
+                    smsFormatter.sendMessage(request.phoneNumber, nextPacketToMobile.data)
+
+                    if (retriesForPacket > MAX_RETRIES_FOR_DATA_PACKETS_TO_MOBILE) {
+                        throw RelayRequestFailedException("Retries exceeded for relaying to mobile")
+                    }
+                }
+            }
+
+            nextPacketToMobile = request.dataPacketsToMobile.find { !it.isAcked }
+        }
+    }
+
+    private fun processHttpRelayResponseErrorBody(errorBody: String?): String {
+        if (errorBody == null) return "Unknown error"
+
+        try {
+            return JSONObject(errorBody).run {
+                when {
+                    has("msg") -> getString("msg")
+                    has("message") -> getString("message")
+                    else -> errorBody
+                }
+            }
+        } catch (e: org.json.JSONException) {
+            Log.d(TAG, "Error message is not valid JSON: $errorBody")
+            return "Unknown error"
+        }
     }
 
     companion object {
-        private const val LAST_RUN_PREF = "sharedPrefLastTimeServiceRun"
-        private const val LAST_RUN_TIME = "lastTimeServiceRun"
-        private const val TIMEOUT_SECONDS = 200
-        private const val SIZE_PERCENT_THRESHOLD = 0.25
-        private const val MIN_INTERVAL_MS: Long = 1000
-        private const val MAX_INTERVAL_MS: Long = 32000
-        private const val RETRY_CHECK_INTERVAL_MS: Long = 250
+        private const val TAG = "BetterMessageReceiver"
+        private const val MAX_RETRIES_FOR_DATA_PACKETS_TO_MOBILE = 5
+
+        // We will use the same time out for receiving normal packets and ACK packets from mobile
+        private const val TIMEOUT_MS_FOR_RECEIVING_FROM_MOBILE = 20_000L
     }
 }
+

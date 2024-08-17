@@ -64,7 +64,7 @@ class SmsService : LifecycleService(), CoroutineScope {
         val action: String? = intent.action
         if (action.equals(STOP_SERVICE)) {
             stopForeground(true)
-            smsReceiver?.updateLastRunPref()
+//             smsReceiver?.updateLastRunPref() TODO: Reintroduce
             if (smsReceiver != null) {
                 unregisterReceiver(smsReceiver)
             }
@@ -109,7 +109,7 @@ class SmsService : LifecycleService(), CoroutineScope {
     override fun onDestroy() {
         super.onDestroy()
         coroutineJob.cancel()
-        smsReceiver?.stop()
+//        smsReceiver?.stop()
     }
 
     private fun createNotificationChannel() {

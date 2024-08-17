@@ -6,7 +6,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequest
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestResult
 
 /**
  * Data Access Object Interface for accessing the relay-DB that stores SmsRelayEntity
@@ -14,20 +15,28 @@ import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 
 @Dao
 interface SmsRelayDao {
-
-    // Using replace strategy on conflict 544
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertSmsRelayEntity(smsRelayEntity: SmsRelayEntity)
+    fun insertRelayRequest(relayRequest: RelayRequest): Long
 
-    @Query("SELECT * FROM SmsRelayEntity")
-    fun getAllSmsRelayEntities(): LiveData<List<SmsRelayEntity>>
+    @Query("SELECT * FROM RelayRequest")
+    fun getAllRelayRequests(): LiveData<List<RelayRequest>>
 
-    @Query("SELECT * FROM SmsRelayEntity WHERE id = :id LIMIT 1")
-    fun getRelayEntity(id: String): SmsRelayEntity?
-
-    @Query("SELECT * FROM SmsRelayEntity WHERE id = :id LIMIT 1")
-    fun getRelayEntityLiveData(id: String): LiveData<SmsRelayEntity>?
+    @Query("SELECT * FROM RelayRequest WHERE requestId = :requestId AND phoneNumber = :phoneNumber LIMIT 1")
+    fun getRelayRequestLiveData(requestId: Int, phoneNumber: String): LiveData<RelayRequest>?
 
     @Update
-    fun updateSmsRelayEntity(smsRelayEntity: SmsRelayEntity)
+    fun updateRelayRequest(relayRequest: RelayRequest)
+
+    @Query(
+        """
+        UPDATE RelayRequest 
+        SET 
+            errorMessage = :terminateReason,
+            requestResult = '${RelayRequestResult.ERROR}'
+        WHERE requestResult = '${RelayRequestResult.PENDING}'
+        """
+    )
+    fun terminateAllActiveRequests(
+        terminateReason: String,
+    )
 }

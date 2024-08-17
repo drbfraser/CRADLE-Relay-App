@@ -3,12 +3,9 @@ package com.cradleplatform.cradle_vsa_sms_relay.repository
 import androidx.lifecycle.LiveData
 import com.cradleplatform.cradle_vsa_sms_relay.dao.SmsRelayDao
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayDatabase
-import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequest
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestResult
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestPhase
 
 /**
  * class to access the DAO interface for SmsRelayEntity objects
@@ -16,45 +13,39 @@ import kotlinx.coroutines.withContext
 
 class SmsRelayRepository(database: SmsRelayDatabase) {
     private var smsRelayDao: SmsRelayDao = database.smsRelayDao()
-    var relayEntities: LiveData<List<SmsRelayEntity>> = smsRelayDao.getAllSmsRelayEntities()
+    var relayRequests: LiveData<List<RelayRequest>> = smsRelayDao.getAllRelayRequests()
 
-    fun insert(smsRelayEntity: SmsRelayEntity) {
-        MainScope().launch(Dispatchers.IO) {
-            smsRelayDao.insertSmsRelayEntity(smsRelayEntity)
-        }
+    fun insertRelayRequest(relayRequest: RelayRequest) {
+        smsRelayDao.insertRelayRequest(relayRequest)
     }
 
-    fun insertBlocking(smsRelayEntity: SmsRelayEntity) {
-        runBlocking {
-            MainScope().launch(Dispatchers.IO) {
-                smsRelayDao.insertSmsRelayEntity(smsRelayEntity)
-            }
-        }
+    fun markRelayRequestError(relayRequest: RelayRequest, errorMessage: String) {
+        relayRequest.requestResult = RelayRequestResult.ERROR
+        relayRequest.errorMessage = errorMessage
+
+        smsRelayDao.updateRelayRequest(relayRequest)
     }
 
-    fun getRelayBlocking(id: String): SmsRelayEntity? {
-        return runBlocking {
-            withContext(Dispatchers.IO) {
-                smsRelayDao.getRelayEntity(id)
-            }
-        }
+    fun markRelayRequestSuccess(relayRequest: RelayRequest) {
+        relayRequest.requestResult = RelayRequestResult.OK
+
+        smsRelayDao.updateRelayRequest(relayRequest)
+    }
+    fun getRelayRequestLiveData(requestId: Int, phoneNumber: String): LiveData<RelayRequest>? {
+        return smsRelayDao.getRelayRequestLiveData(requestId, phoneNumber)
     }
 
-    fun getRelayLiveData(id: String): LiveData<SmsRelayEntity>? {
-        return  smsRelayDao.getRelayEntityLiveData(id)
+    fun updateRelayRequest(relayRequest: RelayRequest) {
+        smsRelayDao.updateRelayRequest(relayRequest)
     }
 
-    fun updateBlocking(smsRelayEntity: SmsRelayEntity) {
-        runBlocking {
-            MainScope().launch(Dispatchers.IO) {
-                smsRelayDao.updateSmsRelayEntity(smsRelayEntity)
-            }
-        }
+    fun updateRequestPhase(relayRequest: RelayRequest, status: RelayRequestPhase) {
+        relayRequest.requestPhase = status
+
+        updateRelayRequest(relayRequest)
     }
 
-    fun update(smsRelayEntity: SmsRelayEntity) {
-        MainScope().launch(Dispatchers.IO) {
-            smsRelayDao.updateSmsRelayEntity(smsRelayEntity)
-        }
+    fun terminateAllActiveRequests() {
+        smsRelayDao.terminateAllActiveRequests(terminateReason = "Relay app restarted")
     }
 }
