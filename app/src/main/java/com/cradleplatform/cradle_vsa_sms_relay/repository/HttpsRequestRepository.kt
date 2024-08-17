@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import org.json.JSONException
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
@@ -105,6 +106,10 @@ class HttpsRequestRepository(
                     call: Call<HTTPSResponse>,
                     response: retrofit2.Response<HTTPSResponse>
                 ) {
+                    // Log the server URL
+                    Log.d(TAG, "TEST Server URL: ${call.request().url()}")
+                    Log.d(TAG, "TEST Server Port: ${call.request().url().port()}")
+
                     if (response.isSuccessful) {
                         val httpsResponse = response.body()
                         if (httpsResponse != null) {
@@ -132,7 +137,13 @@ class HttpsRequestRepository(
                     }
                     // expected errors will be inside a json which will contain the key 'message'
                     else {
-                        JSONObject(errorBody.string()).getString("message")
+                        val errorBodyString = errorBody.string()
+                        try {
+                            JSONObject(errorBodyString).getString("message")
+                        } catch (e: JSONException) {
+                            Log.e(TAG, "Error parsing JSON error message", e)
+                            "Unexpected error format: $errorBodyString"
+                        }
                     }
 
                     responseFailures.remove(smsRelayEntity)
