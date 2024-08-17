@@ -87,7 +87,8 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
         if(isSentToServer && isServerError != true) {
             setImageViewsForWaitingServerResponse(holder)
         }
-        if (smsRelayEntity.smsPacketsToMobile.isEmpty() && smsRelayEntity.isServerResponseReceived){
+        if (smsRelayEntity.smsPacketsToMobile.isEmpty() && smsRelayEntity.isServerResponseReceived
+            && smsRelayEntity.isServerError == false){
             setImageViewsForComplete(holder)
         }
         //when the user clicks cancel, key is expired but its never sent to the server

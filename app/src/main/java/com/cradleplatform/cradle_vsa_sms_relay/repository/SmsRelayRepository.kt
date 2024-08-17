@@ -40,6 +40,10 @@ class SmsRelayRepository(database: SmsRelayDatabase) {
         }
     }
 
+    fun getRelayLiveData(id: String): LiveData<SmsRelayEntity>? {
+        return  smsRelayDao.getRelayEntityLiveData(id)
+    }
+
     fun updateBlocking(smsRelayEntity: SmsRelayEntity) {
         runBlocking {
             MainScope().launch(Dispatchers.IO) {

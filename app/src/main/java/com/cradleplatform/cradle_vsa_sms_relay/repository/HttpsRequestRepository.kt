@@ -122,6 +122,7 @@ class HttpsRequestRepository(
                                 updateSmsRelayEntity(
                                     httpsResponse.body,
                                     true,
+                                    true,
                                     smsRelayEntity,
                                     response.code(),
                                     coroutineScope
@@ -144,11 +145,24 @@ class HttpsRequestRepository(
                             "Unexpected error format: $errorBodyString"
                         }
                     }
-                    // Add retry functionality here as well and look at why we are doing the
-                    //  below on failure
-                    Log.e(TAG, errorMessage)
 
-                    responseFailures[smsRelayEntity] = Pair(errorMessage, response.code())
+                    responseFailures.remove(smsRelayEntity)
+                    // using a synchronized block to ensure no two threads
+                    // can execute this block at the same time
+                    // this is a safety measure, only for a special case where a user attempts
+                    // to manually restart an incomplete relay process
+                    synchronized(this@HttpsRequestRepository) {
+                        updateSmsRelayEntity(
+                            errorMessage,
+                            isSuccessful = false,
+                            isServerResponseReceived = true,
+                            smsRelayEntity = smsRelayEntity,
+                            code = response.code(),
+                            coroutineScope = coroutineScope
+                        )
+                    }
+
+                    Log.e(TAG, errorMessage)
                 }
 
                 // This method will only be called when there is a network error while uploading
@@ -161,9 +175,11 @@ class HttpsRequestRepository(
         )
     }
 
+    @Suppress("LongParameterList")
     private fun updateSmsRelayEntity(
         data: String,
         isSuccessful: Boolean,
+        isServerResponseReceived: Boolean,
         smsRelayEntity: SmsRelayEntity,
         code: Int,
         coroutineScope: CoroutineScope
@@ -183,12 +199,14 @@ class HttpsRequestRepository(
         smsRelayEntity.numberOfTriesUploaded = max(1, smsRelayEntity.numberOfTriesUploaded)
 
         smsRelayEntity.isServerError = !isSuccessful
-        smsRelayEntity.isServerResponseReceived = isSuccessful
+        smsRelayEntity.isServerResponseReceived = isServerResponseReceived
         smsRelayEntity.smsPacketsToMobile.addAll(smsMessages)
         smsRelayEntity.totalFragmentsFromMobile = smsMessages.size + 1
         smsRelayEntity.numFragmentsSentToMobile = 1
         smsRelayEntity.timestampsDataMessagesSent.add(System.currentTimeMillis())
-
+        if(!isSuccessful){
+            smsRelayEntity.errorMessage = data
+        }
         smsRelayRepository.updateBlocking(smsRelayEntity)
 
         smsFormatter.sendMessage(phoneNumber, firstMessage)
@@ -209,6 +227,7 @@ class HttpsRequestRepository(
 
     private fun retrySendMessageToHTTPServer() {
         val startExe = System.currentTimeMillis()
+
         while (retryQueue.peek()?.let { it.second <= startExe } == true) {
             val polledTriple = retryQueue.poll()
             if (
@@ -228,6 +247,7 @@ class HttpsRequestRepository(
                         updateSmsRelayEntity(
                             removed.first,
                             false,
+                            true,
                             polledTriple.first,
                             removed.second,
                             polledTriple.third
@@ -237,6 +257,7 @@ class HttpsRequestRepository(
                     synchronized(this@HttpsRequestRepository) {
                         updateSmsRelayEntity(
                             HTTP_RESPONSE_TIMEOUT_MESSAGE,
+                            false,
                             false,
                             polledTriple.first,
                             HTTP_RESPONSE_TIMEOUT_STATUS_CODE,

@@ -25,6 +25,9 @@ interface SmsRelayDao {
     @Query("SELECT * FROM SmsRelayEntity WHERE id = :id LIMIT 1")
     fun getRelayEntity(id: String): SmsRelayEntity?
 
+    @Query("SELECT * FROM SmsRelayEntity WHERE id = :id LIMIT 1")
+    fun getRelayEntityLiveData(id: String): LiveData<SmsRelayEntity>?
+
     @Update
     fun updateSmsRelayEntity(smsRelayEntity: SmsRelayEntity)
 }
