@@ -32,7 +32,7 @@ import kotlin.jvm.Throws
 class RelayRequestFailedException(message: String) : Exception(message)
 
 class MessageReceiver(
-    private val context: Context,
+    context: Context,
     private val coroutineScope: CoroutineScope
 ) :
     BroadcastReceiver() {
@@ -58,24 +58,37 @@ class MessageReceiver(
         }
     }
 
+    /// This method is the entry point for receiving SMS messages.
     override fun onReceive(context: Context, intent: Intent) {
         // getMessagesFromIntent returns an array because long SMS Messages (above 160 characters)
         // will be split into multiple messages. However, in the context of our SMS Tunnelling
         // protocol, we always stay under that limit. So, we can consider each element in this array
         // to be a standalone packet. This is different from our old code which assumed packets
-        // maybe split across multiple array elements.
+        // maybe split across multiple array elements (which is problematic if the said array returns
+        // multiple messages and each is a separate packet).
         val relayPackets = Telephony.Sms.Intents.getMessagesFromIntent(intent)
             .mapNotNull { smsFormatter.smsMessageToRelayPacket(it) }
 
-        // Its important to note that in the 99.99% of cases, relayPackets will be an array of length 1.
+        // Key things to note about the following:
+        // - This array almost always have length 1. Not sure if it can be > 1 so we have this for loop.
+        // - We have a co-routine for each request in progress. That co-routine has a channel it can
+        //   consume packets associated with that request. This is where we send to such channels
+        // - We know a request is in progress when `requestChannels` has a channel for the phone number
+        //   - This also highlights one of the key aspects of the protocol: We can only handle one
+        //      request at a time for a given phone number. (Though this can be trivially changed)
         for (pkt in relayPackets) {
             when {
+                // We received an ACK packet from a phone number with a request in already progress.
+                // So we forward it to the appropriate channel
                 pkt is RelayPacket.AckPacket && requestChannels.containsKey(pkt.phoneNumber) -> {
                     coroutineScope.launch {
                         requestChannels[pkt.phoneNumber]!!.send(pkt)
                     }
                 }
 
+                // We received the First Packet. If a request is already in progress then it should be
+                // a duplicate - we still send to its channel. If no request in progress, then we have
+                // a new request and launches a co-routine to handle this packet and the rest coming later
                 pkt is RelayPacket.FirstPacket -> {
                     if (requestChannels.containsKey(pkt.phoneNumber)) {
                         coroutineScope.launch {
@@ -88,14 +101,19 @@ class MessageReceiver(
                     }
                 }
 
+                // Unlike the First Packet, a RestPacket/non first packet do not have requestId info.
+                // So we must assume this packet follows a previous First Packet. This is yet another
+                // reason why we can only handle one request at a time per phone number.
                 pkt is RelayPacket.RestPacket && requestChannels.containsKey(pkt.phoneNumber) -> {
                     coroutineScope.launch {
                         requestChannels[pkt.phoneNumber]!!.send(pkt)
                     }
                 }
 
+                // Unexpected packets seems to happen all the time. Though its usually a sign of
+                // in efficiency in the protocol (especially on the CRADLE-Mobile side)
                 else -> {
-                    Log.d(TAG, "Discarding unexpected packet")
+                    Log.d(TAG, "Discarding unexpected packet: $pkt")
                 }
             }
         }
@@ -104,7 +122,7 @@ class MessageReceiver(
     private suspend fun handleRequest(relayPacket: RelayPacket.FirstPacket) {
         val (request, channel) = startNewRequest(relayPacket)
         try {
-            // PHASE 1: Receive HTTP Request from CRADLE-Mobile via SMS
+            // PHASE 1: Receive Relay Request from CRADLE-Mobile via multiple packets
             receiveFromMobile(request, channel)
 
             // PHASE 2: Relay HTTP Request from CRADLE-Mobile to server &
@@ -148,6 +166,9 @@ class MessageReceiver(
 
         val currTimeMs = System.currentTimeMillis()
 
+        // We allocate the array up front to allow receive packets out of order (not possible with
+        // the protocol but good for robustness). As well, it makes it easier to handle duplicate
+        // packets
         val dataPacketsFromMobile: MutableList<RelayRequestData?> =
             MutableList(relayPacket.expectedNumPackets) { null }
 
@@ -182,8 +203,8 @@ class MessageReceiver(
             val pkt = withTimeoutOrNull(TIMEOUT_MS_FOR_RECEIVING_FROM_MOBILE) {
                 channel.receive()
             }
-            when (pkt) {
-                is RelayPacket.FirstPacket -> {
+            when {
+                pkt is RelayPacket.FirstPacket -> {
                     if (pkt.requestId == request.requestId) {
                         Log.d(TAG, "Received duplicate first packet, sending ACK again")
                         smsFormatter.sendAckMessage(request, packetNumber = 0)
@@ -191,32 +212,29 @@ class MessageReceiver(
                         Log.d(TAG, "Discarding because another request is in progress")
                     }
                 }
+                // It is possible for us to receive a rest packet that we received before. For example, our
+                // ACK message arrived too late to CRADLE-Mobile and it resend that packet. We choose to
+                // overwrite data in this scenario.
+                pkt is RelayPacket.RestPacket && (pkt.packetNumber < request.expectedNumPackets) -> {
 
-                is RelayPacket.AckPacket -> Log.d(TAG, "Discarding unexpected AckPacket")
+                    val currTime = System.currentTimeMillis()
 
-                is RelayPacket.RestPacket -> {
-                    if (pkt.packetNumber >= request.expectedNumPackets) {
-                        Log.d(TAG, "Discarding because another request in progress")
-                        continue
-                    } else {
-                        // It is possible for us to receive a rest packet that we received before. For example, our
-                        // ACK message arrived too late to CRADLE-Mobile and it resend that packet. We choose to
-                        // overwrite data in this scenario.
-                        val currTime = System.currentTimeMillis()
+                    request.dataPacketsFromMobile[pkt.packetNumber] = RelayRequestData(
+                        data = pkt.data,
+                        timeMsReceived = currTime,
+                    )
+                    request.timeMsLastReceived = currTime
+                    smsRelayRepository.updateRelayRequest(request)
 
-                        request.dataPacketsFromMobile[pkt.packetNumber] = RelayRequestData(
-                            data = pkt.data,
-                            timeMsReceived = currTime,
-                        )
-                        request.timeMsLastReceived = currTime
-                        smsRelayRepository.updateRelayRequest(request)
-
-                        smsFormatter.sendAckMessage(request, pkt.packetNumber)
-                    }
+                    smsFormatter.sendAckMessage(request, pkt.packetNumber)
                 }
 
-                null -> {
+                pkt == null -> {
                     throw RelayRequestFailedException("Timed out waiting for packets")
+                }
+
+                else -> {
+                    Log.d(TAG, "Discarding unexpected packet: $pkt")
                 }
             }
             numReceivedPackets = request.dataPacketsFromMobile.count { it != null }
@@ -227,17 +245,17 @@ class MessageReceiver(
         // This method should only be called when we have the entire request
         assert(relayRequest.dataPacketsFromMobile.all { it != null })
 
+        // TODO: This phase change is basically useless because it will be changed immediately
         smsRelayRepository.updateRequestPhase(relayRequest, RelayRequestPhase.RELAYING_TO_SERVER)
+
         val data = relayRequest.dataPacketsFromMobile.joinToString(separator = "") { it!!.data }
+
+        smsRelayRepository.updateRequestPhase(relayRequest, RelayRequestPhase.RECEIVING_FROM_SERVER)
 
         val response = httpsRequestRepository.relayRequestToServer(
             phoneNumber = relayRequest.phoneNumber,
             data = data
         )
-
-        // TODO: This phase change is basically useless because it will be changed immediately to
-        // TODO: RELAYING_TO_MOBILE, but removing this requires UI design changes
-        smsRelayRepository.updateRequestPhase(relayRequest, RelayRequestPhase.RECEIVING_FROM_SERVER)
 
         return response
     }
@@ -250,6 +268,7 @@ class MessageReceiver(
     ) {
         smsRelayRepository.updateRequestPhase(request, RelayRequestPhase.RELAYING_TO_MOBILE)
 
+        // Prepare the data to be sent to mobile as multiple SMS messages/packets
         val dataPacketsToMobile = if (response.isSuccessful && response.body() != null) {
             smsFormatter.formatSMS(
                 msg = response.body()!!.body,
@@ -266,57 +285,74 @@ class MessageReceiver(
             )
         }
 
+        // TODO: We don't really need to store this in DB, but the UI uses it in the Details
+        // TODO: activity. It's easier to let the UI use this data if we store it in the DB
         request.dataPacketsToMobile.addAll(dataPacketsToMobile.map {
             RelayResponseData(
                 data = it,
-                isAcked = false
+                ackedCount = 0
             )
         })
 
-        // Send first packet to mobile
-        var nextPacketToMobile = request.dataPacketsToMobile.find { !it.isAcked }
-        smsFormatter.sendMessage(request.phoneNumber, nextPacketToMobile!!.data)
+        // Send first packet to mobile which we assert to always exist. Then we go into the loop
+        // which facilitates waiting for the first packet's ACK and then doing the same for the
+        // rest of the packets.
+        assert(request.dataPacketsToMobile.isNotEmpty())
+        smsFormatter.sendMessage(request.phoneNumber, request.dataPacketsToMobile[0].data)
 
         var retriesForPacket = 0
-        while (nextPacketToMobile != null) {
-            val packet = withTimeoutOrNull(TIMEOUT_MS_FOR_RECEIVING_FROM_MOBILE) {
+        var currPacketToMobileIdx = 0
+        while (currPacketToMobileIdx != -1) {
+            // Wait for ACK packet from mobile
+            val pkt = withTimeoutOrNull(TIMEOUT_MS_FOR_RECEIVING_FROM_MOBILE) {
                 channel.receive()
             }
+            Log.d(TAG, "Received packet from mobile: $pkt")
 
-            when (packet) {
-                is RelayPacket.FirstPacket -> Log.d(TAG, "Discarding unexpected FirstPacket")
-                is RelayPacket.RestPacket -> Log.d(TAG, "Discarding unexpected RestPacket")
-                is RelayPacket.AckPacket -> {
-                    if (packet.packetNumber < request.dataPacketsToMobile.size) {
-                        val wasAckedBefore =
-                            request.dataPacketsToMobile[packet.packetNumber].isAcked
-                        request.dataPacketsToMobile[packet.packetNumber].isAcked = true
+            when {
+                // CASE: We received a relevant ACK packet from mobile
+                pkt is RelayPacket.AckPacket && (pkt.packetNumber < request.dataPacketsToMobile.size) -> {
+                    val acknowledgedPacket = request.dataPacketsToMobile[pkt.packetNumber]
+                    acknowledgedPacket.ackedCount++
 
-                        request.timeMsLastReceived = System.currentTimeMillis()
-                        smsRelayRepository.updateRelayRequest(request)
+                    request.timeMsLastReceived = System.currentTimeMillis()
+                    smsRelayRepository.updateRelayRequest(request)
+                }
+                // CASE: We timed out waiting for ACK from mobile
+                pkt == null -> {
+                    retriesForPacket++
 
-                        nextPacketToMobile = request.dataPacketsToMobile.find { !it.isAcked }
-                        if (!wasAckedBefore && nextPacketToMobile != null) {
-                            smsFormatter.sendMessage(request.phoneNumber, nextPacketToMobile.data)
-                            retriesForPacket = 0
-                        }
+                    if (retriesForPacket >= MAX_RETRIES_FOR_DATA_PACKETS_TO_MOBILE) {
+                        throw RelayRequestFailedException("Retries exceeded for relaying to mobile")
                     } else {
-                        Log.d(TAG, "Discarding unexpected RestPacket")
+                        Log.d(TAG, "Timed out waiting for ACK, retrying")
+
+                        smsFormatter.sendMessage(
+                            phoneNumber = request.phoneNumber,
+                            smsMessage = request.dataPacketsToMobile[currPacketToMobileIdx].data
+                        )
                     }
                 }
-
-                null -> {
-                    Log.d(TAG, "Timed out waiting for ACK, retrying")
-                    retriesForPacket++
-                    smsFormatter.sendMessage(request.phoneNumber, nextPacketToMobile.data)
-
-                    if (retriesForPacket > MAX_RETRIES_FOR_DATA_PACKETS_TO_MOBILE) {
-                        throw RelayRequestFailedException("Retries exceeded for relaying to mobile")
-                    }
+                // CASE: We received some random packet
+                else -> {
+                    Log.d(TAG, "Discarding unexpected packet: $pkt")
                 }
             }
 
-            nextPacketToMobile = request.dataPacketsToMobile.find { !it.isAcked }
+            // Check if there is a change in total acks received (non-duplicate). If true, next packet
+            // to mobile would be different from current, indicating that we are ready to send the
+            // next packet to mobile
+            val nextPacketToMobileIdx =
+                request.dataPacketsToMobile.indexOfFirst { it.ackedCount == 0 }
+            if (nextPacketToMobileIdx != -1 && nextPacketToMobileIdx != currPacketToMobileIdx) {
+                smsFormatter.sendMessage(
+                    phoneNumber = request.phoneNumber,
+                    smsMessage = request.dataPacketsToMobile[nextPacketToMobileIdx].data
+                )
+                retriesForPacket = 0 // Reset retries since its a fresh packet
+            }
+
+            currPacketToMobileIdx = nextPacketToMobileIdx
         }
     }
 
@@ -338,7 +374,7 @@ class MessageReceiver(
     }
 
     companion object {
-        private const val TAG = "BetterMessageReceiver"
+        private const val TAG = "MessageReceiver"
         private const val MAX_RETRIES_FOR_DATA_PACKETS_TO_MOBILE = 5
 
         // We will use the same time out for receiving normal packets and ACK packets from mobile

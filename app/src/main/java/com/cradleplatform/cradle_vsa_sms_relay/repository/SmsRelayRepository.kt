@@ -28,6 +28,7 @@ class SmsRelayRepository(database: SmsRelayDatabase) {
 
     fun markRelayRequestSuccess(relayRequest: RelayRequest) {
         relayRequest.requestResult = RelayRequestResult.OK
+        relayRequest.requestPhase = RelayRequestPhase.COMPLETE
 
         smsRelayDao.updateRelayRequest(relayRequest)
     }

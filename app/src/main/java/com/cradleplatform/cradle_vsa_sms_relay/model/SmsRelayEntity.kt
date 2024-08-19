@@ -16,7 +16,7 @@ data class RelayRequestData(
 
 data class RelayResponseData(
     val data: String,
-    var isAcked: Boolean,
+    var ackedCount: Int,
 )
 
 enum class RelayRequestPhase {
