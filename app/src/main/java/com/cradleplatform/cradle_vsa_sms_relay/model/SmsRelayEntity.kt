@@ -60,6 +60,8 @@ data class RelayRequest(
     @TypeConverters(RelayRequestDataListConverter::class)
     val dataPacketsFromMobile: MutableList<RelayRequestData?>,
 
+    // This array is initially empty and only populated when we are ready to send server response
+    // to CRADLE-Mobile
     @TypeConverters(RelayResponseDataListConverter::class)
     val dataPacketsToMobile: MutableList<RelayResponseData>,
 

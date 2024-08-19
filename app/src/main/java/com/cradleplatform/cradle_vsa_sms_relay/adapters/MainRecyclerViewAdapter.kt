@@ -101,7 +101,7 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
 
                     RelayRequestPhase.RELAYING_TO_MOBILE -> {
                         holder.receivingMobile.text =
-                            "Sending ${relayRequest.numPacketsSent()} out of " +
+                            "Sent ${relayRequest.numPacketsSent()} out of " +
                                     "${relayRequest.dataPacketsToMobile.size} messages"
                         setImageViewsForRelayingToMobile(holder)
                     }

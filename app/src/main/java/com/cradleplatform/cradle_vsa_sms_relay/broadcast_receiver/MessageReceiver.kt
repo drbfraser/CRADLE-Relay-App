@@ -283,8 +283,6 @@ class MessageReceiver(
         channel: Channel<RelayPacket>,
         response: retrofit2.Response<HttpRelayResponse>
     ) {
-        smsRelayRepository.updateRequestPhase(request, RelayRequestPhase.RELAYING_TO_MOBILE)
-
         // Prepare the data to be sent to mobile as multiple SMS messages/packets
         val dataPacketsToMobile = if (response.isSuccessful && response.body() != null) {
             smsFormatter.formatSMS(
@@ -311,6 +309,10 @@ class MessageReceiver(
             )
         })
 
+        // Phase change should be after dataPacketsToMobile is set or the UI will thing we have no
+        // packets to send for a split moment
+        smsRelayRepository.updateRequestPhase(request, RelayRequestPhase.RELAYING_TO_MOBILE)
+
         // Send first packet to mobile which we assert to always exist. Then we go into the loop
         // which facilitates waiting for the first packet's ACK and then doing the same for the
         // rest of the packets.
@@ -321,7 +323,7 @@ class MessageReceiver(
         var currPacketToMobileIdx = 0
         while (currPacketToMobileIdx != -1) {
             // Wait for ACK packet from mobile
-            val pkt = withTimeoutOrNull(TIMEOUT_MS_FOR_RECEIVING_FROM_MOBILE) {
+            val pkt = withTimeoutOrNull(TIMEOUT_MS_FOR_RECEIVING_ACK_FROM_MOBILE) {
                 channel.receive()
             }
             Log.d(TAG, "Received ack packet from mobile: $pkt")
@@ -392,12 +394,13 @@ class MessageReceiver(
 
     companion object {
         private const val TAG = "MessageReceiver"
-        private const val MAX_RETRIES_FOR_DATA_PACKETS_TO_MOBILE = 5
+
         private const val LAST_RUN_PREF = "sharedPrefLastTimeServiceRun"
         private const val LAST_RUN_TIME = "lastTimeServiceRun"
 
-        // We will use the same time out for receiving normal packets and ACK packets from mobile
+        private const val MAX_RETRIES_FOR_DATA_PACKETS_TO_MOBILE = 5
         private const val TIMEOUT_MS_FOR_RECEIVING_FROM_MOBILE = 20_000L
+        private const val TIMEOUT_MS_FOR_RECEIVING_ACK_FROM_MOBILE = 8000L
     }
 }
 

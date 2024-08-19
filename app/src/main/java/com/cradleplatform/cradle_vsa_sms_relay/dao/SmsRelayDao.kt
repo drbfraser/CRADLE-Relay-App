@@ -18,7 +18,7 @@ interface SmsRelayDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertRelayRequest(relayRequest: RelayRequest): Long
 
-    @Query("SELECT * FROM RelayRequest")
+    @Query("SELECT * FROM RelayRequest ORDER BY timeMsLastReceived DESC")
     fun getAllRelayRequests(): LiveData<List<RelayRequest>>
 
     @Query("SELECT * FROM RelayRequest WHERE requestId = :requestId AND phoneNumber = :phoneNumber LIMIT 1")
