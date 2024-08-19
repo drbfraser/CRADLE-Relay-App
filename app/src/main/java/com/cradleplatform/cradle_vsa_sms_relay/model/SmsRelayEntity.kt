@@ -49,10 +49,12 @@ data class RelayRequest(
     val expectedNumPackets: Int,
     var requestPhase: RelayRequestPhase,
     var requestResult: String,
-    // Same as the time we received our first packet of this relay request but also stored here
-    // for convenience
+
+    // The following two time data can be retrieved from dataPacketsFromMobile and dataPacketsToMobile
+    // but having it here too is very convenient
     val timeMsInitiated: Long,
     var timeMsLastReceived: Long,
+
     var errorMessage: String? = null,
 
     @TypeConverters(RelayRequestDataListConverter::class)
