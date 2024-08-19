@@ -85,6 +85,6 @@ data class RelayRequest(
     }
 
     fun numPacketsSent(): Int {
-        return dataPacketsToMobile.count { it.isAcked }
+        return dataPacketsToMobile.count { it.ackedCount > 0 }
     }
 }
