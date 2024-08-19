@@ -166,11 +166,12 @@ class MessageReceiver(
         }
     }
 
-    private fun startNewRequest(relayPacket: RelayPacket.FirstPacket): Pair<RelayRequest, Channel<RelayPacket>> {
-        requestChannels[relayPacket.phoneNumber]?.cancel()
+    private fun startNewRequest(pkt: RelayPacket.FirstPacket): Pair<RelayRequest, Channel<RelayPacket>> {
+        Log.d(TAG, "Received first packet from mobile: $pkt")
+        requestChannels[pkt.phoneNumber]?.cancel()
 
         val newChannel = Channel<RelayPacket>()
-        requestChannels[relayPacket.phoneNumber] = newChannel
+        requestChannels[pkt.phoneNumber] = newChannel
 
         val currTimeMs = System.currentTimeMillis()
 
@@ -178,27 +179,27 @@ class MessageReceiver(
         // the protocol but good for robustness). As well, it makes it easier to handle duplicate
         // packets
         val dataPacketsFromMobile: MutableList<RelayRequestData?> =
-            MutableList(relayPacket.expectedNumPackets) { null }
+            MutableList(pkt.expectedNumPackets) { null }
 
         dataPacketsFromMobile[0] = RelayRequestData(
-            data = relayPacket.data,
+            data = pkt.data,
             timeMsReceived = currTimeMs
         )
 
         val newRelayRequest = RelayRequest(
-            requestId = relayPacket.requestId,
+            requestId = pkt.requestId,
             requestPhase = RelayRequestPhase.RECEIVING_FROM_MOBILE,
-            expectedNumPackets = relayPacket.expectedNumPackets,
+            expectedNumPackets = pkt.expectedNumPackets,
             timeMsInitiated = currTimeMs,
             timeMsLastReceived = currTimeMs,
-            phoneNumber = relayPacket.phoneNumber,
+            phoneNumber = pkt.phoneNumber,
             requestResult = RelayRequestResult.PENDING,
             dataPacketsFromMobile = dataPacketsFromMobile,
             dataPacketsToMobile = mutableListOf()
         )
 
         smsRelayRepository.insertRelayRequest(newRelayRequest)
-        smsFormatter.sendAckMessage(newRelayRequest, relayPacket.packetNumber)
+        smsFormatter.sendAckMessage(newRelayRequest, pkt.packetNumber)
 
         return Pair(newRelayRequest, newChannel)
     }
@@ -211,6 +212,8 @@ class MessageReceiver(
             val pkt = withTimeoutOrNull(TIMEOUT_MS_FOR_RECEIVING_FROM_MOBILE) {
                 channel.receive()
             }
+            Log.d(TAG, "Received rest packet from mobile: $pkt")
+
             when {
                 pkt is RelayPacket.FirstPacket -> {
                     if (pkt.requestId == request.requestId) {
@@ -260,10 +263,16 @@ class MessageReceiver(
 
         smsRelayRepository.updateRequestPhase(relayRequest, RelayRequestPhase.RECEIVING_FROM_SERVER)
 
-        val response = httpsRequestRepository.relayRequestToServer(
-            phoneNumber = relayRequest.phoneNumber,
-            data = data
-        )
+        val response = try {
+            httpsRequestRepository.relayRequestToServer(
+                phoneNumber = relayRequest.phoneNumber,
+                data = data
+            )
+        } catch (e: java.net.ConnectException) {
+            // TODO: Should we try to still complete the request by relaying a
+            // TODO: a message back to mobile (instead of giving up)
+            throw RelayRequestFailedException("Failed to connect to server")
+        }
 
         return response
     }
@@ -315,7 +324,7 @@ class MessageReceiver(
             val pkt = withTimeoutOrNull(TIMEOUT_MS_FOR_RECEIVING_FROM_MOBILE) {
                 channel.receive()
             }
-            Log.d(TAG, "Received packet from mobile: $pkt")
+            Log.d(TAG, "Received ack packet from mobile: $pkt")
 
             when {
                 // CASE: We received a relevant ACK packet from mobile
