@@ -51,6 +51,14 @@ class MessageReceiver(
 
     init {
         (context.applicationContext as MyApp).component.inject(this)
+
+        // update time last listened to sms (TODO: Why is this useful?)
+        val sharedPreferences = context.getSharedPreferences(LAST_RUN_PREF, Context.MODE_PRIVATE)
+        sharedPreferences.edit().putLong(LAST_RUN_TIME, System.currentTimeMillis())
+            .apply()
+
+        // Cancel all previously active requests. We already clean up gracefully. This is to account
+        // for unexpected crashes.
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
                 smsRelayRepository.terminateAllActiveRequests()
@@ -376,6 +384,8 @@ class MessageReceiver(
     companion object {
         private const val TAG = "MessageReceiver"
         private const val MAX_RETRIES_FOR_DATA_PACKETS_TO_MOBILE = 5
+        private const val LAST_RUN_PREF = "sharedPrefLastTimeServiceRun"
+        private const val LAST_RUN_TIME = "lastTimeServiceRun"
 
         // We will use the same time out for receiving normal packets and ACK packets from mobile
         private const val TIMEOUT_MS_FOR_RECEIVING_FROM_MOBILE = 20_000L
