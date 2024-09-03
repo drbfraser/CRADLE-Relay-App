@@ -96,7 +96,7 @@ class MessageReceiver(
 
                 // We received the First Packet. If a request is already in progress then it should be
                 // a duplicate - we still send to its channel. If no request in progress, then we have
-                // a new request and launches a co-routine to handle this packet and the rest coming later
+                // a new request and so launch a new co-routine to handle this packet and the rest coming later
                 pkt is RelayPacket.FirstPacket -> {
                     if (requestChannels.containsKey(pkt.phoneNumber)) {
                         coroutineScope.launch {
@@ -119,7 +119,7 @@ class MessageReceiver(
                 }
 
                 // Unexpected packets seems to happen all the time. Though its usually a sign of
-                // in efficiency in the protocol (especially on the CRADLE-Mobile side)
+                // in efficiency in the protocol impl (especially on the CRADLE-Mobile side)
                 else -> {
                     Log.d(TAG, "Discarding unexpected packet: $pkt")
                 }
@@ -133,11 +133,11 @@ class MessageReceiver(
             // PHASE 1: Receive Relay Request from CRADLE-Mobile via multiple packets
             receiveFromMobile(request, channel)
 
-            // PHASE 2: Relay HTTP Request from CRADLE-Mobile to server &
-            // PHASE 3: Receive HTTP Response from server (TODO: Useless phase)
+            // PHASE 2: Relay HTTP Request from CRADLE-Mobile to server (TODO: Useless phase)
+            // AND PHASE 3: Receive HTTP Response from server
             val response = relayToServer(request)
 
-            // PHASE 3: Relay the HTTP Response from server to CRADLE-Mobile
+            // PHASE 4: Relay the HTTP Response from server to CRADLE-Mobile
             relayToMobile(request, channel, response)
 
             smsRelayRepository.markRelayRequestSuccess(request)
@@ -175,7 +175,7 @@ class MessageReceiver(
 
         val currTimeMs = System.currentTimeMillis()
 
-        // We allocate the array up front to allow receive packets out of order (not possible with
+        // We allocate the array up front to allow receiving packets out of order (not possible with
         // the protocol but good for robustness). As well, it makes it easier to handle duplicate
         // packets
         val dataPacketsFromMobile: MutableList<RelayRequestData?> =
@@ -204,6 +204,7 @@ class MessageReceiver(
         return Pair(newRelayRequest, newChannel)
     }
 
+    @Throws(RelayRequestFailedException::class)
     private suspend fun receiveFromMobile(request: RelayRequest, channel: Channel<RelayPacket>) {
         // NOTE: Cannot use a simple counter because there could be duplicates of each packet
         var numReceivedPackets = request.dataPacketsFromMobile.count { it != null }
@@ -252,6 +253,7 @@ class MessageReceiver(
         }
     }
 
+    @Throws(RelayRequestFailedException::class)
     private suspend fun relayToServer(relayRequest: RelayRequest): retrofit2.Response<HttpRelayResponse> {
         // This method should only be called when we have the entire request
         assert(relayRequest.dataPacketsFromMobile.all { it != null })
@@ -300,8 +302,8 @@ class MessageReceiver(
             )
         }
 
-        // TODO: We don't really need to store this in DB, but the UI uses it in the Details
-        // TODO: activity. It's easier to let the UI use this data if we store it in the DB
+        // Note: We don't really need to store this in DB, but the UI uses it in the Details
+        // activity. It's easier to let the UI use this data if we store it in the DB
         request.dataPacketsToMobile.addAll(dataPacketsToMobile.map {
             RelayResponseData(
                 data = it,
@@ -309,7 +311,7 @@ class MessageReceiver(
             )
         })
 
-        // Phase change should be after dataPacketsToMobile is set or the UI will thing we have no
+        // Phase change should be after dataPacketsToMobile is set or the UI could think we have no
         // packets to send for a split moment
         smsRelayRepository.updateRequestPhase(request, RelayRequestPhase.RELAYING_TO_MOBILE)
 
@@ -326,7 +328,7 @@ class MessageReceiver(
             val pkt = withTimeoutOrNull(TIMEOUT_MS_FOR_RECEIVING_ACK_FROM_MOBILE) {
                 channel.receive()
             }
-            Log.d(TAG, "Received ack packet from mobile: $pkt")
+            Log.d(TAG, "Received ack packet from mobile (null is timeout): $pkt")
 
             when {
                 // CASE: We received a relevant ACK packet from mobile
