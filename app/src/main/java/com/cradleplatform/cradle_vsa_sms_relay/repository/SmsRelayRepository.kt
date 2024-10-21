@@ -6,12 +6,13 @@ import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayDatabase
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequest
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestResult
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestPhase
+import javax.inject.Inject
 
 /**
  * class to access the DAO interface for SmsRelayEntity objects
  */
 
-class SmsRelayRepository(database: SmsRelayDatabase) {
+class SmsRelayRepository @Inject constructor (database: SmsRelayDatabase) {
     private var smsRelayDao: SmsRelayDao = database.smsRelayDao()
     var relayRequests: LiveData<List<RelayRequest>> = smsRelayDao.getAllRelayRequests()
 

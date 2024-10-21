@@ -4,6 +4,7 @@ package com.cradleplatform.cradle_vsa_sms_relay.utilities
 import android.telephony.SmsManager
 import android.telephony.SmsMessage
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequest
+import javax.inject.Inject
 //import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import kotlin.math.min
 
@@ -107,7 +108,7 @@ sealed class RelayPacket {
 
 
 @Suppress("LargeClass", "TooManyFunctions")
-class SMSFormatter {
+class SMSFormatter @Inject constructor() {
 
     private val smsManager = SmsManager.getDefault()
 
