@@ -29,7 +29,8 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.Throws
 
 
-class RelayRequestFailedException(message: String) : Exception(message)
+class RelayRequestFailedException(message: String, cause: Throwable? = null) : Exception(message, cause)
+class JsonProcessingException(message: String, cause: Throwable) : Exception(message, cause)
 
 class MessageReceiver(
     context: Context,
@@ -273,7 +274,8 @@ class MessageReceiver(
         } catch (e: java.net.ConnectException) {
             // TODO: Should we try to still complete the request by relaying a
             // TODO: a message back to mobile (instead of giving up)
-            throw RelayRequestFailedException("Failed to connect to server")
+            Log.e(TAG, "Connection to server failed for phone number: ${relayRequest.phoneNumber}", e)
+            throw RelayRequestFailedException("Failed to connect to server", e)
         }
 
         return response
@@ -390,7 +392,7 @@ class MessageReceiver(
             }
         } catch (e: org.json.JSONException) {
             Log.d(TAG, "Error message is not valid JSON: $errorBody")
-            return "Unknown error"
+            throw JsonProcessingException("Failed to process error body", e)
         }
     }
 
