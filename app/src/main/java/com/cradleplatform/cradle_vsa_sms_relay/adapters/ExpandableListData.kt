@@ -4,6 +4,7 @@ import com.cradleplatform.cradle_vsa_sms_relay.activities.MessageDeconstructionC
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequest
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestPhase
 import java.text.SimpleDateFormat
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class ExpandableListData(private val relayRequest: RelayRequest) {
@@ -73,7 +74,7 @@ class ExpandableListData(private val relayRequest: RelayRequest) {
         }
 
     private fun getRelativeTime(msgPos: Int, timestampList: List<Long>?): String {
-        val format = SimpleDateFormat("HH:mm:ss")
+        val format = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
         if (msgPos != 0 && timestampList != null) {
             val diff = timestampList[msgPos] - timestampList[msgPos - 1]
             val seconds =
