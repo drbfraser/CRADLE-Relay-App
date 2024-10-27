@@ -7,7 +7,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.cradleplatform.cradle_vsa_sms_relay.R
-import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequest
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestPhase
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestResult
 
 /**
  * Adapter for updating the recycler view UI in main activity
@@ -15,7 +17,7 @@ import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
  */
 @Suppress("TooManyFunctions")
 class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMSViewHolder>() {
-    var sms: List<SmsRelayEntity> = ArrayList()
+    var sms: List<RelayRequest> = ArrayList()
     private var phoneList: MutableList<String> = ArrayList()
 
     // Define a click listener interface
@@ -44,11 +46,11 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
     override fun getItemCount(): Int {
         return sms.size
     }
-    fun setRelayList(smsRelayEntities: List<SmsRelayEntity>) {
+    fun setRelayList(smsRelayEntities: List<RelayRequest>) {
         this.sms = smsRelayEntities
         phoneList.clear()
         phoneList.add("All")
-        phoneList.addAll(smsRelayEntities.map { it.getPhoneNumber() }.distinct())
+        phoneList.addAll(smsRelayEntities.map { it.phoneNumber }.distinct())
         notifyDataSetChanged()
     }
     fun getPhoneNumbers(): List<String> {
@@ -57,63 +59,90 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
 
     @Suppress("LongMethod")
     override fun onBindViewHolder(holder: SMSViewHolder, position: Int) {
-        val smsRelayEntity: SmsRelayEntity = sms[position]
-        val numFragmentsReceived = smsRelayEntity.numFragmentsReceived
-        val totalFragmentsFromMobile = smsRelayEntity.totalFragmentsFromMobile
-        val isServerError = smsRelayEntity.isServerError
-        val isSentToServer = smsRelayEntity.isSentToServer
+        val relayRequest: RelayRequest = sms[position]
+        val numPacketsReceived = relayRequest.dataPacketsFromMobile.count { it != null }
+        val expectedNumPackets = relayRequest.expectedNumPackets
 
-        holder.receivedDateTime.text = smsRelayEntity.getDateAndTime()
+
+        holder.receivedDateTime.text = relayRequest.getDateAndTime()
         holder.duration.text = ""
-        holder.phone.text = smsRelayEntity.getPhoneNumber()
+        holder.phone.text = relayRequest.phoneNumber
 
         // Reset visibility for all views to default states
         setImageViewsForDefault(holder)
 
-        if (numFragmentsReceived <= totalFragmentsFromMobile) {
-            holder.receivingMobile.text = "Receiving $numFragmentsReceived out of " +
-                    "$totalFragmentsFromMobile messages"
-            holder.loadingMark1.visibility = View.VISIBLE
-            holder.imageView1.alpha = Companion.alphaDim
-        }
-        if (numFragmentsReceived == totalFragmentsFromMobile) {
-            setImageViewsForMessagesReceivedFromMobile(holder)
-        }
-        if (isServerError == true) {
-            holder.receivingMobile.text = "Something went wrong on server..."
-            setImageViewsForServerError(holder)
-        }
-        // second conditional so that the text is not changed after server error
-        if(isSentToServer && isServerError != true) {
-            setImageViewsForWaitingServerResponse(holder)
-        }
-        if (smsRelayEntity.smsPacketsToMobile.isEmpty() && smsRelayEntity.isServerResponseReceived
-            && smsRelayEntity.isServerError == false){
-            setImageViewsForComplete(holder)
-        }
-        //when the user clicks cancel, key is expired but its never sent to the server
-        if(smsRelayEntity.isKeyExpired && !isSentToServer){
-            setImageViewsForKeyExpired(holder)
+        when (relayRequest.requestResult) {
+            RelayRequestResult.OK -> {
+                setImageViewsForComplete(holder, relayRequest.getDuration())
+            }
+            RelayRequestResult.ERROR -> {
+                holder.receivingMobile.text = relayRequest.errorMessage ?: "Something went wrong"
+                setImageViewsForError(holder, relayRequest.requestPhase)
+            }
+            else -> {
+                when (relayRequest.requestPhase) {
+                    RelayRequestPhase.RECEIVING_FROM_MOBILE -> {
+                        holder.receivingMobile.text = "Receiving $numPacketsReceived out of " +
+                                "$expectedNumPackets messages"
+                        holder.loadingMark1.visibility = View.VISIBLE
+                        holder.imageView1.alpha = ALPHA_DIM
+                    }
+
+                    RelayRequestPhase.RELAYING_TO_SERVER -> setImageViewsForMessagesReceivedFromMobile(
+                        holder
+                    )
+
+                    RelayRequestPhase.RECEIVING_FROM_SERVER -> {
+                        holder.receivingMobile.text = "Awaiting server response"
+                        setImageViewsForWaitingServerResponse(
+                            holder
+                        )
+                    }
+
+                    RelayRequestPhase.RELAYING_TO_MOBILE -> {
+                        holder.receivingMobile.text =
+                            "Sent ${relayRequest.numPacketsSent()} out of " +
+                                    "${relayRequest.dataPacketsToMobile.size} messages"
+                        setImageViewsForRelayingToMobile(holder)
+                    }
+
+                    else -> throw IllegalStateException("Impossible branch")
+                }
+            }
         }
     }
 
-    private fun setImageViewsForServerError(holder: SMSViewHolder) {
-        holder.imageView1.alpha = Companion.alphaDim
-        holder.imageView2.alpha = Companion.alphaDim
-        holder.imageView3.alpha = Companion.alphaDim
-        holder.imageView4.alpha = Companion.alphaDim
-        holder.checkMark3.visibility = View.INVISIBLE
-        holder.checkMark4.visibility = View.INVISIBLE
-        // we got the messages, which is why we are sending it to the server, hence check mark is
-        // visible
-        holder.checkMark1.visibility = View.VISIBLE
-        holder.checkMark2.visibility = View.VISIBLE // same here - it was sent to the server fine
-        holder.failedMark4.visibility = View.VISIBLE
-        holder.failedMark3.visibility = View.VISIBLE
-        holder.loadingMark3.visibility = View.INVISIBLE
+    private fun setImageViewsForError(holder: SMSViewHolder, phase: RelayRequestPhase) {
+        when (phase) {
+            RelayRequestPhase.RECEIVING_FROM_MOBILE -> {
+                holder.failedMark1.visibility = View.VISIBLE
+                holder.loadingMark1.visibility = View.INVISIBLE
+
+            }
+            RelayRequestPhase.RELAYING_TO_SERVER -> {
+                holder.checkMark1.visibility = View.VISIBLE
+                holder.failedMark2.visibility = View.VISIBLE
+                holder.loadingMark2.visibility = View.INVISIBLE
+            }
+            RelayRequestPhase.RECEIVING_FROM_SERVER -> {
+                holder.checkMark1.visibility = View.VISIBLE
+                holder.checkMark2.visibility = View.VISIBLE
+                holder.failedMark3.visibility = View.VISIBLE
+                holder.loadingMark3.visibility = View.INVISIBLE
+            }
+            RelayRequestPhase.RELAYING_TO_MOBILE -> {
+                holder.checkMark1.visibility = View.VISIBLE
+                holder.checkMark2.visibility = View.VISIBLE
+                holder.checkMark3.visibility = View.VISIBLE
+
+                holder.failedMark4.visibility = View.VISIBLE
+                holder.loadingMark4.visibility = View.INVISIBLE
+            }
+            else -> throw IllegalStateException("Impossible branch")
+        }
     }
-    private fun setImageViewsForComplete(holder: SMSViewHolder) {
-        holder.receivingMobile.text = "Completed"
+    private fun setImageViewsForComplete(holder: SMSViewHolder, duration: String) {
+        holder.receivingMobile.text = "Completed in $duration"
         holder.checkMark4.visibility = View.VISIBLE
         holder.checkMark1.visibility = View.VISIBLE
         holder.checkMark2.visibility = View.VISIBLE
@@ -123,10 +152,10 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
         holder.failedMark3.visibility = View.INVISIBLE
         holder.failedMark4.visibility = View.INVISIBLE
         holder.loadingMark3.visibility = View.INVISIBLE
-        holder.imageView1.alpha = Companion.alphaDim
-        holder.imageView2.alpha = Companion.alphaDim
-        holder.imageView3.alpha = Companion.alphaDim
-        holder.imageView4.alpha = Companion.alphaDim
+        holder.imageView1.alpha = ALPHA_DIM
+        holder.imageView2.alpha = ALPHA_DIM
+        holder.imageView3.alpha = ALPHA_DIM
+        holder.imageView4.alpha = ALPHA_DIM
     }
 
     private fun setImageViewsForDefault(holder: SMSViewHolder) {
@@ -142,49 +171,43 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
         holder.loadingMark2.visibility = View.INVISIBLE
         holder.loadingMark3.visibility = View.INVISIBLE
         holder.loadingMark4.visibility = View.INVISIBLE
-        holder.imageView1.alpha = Companion.alphaDefault
-        holder.imageView2.alpha = Companion.alphaDefault
-        holder.imageView3.alpha = Companion.alphaDefault
-        holder.imageView4.alpha = Companion.alphaDefault
+        holder.imageView1.alpha = ALPHA_DIM
+        holder.imageView2.alpha = ALPHA_DIM
+        holder.imageView3.alpha = ALPHA_DIM
+        holder.imageView4.alpha = ALPHA_DIM
     }
 
     private fun setImageViewsForWaitingServerResponse(holder: SMSViewHolder) {
         holder.receivingMobile.text = "Waiting for response from the server.."
         holder.checkMark1.visibility = View.VISIBLE
         holder.checkMark2.visibility = View.VISIBLE
-        holder.imageView1.alpha = Companion.alphaDim
-        holder.imageView2.alpha = Companion.alphaDim
+        holder.imageView1.alpha = ALPHA_DIM
+        holder.imageView2.alpha = ALPHA_DIM
         holder.failedMark1.visibility = View.INVISIBLE
         holder.failedMark2.visibility = View.INVISIBLE
         holder.loadingMark2.visibility = View.INVISIBLE
         holder.loadingMark3.visibility = View.VISIBLE
-        holder.imageView3.alpha = Companion.alphaDim
+        holder.imageView3.alpha = ALPHA_DIM
     }
 
-    private fun setImageViewsForKeyExpired(holder: SMSViewHolder) {
-        holder.receivingMobile.text = "Something went wrong with the mobile"
-        holder.checkMark1.visibility = View.INVISIBLE
-        holder.checkMark2.visibility = View.INVISIBLE
-        holder.checkMark3.visibility = View.INVISIBLE
-        holder.imageView1.alpha = Companion.alphaDim
-        holder.imageView2.alpha = Companion.alphaDim
-        holder.imageView3.alpha = Companion.alphaDim
-        holder.imageView4.alpha = Companion.alphaDim
-        holder.failedMark1.visibility = View.VISIBLE
-        holder.failedMark2.visibility = View.VISIBLE
-        holder.failedMark3.visibility = View.VISIBLE
-        holder.failedMark4.visibility = View.VISIBLE
-        holder.loadingMark1.visibility = View.INVISIBLE
+    private fun setImageViewsForRelayingToMobile(holder: SMSViewHolder) {
+        setImageViewsForDefault(holder)
+        holder.checkMark1.visibility = View.VISIBLE
+        holder.checkMark2.visibility = View.VISIBLE
+        holder.checkMark3.visibility = View.VISIBLE
+        holder.loadingMark4.visibility = View.VISIBLE
     }
 
     private fun setImageViewsForMessagesReceivedFromMobile(holder: SMSViewHolder) {
         holder.receivingMobile.text = "Received all messages. Forwarding it to the server"
+
         holder.checkMark1.visibility = View.VISIBLE
-        holder.imageView1.alpha = Companion.alphaDim
+        holder.imageView1.alpha = ALPHA_DIM
+
         holder.failedMark1.visibility = View.INVISIBLE
         holder.loadingMark1.visibility = View.INVISIBLE
         holder.loadingMark2.visibility = View.VISIBLE
-        holder.imageView2.alpha = Companion.alphaDim
+        holder.imageView2.alpha = ALPHA_DIM
     }
 
 
@@ -223,8 +246,6 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
     }
 
     companion object {
-        private const val alphaDim = 0.2F
-        private const val alphaDefault = 1.0F
-
+        private const val ALPHA_DIM = 0.2F
     }
 }

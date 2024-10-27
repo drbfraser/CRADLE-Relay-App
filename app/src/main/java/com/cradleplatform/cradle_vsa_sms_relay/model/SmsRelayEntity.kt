@@ -1,82 +1,92 @@
 package com.cradleplatform.cradle_vsa_sms_relay.model
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import com.cradleplatform.cradle_vsa_sms_relay.type_converters.SmsListConverter
-import com.cradleplatform.cradle_vsa_sms_relay.type_converters.TimeStampListConverter
-import java.io.Serializable
+import com.cradleplatform.cradle_vsa_sms_relay.type_converters.RelayRequestDataListConverter
+import com.cradleplatform.cradle_vsa_sms_relay.type_converters.RelayResponseDataListConverter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.time.Duration.Companion.milliseconds
 
-/**
- * data class used to store the status of a single SMS Relay transaction
- * the class also stores all information pertaining to a single transaction
- */
+data class RelayRequestData(
+    val data: String,
+    val timeMsReceived: Long
+)
 
-@Entity
-data class SmsRelayEntity(
-    @PrimaryKey
-    val id: String,
+data class RelayResponseData(
+    val data: String,
+    var ackedCount: Int,
+)
 
-    // to track how many messages have been received
-    var numFragmentsReceived: Int,
+enum class RelayRequestPhase {
+    RECEIVING_FROM_MOBILE,
+    RELAYING_TO_SERVER,
+    RECEIVING_FROM_SERVER,
+    RELAYING_TO_MOBILE,
+    COMPLETE
+}
 
-    // to track how many messages are part of the the entire relay request
-    var totalFragmentsFromMobile: Int,
+// RelayRequestResult ideally should be an enum but having the following structure makes querying in
+// the database with room much cleaner and easier
+object RelayRequestResult {
+    const val PENDING = "PENDING" // PENDING is not valid when the relay request phase is COMPLETE
+    const val OK = "OK" // OK is only valid when the relay request phase is COMPLETE
+    const val ERROR = "ERROR" // ERROR is valid for all phases
+}
 
-    @TypeConverters(SmsListConverter::class)
-    val smsPacketsFromMobile: MutableList<String>,
-    val timeRequestInitiated: Long = System.currentTimeMillis(),
-    @TypeConverters(TimeStampListConverter::class)
-    val timestampsDataMessagesReceived: MutableList<Long>,
-    @TypeConverters(TimeStampListConverter::class)
-    val timestampsDataMessagesSent: MutableList<Long>,
+/// Represents a Relay Request initiated by CRADLE-Mobile
+@Entity(
+    primaryKeys = ["requestId", "phoneNumber"]
+)
+data class RelayRequest(
+    val requestId: Int,
 
-    // fields for receiving response from server
-    var isServerResponseReceived: Boolean,
-    var isServerError: Boolean?,
-    var errorMessage: String?,
-    @TypeConverters(SmsListConverter::class)
-    val smsPacketsToMobile: MutableList<String>,
-    var numFragmentsSentToMobile: Int?,
-    val totalFragmentsFromServer: Int?,
+    // TODO: Validate phone number format -> important when sending sms messages to this number
+    // TODO: Make phoneNumber a domain specific type
+    val phoneNumber: String,
 
-    // extras
-    var isSentToServer: Boolean,
-    var isKeyExpired: Boolean,
-    var numberOfTriesUploaded: Int,
-    var deliveryReportSent: Boolean,
-    var isCompleted: Boolean
-) : Serializable, Comparable<SmsRelayEntity> {
+    val expectedNumPackets: Int,
+    var requestPhase: RelayRequestPhase,
+    var requestResult: String,
 
-    override fun compareTo(other: SmsRelayEntity): Int {
-        return (this.timeRequestInitiated - other.timeRequestInitiated).toInt()
-    }
+    // The following two time data can be retrieved from dataPacketsFromMobile and dataPacketsToMobile
+    // but having it here too is very convenient
+    val timeMsInitiated: Long,
+    var timeMsLastReceived: Long,
 
-    fun getPhoneNumber(): String {
-        return this.id.split("-")[0]
-    }
+    var errorMessage: String? = null,
 
-    fun getRequestIdentifier(): String {
-        return this.id.split("-")[1]
-    }
+    @TypeConverters(RelayRequestDataListConverter::class)
+    val dataPacketsFromMobile: MutableList<RelayRequestData?>,
+
+    // This array is initially empty and only populated when we are ready to send server response
+    // to CRADLE-Mobile
+    @TypeConverters(RelayResponseDataListConverter::class)
+    val dataPacketsToMobile: MutableList<RelayResponseData>,
+
+    ) {
+    fun getDuration(): String =
+        if (requestResult == RelayRequestResult.PENDING) {
+            "N/A"
+        } else {
+            timeMsLastReceived
+                .minus(timeMsInitiated)
+                .milliseconds
+                .toComponents { minutes, seconds, _ -> "${minutes}m ${seconds}s" }
+        }
+
     fun getDateAndTime(): String {
         val simpleDateFormat = SimpleDateFormat("MMM d, yyyy h:mm a", Locale.getDefault())
-        val date = Date(timeRequestInitiated)
+        val date = Date(timeMsInitiated)
         return simpleDateFormat.format(date)
     }
-    fun getDuration(): String {
-        val receivedTime = if (timestampsDataMessagesReceived.isNotEmpty()) timestampsDataMessagesReceived[0] else 0
-        val sentTime = if (timestampsDataMessagesSent.isNotEmpty()) timestampsDataMessagesSent[0] else 0
-        val durationInSeconds = (sentTime - receivedTime) / MILLISECONDS_PER_SECOND
-        val minutes = durationInSeconds / SIXTY
-        val seconds = durationInSeconds % SIXTY
-        return String.format("%dm %ds", minutes, seconds)
+
+    fun numPacketsReceived(): Int {
+        return dataPacketsFromMobile.filterNotNull().size
     }
-    companion object {
-        private const val SIXTY = 60
-        private const val MILLISECONDS_PER_SECOND = 1000
+
+    fun numPacketsSent(): Int {
+        return dataPacketsToMobile.count { it.ackedCount > 0 }
     }
 }

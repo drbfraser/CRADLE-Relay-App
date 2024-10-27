@@ -39,12 +39,6 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun getSmsRelayRepository(database: SmsRelayDatabase): SmsRelayRepository {
-        return SmsRelayRepository(database)
-    }
-
-    @Provides
-    @Singleton
     fun getNetworkManager(app: MultiDexApplication): NetworkManager {
         return NetworkManager(app)
     }
@@ -53,19 +47,11 @@ class DataModule {
     @Singleton
     fun getHttpsRequestRepository(
         sharedPreference: SharedPreferences,
-        smsFormatter: SMSFormatter,
-        smsRelayRepository: SmsRelayRepository,
         urlManager: UrlManager
     ): HttpsRequestRepository {
         val token = sharedPreference.getString(VolleyRequests.TOKEN, "") ?: ""
         val baseUrl = urlManager.base
-        return HttpsRequestRepository(token, smsFormatter, smsRelayRepository, baseUrl)
-    }
-
-    @Provides
-    @Singleton
-    fun getSMSFormatter(): SMSFormatter {
-        return SMSFormatter()
+        return HttpsRequestRepository(token, baseUrl)
     }
 
     @Singleton

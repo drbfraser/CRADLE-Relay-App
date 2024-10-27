@@ -2,6 +2,7 @@ package com.cradleplatform.cradle_vsa_sms_relay.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ExpandableListAdapter
 import android.widget.ExpandableListView
@@ -30,14 +31,16 @@ class DetailsActivity : AppCompatActivity() {
                 ViewModelProvider.AndroidViewModelFactory(application)
             )[DetailsViewModel::class.java]
 
-        val id: String? = intent.getStringExtra("id")
+        val requestId = intent.getStringExtra("requestId")?.toInt()
+        val phoneNumber = intent.getStringExtra("phoneNumber")!!
+
         val messageNoTextView = findViewById<TextView>(R.id.messageNoTextView)
 
-        if (id != null) {
-            val messageNo = id.split('-')[MessageDeconstructionConstants.MESSAGE_NUMBER_INDEX]
-            messageNoTextView.text = "Message Number $messageNo"
+        if (requestId != null) {
+            Log.d("DetailsActivity", "requestId not is null")
+            messageNoTextView.text = "Message Number $requestId"
 
-            cardDetailsViewModel.getRelayEntity(id)?.observe(this){
+            cardDetailsViewModel.getRelayEntity(requestId, phoneNumber)?.observe(this){
                 expandableListData = ExpandableListData(it)
                 expandableListView = findViewById(R.id.detailsList)
                 if (expandableListView != null) {
@@ -48,6 +51,8 @@ class DetailsActivity : AppCompatActivity() {
 
                 }
             }
+        } else {
+            Log.d("DetailsActivity", "requestId is null")
         }
 
 

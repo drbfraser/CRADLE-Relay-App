@@ -33,6 +33,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.adapters.MainRecyclerViewAdapter
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestResult
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.view_model.SmsRelayViewModel
 import com.google.android.material.button.MaterialButton
@@ -74,13 +75,10 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
         setupFilter()
     }
     override fun onItemClick(position: Int) {
-        val smsRelayEntity = mainRecyclerViewAdapter.sms[position] // Access the item from the list
+        val relayRequest = mainRecyclerViewAdapter.sms[position] // Access the item from the list
         val intent = Intent(this, DetailsActivity::class.java).apply {
-            putExtra("date", smsRelayEntity.getDateAndTime())
-            putExtra("phoneNumber", smsRelayEntity.getPhoneNumber())
-            putExtra("duration", smsRelayEntity.getDuration())
-            putExtra("id", smsRelayEntity.id)
-
+            putExtra("phoneNumber", relayRequest.phoneNumber)
+            putExtra("requestId", relayRequest.requestId.toString())
             // Pass any other relevant data here
         }
         startActivity(intent)
@@ -147,16 +145,16 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
 
         // Filter the list of SMS relay entities based on the selected phone number and filter type
         val filteredList = if (selectedPhoneNumber == "All") {
-            smsRelayViewModel.getAllRelayEntities().value.orEmpty()
+            smsRelayViewModel.getAllRelayRequests().value.orEmpty()
         } else {
-            smsRelayViewModel.getAllRelayEntities().value.orEmpty()
-                .filter { it.getPhoneNumber() == selectedPhoneNumber }
+            smsRelayViewModel.getAllRelayRequests().value.orEmpty()
+                .filter { it.phoneNumber == selectedPhoneNumber }
         }
 
         // Apply additional filtering based on the selected filter type
         val finalFilteredList = when (selectedFilter) {
-            "Only Successful" -> filteredList.filter { it.isServerError == false }
-            "Only Failed" -> filteredList.filter { it.isKeyExpired || it.isServerError == true }
+            "Only Successful" -> filteredList.filter { it.requestResult == RelayRequestResult.OK }
+            "Only Failed" -> filteredList.filter { it.requestResult == RelayRequestResult.ERROR }
             else -> filteredList
         }
 
@@ -191,7 +189,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
                 SmsRelayViewModel::class.java
             )
 
-        smsRelayViewModel.getAllRelayEntities().observe(
+        smsRelayViewModel.getAllRelayRequests().observe(
             this
         ) { relayEntities ->
             // update the recyclerview on updating
@@ -201,7 +199,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
                 emptyImageView.visibility = VISIBLE
             }
 
-            adapter.setRelayList(relayEntities.sortedByDescending { it.timeRequestInitiated })
+            adapter.setRelayList(relayEntities.sortedByDescending { it.timeMsInitiated })
             adapter.notifyDataSetChanged()
         }
 

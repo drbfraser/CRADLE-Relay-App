@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
+import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequest
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import javax.inject.Inject
 
@@ -19,14 +19,14 @@ class SmsRelayViewModel(application: Application) :
     @Inject
     lateinit var repository: SmsRelayRepository
 
-    private val relayEntity: LiveData<List<SmsRelayEntity>>
+    private val relayRequest: LiveData<List<RelayRequest>>
 
-    fun getAllRelayEntities(): LiveData<List<SmsRelayEntity>> {
-        return repository.relayEntities
+    fun getAllRelayRequests(): LiveData<List<RelayRequest>> {
+        return repository.relayRequests
     }
 
     init {
         (application as MyApp).component.inject(this)
-        relayEntity = repository.relayEntities
+        relayRequest = repository.relayRequests
     }
 }
