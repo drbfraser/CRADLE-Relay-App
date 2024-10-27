@@ -35,18 +35,18 @@ class SettingsActivity : AppCompatActivity() {
             .commit()
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         findViewById<ImageButton>(R.id.back_button).setOnClickListener {
-            onBackPressed()
+            handleBackPress()
         }
 
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
+        handleBackPress()
         return super.onSupportNavigateUp()
     }
 
-    override fun onBackPressed() {
-        super.onBackPressed()
+    fun handleBackPress() {
+        super.onBackPressedDispatcher.onBackPressed()
         overridePendingTransition(R.anim.nothing, R.anim.slide_up)
     }
 
