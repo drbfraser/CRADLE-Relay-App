@@ -12,6 +12,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
@@ -96,17 +97,16 @@ class LauncherActivity : AppCompatActivity() {
     private fun setupLogin() {
         val emailEditText = findViewById<TextView>(R.id.emailEditText)
         val passwordEdittext = findViewById<TextView>(R.id.passwordEditText)
+        val progressBar = findViewById<ProgressBar>(R.id.progressBar)
+
         findViewById<MaterialButton>(R.id.loginButton).setOnClickListener {
-            val progressDialog = ProgressDialog(this)
-            progressDialog.setTitle("Logging In")
-            progressDialog.setCancelable(false)
-            progressDialog.show()
+            progressBar.visibility = View.VISIBLE
 
             networkManager.authenticateTheUser(
                 emailEditText.text.toString(),
                 passwordEdittext.text.toString()
             ) {
-                progressDialog.cancel()
+                progressBar.visibility = View.GONE
                 if (it) {
                     startActivity()
                 } else {
