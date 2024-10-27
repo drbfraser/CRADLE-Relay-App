@@ -201,7 +201,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:gravity="top"
-        android:text="@string/project_name_capital"
+        android:text="@string/cradle"
         android:textColor="@color/colorOffWhite"
         android:textSize="24sp"
         android:textStyle="bold"

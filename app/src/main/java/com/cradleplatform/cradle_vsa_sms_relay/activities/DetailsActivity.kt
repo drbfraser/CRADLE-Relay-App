@@ -38,7 +38,7 @@ class DetailsActivity : AppCompatActivity() {
 
         if (requestId != null) {
             Log.d("DetailsActivity", "requestId not is null")
-            messageNoTextView.text = "Message Number $requestId"
+            messageNoTextView.text = getString(R.string.message_number, requestId)
 
             cardDetailsViewModel.getRelayEntity(requestId, phoneNumber)?.observe(this){
                 expandableListData = ExpandableListData(it)

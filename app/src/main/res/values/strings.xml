@@ -43,16 +43,25 @@
     <string name="password_hint">*********</string>
     <string name="sign_in">SIGN IN</string>
     <string name="email">Email:</string>
-    <string name="uploaded_to_server">Uploaded to server</string>
-    <string name="received_from_mobile">Received from mobile</string>
-    <string name="received_from_server">Received from server</string>
-    <string name="sent_to_mobile">Sent to Mobile</string>
-    <string name="the_server_encountered_an_error_the_response_will_be_relayed_back">The server encountered an error, the response will be relayed back</string>
-    <string name="completed_4_messages">Completed. 4/4 Messages.</string>
-    <string name="receiving_from_mobile">Receiving data from mobile…</string>
-    <string name="uploading_to_server">Uploading data to server…</string>
+
+    <!-- Service messages & responses -->
+    <string name="awaiting_server_response">Awaiting server response…</string>
     <string name="receiving_from_server">Receiving data from server…</string>
+    <string name="messages_received_forward_to_server">Received all messages. Forwarding to the server</string>
+    <string name="uploading_to_server">Uploading data to server…</string>
+    <string name="uploaded_to_server">Uploaded to server</string>
+    <string name="received_from_server">Received from server</string>
+    <string name="receiving_from_mobile">Receiving data from mobile…</string>
+    <string name="receiving_mobile_messages">Receiving %1$d out of %2$d messages</string>
+    <string name="received_from_mobile">Received from mobile</string>
     <string name="sending_to_mobile">Sending data to Mobile…</string>
+    <string name="sending_messages_to_mobile">Sent %1$d out of %2$d messages</string>
+    <string name="sent_to_mobile">Sent to Mobile</string>
+
+    <string name="message_number">Message Number: %1$d</string>
+    <string name="completed_4_messages">Completed. 4/4 Messages.</string>
+    <string name="completed_in">Completed in %1$s</string>
+
     <!-- Network -->
     <string name="settings_default_server_hostname">cradleplatform.com</string>
     <string name="settings_default_server_port" />
@@ -61,13 +70,17 @@
     <string name="key_server_port">settings_server_port</string>
     <string name="key_server_use_https">settings_server_use_https</string>
 
+    <!-- Errors -->
+    <string name="error_something_went_wrong">Something went wrong</string>
+    <string name="exception_impossible_branch">Impossible branch</string>
+    <string name="the_server_encountered_an_error_the_response_will_be_relayed_back">The server encountered an error, the response will be relayed back</string>
+
     <string name="base_url">base_url</string>
     <string name="default_base_url">http://10.0.2.2:5000/</string>
     <string name="setting_btn">settings_btn</string>
     <string name="key_account_settings">account_settings</string>
     <string name="details">Details</string>
     <string name="message_number_000112">Message Number: 000112</string>
-    <string name="project_name_capital">CRADLE</string>
     <string name="default_group_title">Default Group Title</string>
     <string name="default_list_item">Default list item</string>
     <string name="settings">Settings</string>

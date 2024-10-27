@@ -62,6 +62,7 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
         val relayRequest: RelayRequest = sms[position]
         val numPacketsReceived = relayRequest.dataPacketsFromMobile.count { it != null }
         val expectedNumPackets = relayRequest.expectedNumPackets
+        val context = holder.itemView.context
 
 
         holder.receivedDateTime.text = relayRequest.getDateAndTime()
@@ -76,14 +77,17 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
                 setImageViewsForComplete(holder, relayRequest.getDuration())
             }
             RelayRequestResult.ERROR -> {
-                holder.receivingMobile.text = relayRequest.errorMessage ?: "Something went wrong"
+                holder.receivingMobile.text = relayRequest.errorMessage ?: context.getString(R.string.error_something_went_wrong)
                 setImageViewsForError(holder, relayRequest.requestPhase)
             }
             else -> {
                 when (relayRequest.requestPhase) {
                     RelayRequestPhase.RECEIVING_FROM_MOBILE -> {
-                        holder.receivingMobile.text = "Receiving $numPacketsReceived out of " +
-                                "$expectedNumPackets messages"
+                        holder.receivingMobile.text = context.getString(
+                            R.string.receiving_mobile_messages,
+                            numPacketsReceived,
+                            expectedNumPackets
+                        )
                         holder.loadingMark1.visibility = View.VISIBLE
                         holder.imageView1.alpha = ALPHA_DIM
                     }
@@ -93,20 +97,23 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
                     )
 
                     RelayRequestPhase.RECEIVING_FROM_SERVER -> {
-                        holder.receivingMobile.text = "Awaiting server response"
+                        holder.receivingMobile.text = context.getString(
+                            R.string.awaiting_server_response
+                        )
                         setImageViewsForWaitingServerResponse(
                             holder
                         )
                     }
 
                     RelayRequestPhase.RELAYING_TO_MOBILE -> {
-                        holder.receivingMobile.text =
-                            "Sent ${relayRequest.numPacketsSent()} out of " +
-                                    "${relayRequest.dataPacketsToMobile.size} messages"
-                        setImageViewsForRelayingToMobile(holder)
+                        holder.receivingMobile.text = context.getString(
+                            R.string.sending_messages_to_mobile,
+                            relayRequest.numPacketsSent(),
+                            relayRequest.dataPacketsToMobile.size
+                        )
                     }
 
-                    else -> throw IllegalStateException("Impossible branch")
+                    else -> throw IllegalStateException(context.getString(R.string.exception_impossible_branch))
                 }
             }
         }
@@ -138,11 +145,11 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
                 holder.failedMark4.visibility = View.VISIBLE
                 holder.loadingMark4.visibility = View.INVISIBLE
             }
-            else -> throw IllegalStateException("Impossible branch")
+            else -> throw IllegalStateException(holder.itemView.context.getString(R.string.exception_impossible_branch))
         }
     }
     private fun setImageViewsForComplete(holder: SMSViewHolder, duration: String) {
-        holder.receivingMobile.text = "Completed in $duration"
+        holder.receivingMobile.text = holder.itemView.context.getString(R.string.completed_in, duration)
         holder.checkMark4.visibility = View.VISIBLE
         holder.checkMark1.visibility = View.VISIBLE
         holder.checkMark2.visibility = View.VISIBLE
@@ -178,7 +185,7 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
     }
 
     private fun setImageViewsForWaitingServerResponse(holder: SMSViewHolder) {
-        holder.receivingMobile.text = "Waiting for response from the server.."
+        holder.receivingMobile.text = holder.itemView.context.getString(R.string.awaiting_server_response)
         holder.checkMark1.visibility = View.VISIBLE
         holder.checkMark2.visibility = View.VISIBLE
         holder.imageView1.alpha = ALPHA_DIM
@@ -199,7 +206,7 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
     }
 
     private fun setImageViewsForMessagesReceivedFromMobile(holder: SMSViewHolder) {
-        holder.receivingMobile.text = "Received all messages. Forwarding it to the server"
+        holder.receivingMobile.text = holder.itemView.context.getString(R.string.messages_received_forward_to_server)
 
         holder.checkMark1.visibility = View.VISIBLE
         holder.imageView1.alpha = ALPHA_DIM
