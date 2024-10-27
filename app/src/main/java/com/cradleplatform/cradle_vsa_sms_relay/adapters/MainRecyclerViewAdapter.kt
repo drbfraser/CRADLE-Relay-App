@@ -197,14 +197,6 @@ class MainRecyclerViewAdapter : RecyclerView.Adapter<MainRecyclerViewAdapter.SMS
         holder.imageView3.alpha = ALPHA_DIM
     }
 
-    private fun setImageViewsForRelayingToMobile(holder: SMSViewHolder) {
-        setImageViewsForDefault(holder)
-        holder.checkMark1.visibility = View.VISIBLE
-        holder.checkMark2.visibility = View.VISIBLE
-        holder.checkMark3.visibility = View.VISIBLE
-        holder.loadingMark4.visibility = View.VISIBLE
-    }
-
     private fun setImageViewsForMessagesReceivedFromMobile(holder: SMSViewHolder) {
         holder.receivingMobile.text = holder.itemView.context.getString(R.string.messages_received_forward_to_server)
 
