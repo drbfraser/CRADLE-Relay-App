@@ -16,6 +16,7 @@
       - Gradle JDK: `corretto 17`
       - If it's not one of the options, click on "Download JDK" and select the appropriate version
 1. Run the commands listed below to establish Git Pre-push hooks
+1. Run the commands listed below to add Java 17 to your PATH
 
 ### First-time running
 
@@ -58,6 +59,32 @@ Follow these steps before pushing commits.
 
 ### For Windows PowerShell, run the following command as an Admin  
      New-Item -ItemType SymbolicLink -Path .\.git\hooks -Name pre-push -Value .\hooks\pre-push.sh
+
+
+## Add Java to PATH
+
+### For Mac & Linux
+
+1. Confirm the JDK path
+   - `/Applications/Android Studio.app/Contents/jre/Contents/Home`
+1. Set `JAVA_HOME`
+   - Open a terminal
+      - ```
+        export JAVA_HOME="/path/to/android/studio/jre"
+        export PATH="$JAVA_HOME/bin:$PATH"
+        ```
+
+### For Windows
+
+1. Confirm the JDK path
+   - `C:\Program Files\Android\Android Studio\jre`
+   - Should contain `bin\java.exe`
+1. Set `JAVA_HOME`
+   - Open Settings > System > About > Advanced system settings > Environmental Variables
+   - Under `System Variables` add a new variable
+      - Name: `JAVA_HOME`
+      - Value: `C:\Program Files\Android\Android Studio\jre`
+
 
 ## Notes 
 
