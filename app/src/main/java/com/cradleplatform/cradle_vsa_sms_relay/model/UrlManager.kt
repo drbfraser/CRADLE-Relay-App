@@ -7,7 +7,6 @@ import javax.inject.Inject
  * Constructs the various URLs required for communicating with the server.
  */
 class UrlManager @Inject constructor(val settings: Settings) {
-    val tag = "UrlManager"
 
     internal val base: String
         get() {
