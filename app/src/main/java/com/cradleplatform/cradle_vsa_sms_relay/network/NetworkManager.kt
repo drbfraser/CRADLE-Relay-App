@@ -2,7 +2,6 @@ package com.cradleplatform.cradle_vsa_sms_relay.network
 
 import android.app.Application
 import android.content.SharedPreferences
-import android.util.Log
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
 import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests.Companion.TOKEN

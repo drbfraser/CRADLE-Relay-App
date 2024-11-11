@@ -97,7 +97,7 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
         }
     }
 
-    private fun getHttpHeaders(): Map<String, String>? {
+    private fun getHttpHeaders(): Map<String, String> {
         val token = sharedPreferences.getString(TOKEN, "")
         return mapOf(Pair(AUTH, "Bearer $token"))
     }

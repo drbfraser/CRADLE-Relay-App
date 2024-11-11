@@ -2,7 +2,6 @@ package com.cradleplatform.cradle_vsa_sms_relay.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -15,7 +14,6 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreferenceCompat
 import com.cradleplatform.cradle_vsa_sms_relay.R
-import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
 import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
@@ -35,18 +33,18 @@ class SettingsActivity : AppCompatActivity() {
             .commit()
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         findViewById<ImageButton>(R.id.back_button).setOnClickListener {
-            onBackPressed()
+            handleBackPress()
         }
 
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
+        handleBackPress()
         return super.onSupportNavigateUp()
     }
 
-    override fun onBackPressed() {
-        super.onBackPressed()
+    fun handleBackPress() {
+        super.onBackPressedDispatcher.onBackPressed()
         overridePendingTransition(R.anim.nothing, R.anim.slide_up)
     }
 

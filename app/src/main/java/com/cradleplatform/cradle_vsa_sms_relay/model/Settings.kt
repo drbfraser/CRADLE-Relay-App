@@ -2,7 +2,6 @@ package com.cradleplatform.cradle_vsa_sms_relay.model
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import com.cradleplatform.cradle_vsa_sms_relay.R
 import javax.inject.Inject
 import javax.inject.Singleton

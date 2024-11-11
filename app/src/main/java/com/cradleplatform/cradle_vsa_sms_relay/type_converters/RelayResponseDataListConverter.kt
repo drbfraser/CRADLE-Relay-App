@@ -1,7 +1,6 @@
 package com.cradleplatform.cradle_vsa_sms_relay.type_converters
 
 import androidx.room.TypeConverter
-import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestData
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayResponseData
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken

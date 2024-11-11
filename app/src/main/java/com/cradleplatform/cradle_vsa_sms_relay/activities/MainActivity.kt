@@ -245,14 +245,14 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
 
         if (!serviceStarted) {
             statusTxt.text = getString(R.string.stop_service_status)
-            statusTxt.setTextColor(resources.getColor(R.color.redDown))
+            statusTxt.setTextColor(ContextCompat.getColor(this, R.color.redDown))
             stopButton.alpha = ALPHA_LOW
             stopButton.isClickable = false
             startButton.alpha = ALPHA_HIGH
             startButton.isClickable = true
         } else {
             statusTxt.text = getString(R.string.start_service_status)
-            statusTxt.setTextColor(resources.getColor(R.color.green))
+            statusTxt.setTextColor(ContextCompat.getColor(this, R.color.green))
             startButton.alpha = ALPHA_LOW
             startButton.isClickable = false
             stopButton.alpha = ALPHA_HIGH
