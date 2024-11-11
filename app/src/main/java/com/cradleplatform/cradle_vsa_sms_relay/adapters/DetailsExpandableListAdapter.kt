@@ -49,7 +49,7 @@ class DetailsExpandableListAdapter(private val context: Context,
         if(convertView == null){
             val layoutInflater =
                 this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            convertView = layoutInflater.inflate(R.layout.details_list_group, null)
+            convertView = layoutInflater.inflate(R.layout.details_list_group, parent, false)
         }
         val expandableListView = parent as ExpandableListView
         if(isExpanded) expandableListView.expandGroup(listPosition)
@@ -65,7 +65,7 @@ class DetailsExpandableListAdapter(private val context: Context,
         if(convertView == null){
             val layoutInflater =
                 this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            convertView = layoutInflater.inflate(R.layout.details_list_item, null)
+            convertView = layoutInflater.inflate(R.layout.details_list_item, parent, false)
         }
         val childDict =  getChild(listPosition, expandableListPosition) as Map<String,String>
         var expandedListText = childDict.entries.joinToString(separator = "\n") { "${it.key}:" +
