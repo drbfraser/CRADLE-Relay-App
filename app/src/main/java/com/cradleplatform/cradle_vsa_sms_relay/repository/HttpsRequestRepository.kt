@@ -2,9 +2,7 @@ package com.cradleplatform.cradle_vsa_sms_relay.repository
 
 import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayRequest
 import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayResponse
-//import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import com.cradleplatform.cradle_vsa_sms_relay.service.SMSRelayService
-import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response

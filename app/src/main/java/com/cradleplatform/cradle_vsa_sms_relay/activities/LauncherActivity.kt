@@ -2,7 +2,6 @@ package com.cradleplatform.cradle_vsa_sms_relay.activities
 
 import android.annotation.SuppressLint
 import android.app.ActivityOptions
-import android.app.ProgressDialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle

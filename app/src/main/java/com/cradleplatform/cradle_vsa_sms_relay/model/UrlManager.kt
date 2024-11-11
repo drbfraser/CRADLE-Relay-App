@@ -1,6 +1,5 @@
 package com.cradleplatform.cradle_vsa_sms_relay.model
 
-import android.util.Log
 import javax.inject.Inject
 
 /**
