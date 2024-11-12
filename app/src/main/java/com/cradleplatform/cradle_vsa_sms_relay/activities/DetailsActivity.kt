@@ -20,7 +20,7 @@ class DetailsActivity : AppCompatActivity() {
     private var titleList: List<String>? = null
     private lateinit var cardDetailsViewModel: DetailsViewModel
     private lateinit var expandableListData: ExpandableListData
-    private val expandedStateMap = SparseBooleanArray() // Track expanded state of groups
+    private val expandedStateMap = SparseBooleanArray()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
