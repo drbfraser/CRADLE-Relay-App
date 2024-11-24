@@ -5,14 +5,13 @@ import android.telephony.SmsManager
 import android.telephony.SmsMessage
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequest
 import javax.inject.Inject
-//import com.cradleplatform.cradle_vsa_sms_relay.model.SmsRelayEntity
 import kotlin.math.min
 
 /**
  * class handles the parsing and formatting of all messages that are sent and received
  * class is used to retrieve information from the SMS message based on the protocol being used
  */
-private const val PACKET_SIZE = 153
+private const val PACKET_SIZE = 152
 // private const val MAX_PACKET_NUMBER = 99
 
 // Fixed strings, prefixes, suffixes involved in the SMS Protocol
@@ -229,13 +228,16 @@ class SMSFormatter @Inject constructor() {
 
     // Extract the encrypted content from the first message
     fun getEncryptedDataFromFirstMessage(message: String): String {
-        return firstRegexPattern.find(message)?.groupValues!![POS_FIRST_MSG_DATA]
+        val rawData = firstRegexPattern.find(message)?.groupValues!![POS_FIRST_MSG_DATA]
+        return rawData
     }
 
     // Extract the encrypted content from the subsequent message
     fun getEncryptedDataFromRestMessage(message: String): String {
-        return restRegexPattern.find(message)?.groupValues!![POS_REST_MSG_DATA]
+        val rawData = restRegexPattern.find(message)?.groupValues!![POS_REST_MSG_DATA]
+        return rawData
     }
+
 
     // Extract the fragment number from an acknowledgment message
     fun getAckFragmentNumber(ackMessage: String): Int {
