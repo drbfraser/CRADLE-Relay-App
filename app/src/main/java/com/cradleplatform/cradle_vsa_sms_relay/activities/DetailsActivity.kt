@@ -3,6 +3,7 @@ package com.cradleplatform.cradle_vsa_sms_relay.activities
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.util.SparseBooleanArray
 import android.widget.Button
 import android.widget.ExpandableListAdapter
 import android.widget.ExpandableListView
@@ -19,7 +20,7 @@ class DetailsActivity : AppCompatActivity() {
     private var titleList: List<String>? = null
     private lateinit var cardDetailsViewModel: DetailsViewModel
     private lateinit var expandableListData: ExpandableListData
-
+    private val expandedStateMap = SparseBooleanArray()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,31 +38,42 @@ class DetailsActivity : AppCompatActivity() {
         val messageNoTextView = findViewById<TextView>(R.id.messageNoTextView)
 
         if (requestId != null) {
-            Log.d("DetailsActivity", "requestId not is null")
+            Log.d("DetailsActivity", "requestId is not null")
             messageNoTextView.text = getString(R.string.message_number, requestId)
 
-            cardDetailsViewModel.getRelayEntity(requestId, phoneNumber)?.observe(this){
+            cardDetailsViewModel.getRelayEntity(requestId, phoneNumber)?.observe(this) {
                 expandableListData = ExpandableListData(it)
                 expandableListView = findViewById(R.id.detailsList)
+
                 if (expandableListView != null) {
                     val listData = expandableListData.data
                     titleList = ArrayList(listData.keys)
                     adapter = DetailsExpandableListAdapter(this, titleList as ArrayList<String>, listData)
                     expandableListView!!.setAdapter(adapter)
 
+                    for (i in 0 until titleList!!.size) {
+                        if (expandedStateMap[i]) {
+                            expandableListView!!.expandGroup(i)
+                        }
+                    }
+
+                    // listeners to track expanded/collapsed state
+                    expandableListView!!.setOnGroupExpandListener { groupPosition ->
+                        expandedStateMap.put(groupPosition, true)
+                    }
+
+                    expandableListView!!.setOnGroupCollapseListener { groupPosition ->
+                        expandedStateMap.put(groupPosition, false)
+                    }
                 }
             }
         } else {
             Log.d("DetailsActivity", "requestId is null")
         }
 
-
-        // Find the back button by its ID
+        // Set up the back button
         val backButton: Button = findViewById(R.id.backButton)
-
-        // Set OnClickListener for the back button
         backButton.setOnClickListener {
-            // Call finish to close the current activity and return to the previous one
             finish()
         }
     }
