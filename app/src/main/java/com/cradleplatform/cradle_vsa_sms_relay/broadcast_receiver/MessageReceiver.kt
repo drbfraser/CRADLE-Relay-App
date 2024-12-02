@@ -24,6 +24,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.Throws
@@ -256,20 +257,25 @@ class MessageReceiver(
 
     @Throws(RelayRequestFailedException::class)
     private suspend fun relayToServer(relayRequest: RelayRequest): retrofit2.Response<HttpRelayResponse> {
-        // This method should only be called when we have the entire request
         assert(relayRequest.dataPacketsFromMobile.all { it != null })
 
-        // TODO: This phase change is basically useless because it will be changed immediately
         smsRelayRepository.updateRequestPhase(relayRequest, RelayRequestPhase.RELAYING_TO_SERVER)
 
-        val data = relayRequest.dataPacketsFromMobile.joinToString(separator = "") { it!!.data }
+        // Step 1: Concat all fragments into base64 string
+        // we want to concat before decrypting due to base64 length requirements for full bytes
+        val base64EncodedMessage = relayRequest.dataPacketsFromMobile.joinToString(separator = "") { it!!.data }
+
+        // Step 2: Decode Base64 to retrieve the AES-encrypted payload
+        // similar payload that was originally being sent to server is now extracted
+        val aesEncryptedData = Base64.getDecoder().decode(base64EncodedMessage)
 
         smsRelayRepository.updateRequestPhase(relayRequest, RelayRequestPhase.RECEIVING_FROM_SERVER)
 
+        // Step 3: Send data to the server
         val response = try {
             httpsRequestRepository.relayRequestToServer(
                 phoneNumber = relayRequest.phoneNumber,
-                data = data
+                data = String(aesEncryptedData, Charsets.UTF_8)
             )
         } catch (e: java.net.ConnectException) {
             // TODO: Should we try to still complete the request by relaying a
@@ -289,8 +295,11 @@ class MessageReceiver(
     ) {
         // Prepare the data to be sent to mobile as multiple SMS messages/packets
         val dataPacketsToMobile = if (response.isSuccessful && response.body() != null) {
+
+            val base64EncodedResponse = Base64.getEncoder().encodeToString(response.body()!!.body.toByteArray(Charsets.UTF_8))
+
             smsFormatter.formatSMS(
-                msg = response.body()!!.body,
+                msg = base64EncodedResponse,
                 currentRequestCounter = request.requestId,
                 isSuccessful = true,
                 statusCode = response.code()
