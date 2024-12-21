@@ -30,13 +30,15 @@ class NetworkManager(application: Application) {
 
     /**
      * authenticate the user and save the TOKEN/ username
-     * @param email email address for the user
-     * @param password for the user
-     * @param callBack a boolean callback to know whether request was successful or not
+     * @param username Username or email address for the user.
+     * @param password Password of the user.
+     * @param callBack A boolean callback to know whether request was successful or not.
      */
-    fun authenticateTheUser(email: String, password: String, callBack: BooleanCallback) {
+    fun authenticateTheUser(username: String, password: String, callBack: BooleanCallback) {
         val jsonObject = JSONObject()
-        jsonObject.put("email", email)
+        /* Either email or username can be used to login, but whichever one is used is passed to
+        * the server as 'username'. */
+        jsonObject.put("username", username)
         jsonObject.put("password", password)
         val request =
             volleyRequests.postJsonObjectRequest(urlManager.authenticationUrl, jsonObject) { result ->
@@ -47,7 +49,7 @@ class NetworkManager(application: Application) {
                         val editor = sharedPreferences.edit()
                         editor.putString(TOKEN, json.getString(TOKEN))
                         editor.putString(USER_ID, json.getString("userId"))
-                        editor.putString(LOGIN_EMAIL, email)
+                        editor.putString(LOGIN_EMAIL, username)
                         editor.putInt(LOGIN_PASSWORD, password.hashCode())
                         editor.apply()
                         // let the calling object know result
