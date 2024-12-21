@@ -1,6 +1,7 @@
 package com.cradleplatform.cradle_vsa_sms_relay.network
 
 import android.content.SharedPreferences
+import android.util.Log
 import com.android.volley.Request.Method.GET
 import com.android.volley.Request.Method.POST
 import com.android.volley.Response
@@ -9,6 +10,8 @@ import com.android.volley.toolbox.JsonObjectRequest
 import org.json.JSONObject
 import java.net.ConnectException
 import java.net.UnknownHostException
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
  * A list of requests type for Volley, Add requests type as needed
@@ -97,8 +100,58 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
         }
     }
 
+    /*
+    * TODO: Make request to `/api/user/auth/refresh_token` to get new access token.
+    *  The refresh token is returned from the `auth` endpoint in a cookie, so we will need to
+    *  extract it from the cookie, save it in sharedPreferences, then add it back as a cookie for
+    *  outgoing requests.
+    * */
+    private fun refreshAccessToken() {
+
+    }
+
+    /**
+     * Decodes the payload of the access token JWT and returns the expiration (exp) claim.
+     */
+    @OptIn(ExperimentalEncodingApi::class)
+    private fun decodeAccessTokenExpiration(jwt: String): Long {
+        val sections = jwt.split(".")
+        val charset = charset("UTF-8")
+        val payloadString = String(Base64.UrlSafe.decode(sections[1].toByteArray(charset)), charset)
+        val payload = JSONObject(payloadString)
+        Log.i("decodeAccessTokenExpiration", payload.toString(4))
+        return payload.getLong("exp")
+    }
+
+    private fun verifyAccessToken(): String {
+        val accessToken = sharedPreferences.getString(ACCESS_TOKEN, "") ?: return ""
+        val exp: Long
+        try {
+            exp = decodeAccessTokenExpiration(accessToken)
+        } catch (e: Exception) {
+            Log.e("verifyAccessToken", "Error parsing Access Token : $e")
+            return accessToken
+        }
+
+        // Get current timestamp in seconds.
+        val currentDateTime = java.util.Date()
+        val currentTimestamp: Long = currentDateTime.time / 1000
+
+        Log.i("exp", "$exp")
+        Log.i("exp", "$currentTimestamp")
+
+        // If expiration is more than 5 minutes from now, don't do anything.
+        if (exp > currentTimestamp - 300) return accessToken
+
+        // Access token has expired.
+        refreshAccessToken()
+
+        // Return the new access token.
+        return sharedPreferences.getString(ACCESS_TOKEN, "") ?: ""
+    }
+
     private fun getHttpHeaders(): Map<String, String> {
-        val accessToken = sharedPreferences.getString(ACCESS_TOKEN, "")
+        val accessToken = verifyAccessToken()
         return mapOf(Pair(AUTH, "Bearer $accessToken"))
     }
 }
