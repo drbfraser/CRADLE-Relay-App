@@ -98,19 +98,7 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
     }
 
     private fun getHttpHeaders(): Map<String, String> {
-        val token = sharedPreferences.getString(ACCESS_TOKEN, "")
-        return mapOf(Pair(AUTH, "Bearer $token"))
+        val accessToken = sharedPreferences.getString(ACCESS_TOKEN, "")
+        return mapOf(Pair(AUTH, "Bearer $accessToken"))
     }
-}
-
-object Urls {
-//    private const val base = "cradleplatform.com/api"
-    private const val base = "10.0.2.2:5000/api"
-    private const val protocol = "http://"
-
-    const val authenticationUrl: String = "$protocol$base/user/auth"
-
-    const val patientUrl = "$protocol$base/patients"
-
-    const val readingUrl = "$protocol$base/readings"
 }

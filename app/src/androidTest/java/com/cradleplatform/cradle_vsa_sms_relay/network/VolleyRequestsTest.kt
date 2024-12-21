@@ -15,6 +15,17 @@ import com.android.volley.NetworkResponse
 
 @RunWith(MockitoJUnitRunner::class)
 class VolleyRequestsTest {
+    object Urls {
+        private const val BASE = "10.0.2.2:5000/api"
+        private const val PROTOCOL = "http://"
+
+        const val AUTH: String = "$PROTOCOL$BASE/user/auth"
+
+        const val PATIENTS = "$PROTOCOL$BASE/patients"
+
+        const val READINGS = "$PROTOCOL$BASE/readings"
+    }
+
 
     @Mock
     private lateinit var mockSharedPreferences: SharedPreferences
@@ -43,41 +54,41 @@ class VolleyRequestsTest {
 
     @Test
     fun testGetHeaders() {
-        val headers = volleyRequests.getJsonObjectRequest(Urls.authenticationUrl, null) {}.headers
+        val headers = volleyRequests.getJsonObjectRequest(Urls.AUTH, null) {}.headers
         assertEquals("Bearer test-token", headers!!["Authorization"])
     }
 
     @Test
     fun testGetJsonObjectRequest() {
         val jsonBody = JSONObject().apply { put("key", "value")}
-        val request1 = volleyRequests.getJsonObjectRequest(Urls.authenticationUrl, null) {}
-        val request2 = volleyRequests.getJsonObjectRequest(Urls.patientUrl, jsonBody) {}
-        val request3 = volleyRequests.getJsonObjectRequest(Urls.readingUrl, null) {}
+        val request1 = volleyRequests.getJsonObjectRequest(Urls.AUTH, null) {}
+        val request2 = volleyRequests.getJsonObjectRequest(Urls.PATIENTS, jsonBody) {}
+        val request3 = volleyRequests.getJsonObjectRequest(Urls.READINGS, null) {}
         assertEquals(Request.Method.GET, request1.method)
         assertEquals(Request.Method.GET, request2.method)
         assertEquals(Request.Method.GET, request3.method)
         assertEquals(null, request1.body)
         assertEquals(jsonBody.toString(), request2.body.toString(Charsets.UTF_8))
         assertEquals(null, request3.body)
-        assertEquals(Urls.authenticationUrl, request1.url)
-        assertEquals(Urls.patientUrl, request2.url)
-        assertEquals(Urls.readingUrl, request3.url)
+        assertEquals(Urls.AUTH, request1.url)
+        assertEquals(Urls.PATIENTS, request2.url)
+        assertEquals(Urls.READINGS, request3.url)
     }
 
     @Test
     fun testPostJsonObjectRequest() {
         val jsonBody = JSONObject().apply { put("key", "value")}
-        val request1 = volleyRequests.postJsonObjectRequest(Urls.authenticationUrl, jsonBody) {}
-        val request2 = volleyRequests.postJsonObjectRequest(Urls.patientUrl, null) {}
-        val request3 = volleyRequests.postJsonObjectRequest(Urls.readingUrl, jsonBody) {}
+        val request1 = volleyRequests.postJsonObjectRequest(Urls.AUTH, jsonBody) {}
+        val request2 = volleyRequests.postJsonObjectRequest(Urls.PATIENTS, null) {}
+        val request3 = volleyRequests.postJsonObjectRequest(Urls.READINGS, jsonBody) {}
         assertEquals(Request.Method.POST, request1.method)
         assertEquals(Request.Method.POST, request2.method)
         assertEquals(Request.Method.POST, request3.method)
         assertEquals(jsonBody.toString(), request1.body.toString(Charsets.UTF_8))
         assertEquals(null, request2.body)
         assertEquals(jsonBody.toString(), request3.body.toString(Charsets.UTF_8))
-        assertEquals(Urls.authenticationUrl, request1.url)
-        assertEquals(Urls.patientUrl, request2.url)
-        assertEquals(Urls.readingUrl, request3.url)
+        assertEquals(Urls.AUTH, request1.url)
+        assertEquals(Urls.PATIENTS, request2.url)
+        assertEquals(Urls.READINGS, request3.url)
     }
 }
