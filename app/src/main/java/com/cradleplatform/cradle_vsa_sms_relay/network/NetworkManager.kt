@@ -45,11 +45,14 @@ class NetworkManager(application: Application) {
                 when (result) {
                     is Success -> {
                         // save the user credentials
-                        val json = result.unwrap()
+                        val responseBodyJson = result.unwrap()
                         val editor = sharedPreferences.edit()
-                        editor.putString(ACCESS_TOKEN, json.getString(ACCESS_TOKEN))
-                        editor.putString(USER_ID, json.getString("userId"))
-                        editor.putString(LOGIN_EMAIL, username)
+                        editor.putString(ACCESS_TOKEN, responseBodyJson.getString(ACCESS_TOKEN))
+                        val userJson = responseBodyJson.getJSONObject("user")
+                        editor.putString(USER_ID, userJson.getString("id"))
+                        editor.putString(EMAIL, userJson.getString("email"))
+                        editor.putString(USERNAME, userJson.getString("username"))
+                        editor.putString(LOGIN_USERNAME, username)
                         editor.putInt(LOGIN_PASSWORD, password.hashCode())
                         editor.apply()
                         // let the calling object know result
@@ -66,7 +69,9 @@ class NetworkManager(application: Application) {
 
     companion object {
         const val USER_ID = "userId"
-        const val LOGIN_EMAIL = "email"
+        const val USERNAME = "username"
+        const val EMAIL = "email"
+        const val LOGIN_USERNAME = "loginUsername"
         const val LOGIN_PASSWORD = "password"
     }
 }
