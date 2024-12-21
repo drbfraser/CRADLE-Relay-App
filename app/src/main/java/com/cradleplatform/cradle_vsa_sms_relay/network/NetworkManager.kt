@@ -4,7 +4,7 @@ import android.app.Application
 import android.content.SharedPreferences
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
-import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests.Companion.TOKEN
+import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests.Companion.ACCESS_TOKEN
 import org.json.JSONObject
 import javax.inject.Inject
 
@@ -47,7 +47,7 @@ class NetworkManager(application: Application) {
                         // save the user credentials
                         val json = result.unwrap()
                         val editor = sharedPreferences.edit()
-                        editor.putString(TOKEN, json.getString(TOKEN))
+                        editor.putString(ACCESS_TOKEN, json.getString(ACCESS_TOKEN))
                         editor.putString(USER_ID, json.getString("userId"))
                         editor.putString(LOGIN_EMAIL, username)
                         editor.putInt(LOGIN_PASSWORD, password.hashCode())

@@ -20,7 +20,7 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
         private const val BAD_REQUEST = 400
         private const val NOT_FOUND = 404
         private const val CONFLICT = 409
-        const val TOKEN = "token"
+        const val ACCESS_TOKEN = "accessToken"
         private const val AUTH = "Authorization"
 
         @Suppress("ComplexMethod")
@@ -98,7 +98,7 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
     }
 
     private fun getHttpHeaders(): Map<String, String> {
-        val token = sharedPreferences.getString(TOKEN, "")
+        val token = sharedPreferences.getString(ACCESS_TOKEN, "")
         return mapOf(Pair(AUTH, "Bearer $token"))
     }
 }

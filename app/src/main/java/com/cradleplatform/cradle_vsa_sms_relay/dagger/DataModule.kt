@@ -46,7 +46,7 @@ class DataModule {
         sharedPreference: SharedPreferences,
         urlManager: UrlManager
     ): HttpsRequestRepository {
-        val token = sharedPreference.getString(VolleyRequests.TOKEN, "") ?: ""
+        val token = sharedPreference.getString(VolleyRequests.ACCESS_TOKEN, "") ?: ""
         val baseUrl = urlManager.base
         return HttpsRequestRepository(token, baseUrl)
     }

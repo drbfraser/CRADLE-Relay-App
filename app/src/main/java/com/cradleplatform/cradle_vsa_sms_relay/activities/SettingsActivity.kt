@@ -62,7 +62,7 @@ class SettingsActivity : AppCompatActivity() {
             val defaultSharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(this.requireContext())
 
-            val isLoggedIn = defaultSharedPreferences.contains(VolleyRequests.TOKEN)
+            val isLoggedIn = defaultSharedPreferences.contains(VolleyRequests.ACCESS_TOKEN)
 
             // show/ hide pref on default
             val syncNowPref = findPreference<Preference>(syncNowkey)

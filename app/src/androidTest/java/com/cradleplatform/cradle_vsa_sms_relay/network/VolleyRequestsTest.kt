@@ -23,7 +23,7 @@ class VolleyRequestsTest {
 
     @Before
     fun setUp() {
-        `when`(mockSharedPreferences.getString(VolleyRequests.TOKEN, "")).thenReturn("test-token")
+        `when`(mockSharedPreferences.getString(VolleyRequests.ACCESS_TOKEN, "")).thenReturn("test-token")
         volleyRequests = VolleyRequests(mockSharedPreferences)
     }
 
