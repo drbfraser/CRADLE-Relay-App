@@ -18,7 +18,7 @@ import androidx.core.content.res.ResourcesCompat
 import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
-import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests.Companion.TOKEN
+import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests.Companion.ACCESS_TOKEN
 import com.google.android.material.button.MaterialButton
 import javax.inject.Inject
 
@@ -88,7 +88,7 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     private fun checkForAuthentication() {
-        if (sharedPreferences.contains(TOKEN)) {
+        if (sharedPreferences.contains(ACCESS_TOKEN)) {
             startActivity()
         }
     }
