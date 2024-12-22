@@ -26,6 +26,9 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
         const val ACCESS_TOKEN = "accessToken"
         private const val AUTH = "Authorization"
 
+        private const val MILLISECONDS_PER_SECOND = 1000
+        private const val FIVE_MINUTES_IN_SECONDS = 300
+
         @Suppress("ComplexMethod")
         fun getServerErrorMessage(error: VolleyError): String {
             var message = "Unable to upload to server (network error)"
@@ -106,8 +109,8 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
     *  extract it from the cookie, save it in sharedPreferences, then add it back as a cookie for
     *  outgoing requests.
     * */
-    private fun refreshAccessToken() {
-
+    private fun refreshAccessToken(accessToken: String): String {
+        return accessToken
     }
 
     /**
@@ -119,10 +122,10 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
         val charset = charset("UTF-8")
         val payloadString = String(Base64.UrlSafe.decode(sections[1].toByteArray(charset)), charset)
         val payload = JSONObject(payloadString)
-        Log.i("decodeAccessTokenExpiration", payload.toString(4))
         return payload.getLong("exp")
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun verifyAccessToken(): String {
         val accessToken = sharedPreferences.getString(ACCESS_TOKEN, "") ?: return ""
         val exp: Long
@@ -135,16 +138,16 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
 
         // Get current timestamp in seconds.
         val currentDateTime = java.util.Date()
-        val currentTimestamp: Long = currentDateTime.time / 1000
+        val currentTimestamp: Long = currentDateTime.time / MILLISECONDS_PER_SECOND
 
         Log.i("exp", "$exp")
         Log.i("exp", "$currentTimestamp")
 
         // If expiration is more than 5 minutes from now, don't do anything.
-        if (exp > currentTimestamp - 300) return accessToken
+        if (exp > currentTimestamp - FIVE_MINUTES_IN_SECONDS) return accessToken
 
         // Access token has expired.
-        refreshAccessToken()
+        refreshAccessToken(accessToken)
 
         // Return the new access token.
         return sharedPreferences.getString(ACCESS_TOKEN, "") ?: ""
