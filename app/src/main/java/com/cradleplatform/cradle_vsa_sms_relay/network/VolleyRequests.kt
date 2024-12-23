@@ -7,6 +7,7 @@ import com.android.volley.Request.Method.POST
 import com.android.volley.Response
 import com.android.volley.VolleyError
 import com.android.volley.toolbox.JsonObjectRequest
+import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
 import org.json.JSONObject
 import java.net.ConnectException
 import java.net.UnknownHostException
@@ -16,7 +17,10 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 /**
  * A list of requests type for Volley, Add requests type as needed
  */
-class VolleyRequests(private val sharedPreferences: SharedPreferences) {
+class VolleyRequests(
+    private val sharedPreferences: SharedPreferences,
+    private val urlManager: UrlManager,
+    ) {
 
     companion object {
         private const val UNAUTHORIZED = 401
@@ -72,13 +76,13 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
     ): JsonObjectRequest {
         val successListener = Response.Listener<JSONObject> { callback(Success(it)) }
         val errorListener = Response.ErrorListener { callback(Failure(it)) }
-
+        val isAuthEndpoint = url == urlManager.authenticationUrl
         return object : JsonObjectRequest(GET, url, jsonBody, successListener, errorListener) {
             /**
              * Passing some request headers
              */
             override fun getHeaders(): Map<String, String>? {
-                return getHttpHeaders()
+                return if(!isAuthEndpoint) getAuthHeaders() else null
             }
         }
     }
@@ -93,12 +97,13 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
     ): JsonObjectRequest {
         val successListener = Response.Listener<JSONObject> { callback(Success(it)) }
         val errorListener = Response.ErrorListener { callback(Failure(it)) }
+
         return object : JsonObjectRequest(POST, url, jsonBody, successListener, errorListener) {
             /**
              * Passing some request headers
              */
             override fun getHeaders(): Map<String, String>? {
-                return getHttpHeaders()
+                return getAuthHeaders()
             }
         }
     }
@@ -145,6 +150,7 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
 
         // If expiration is more than 5 minutes from now, don't do anything.
         if (exp > currentTimestamp - FIVE_MINUTES_IN_SECONDS) return accessToken
+        Log.e("verifyAccessToken", "Access Token is Expired!")
 
         // Access token has expired.
         refreshAccessToken(accessToken)
@@ -153,7 +159,7 @@ class VolleyRequests(private val sharedPreferences: SharedPreferences) {
         return sharedPreferences.getString(ACCESS_TOKEN, "") ?: ""
     }
 
-    private fun getHttpHeaders(): Map<String, String> {
+    private fun getAuthHeaders(): Map<String, String> {
         val accessToken = verifyAccessToken()
         return mapOf(Pair(AUTH, "Bearer $accessToken"))
     }

@@ -25,7 +25,7 @@ class NetworkManager(application: Application) {
 
     init {
         (application as MyApp).component.inject(this)
-        volleyRequests = VolleyRequests(sharedPreferences)
+        volleyRequests = VolleyRequests(sharedPreferences, urlManager)
     }
 
     /**
