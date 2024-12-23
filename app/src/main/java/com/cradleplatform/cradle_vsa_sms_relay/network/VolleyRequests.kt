@@ -131,7 +131,7 @@ class VolleyRequests(
     }
 
     @Suppress("TooGenericExceptionCaught")
-    private fun verifyAccessToken(): String {
+    private fun getAccessToken(): String {
         val accessToken = sharedPreferences.getString(ACCESS_TOKEN, "") ?: return ""
         val exp: Long
         try {
@@ -160,7 +160,7 @@ class VolleyRequests(
     }
 
     private fun getAuthHeaders(): Map<String, String> {
-        val accessToken = verifyAccessToken()
+        val accessToken = getAccessToken()
         return mapOf(Pair(AUTH, "Bearer $accessToken"))
     }
 }
