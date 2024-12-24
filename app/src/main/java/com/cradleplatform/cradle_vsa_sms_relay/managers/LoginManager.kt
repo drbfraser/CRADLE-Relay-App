@@ -81,12 +81,15 @@ class LoginManager @Inject constructor(
         }
     }
 
-    suspend fun logout(): Unit = withContext(Dispatchers.IO) {
+    fun logout() {
         // Clear all the user specific information from sharedPreferences
-        sharedPreferences.edit().remove(ACCESS_TOKEN_KEY).apply()
-        sharedPreferences.edit().remove(USER_ID_KEY).apply()
-        sharedPreferences.edit().remove(EMAIL_KEY).apply()
-        sharedPreferences.edit().remove(USERNAME_KEY).apply()
+        sharedPreferences.edit(commit = true) {
+            remove(ACCESS_TOKEN_KEY)
+            remove(USER_ID_KEY)
+            remove(EMAIL_KEY)
+            remove(USERNAME_KEY)
+
+        }
     }
 
 }

@@ -5,6 +5,7 @@ import androidx.multidex.MultiDexApplication
 import androidx.preference.PreferenceManager
 import androidx.room.Room
 import com.cradleplatform.cradle_vsa_sms_relay.database.SmsRelayDatabase
+import com.cradleplatform.cradle_vsa_sms_relay.managers.LoginManager
 import com.cradleplatform.cradle_vsa_sms_relay.model.Settings
 import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
 import com.cradleplatform.cradle_vsa_sms_relay.network.Http
@@ -63,4 +64,11 @@ class DataModule {
         urlManager: UrlManager,
         http: Http
     ): RestApi = RestApi(sharedPreferences, urlManager, http)
+
+    @Provides
+    @Singleton
+    fun provideLoginManager(
+        restApi: RestApi,
+        sharedPreferences: SharedPreferences
+    ): LoginManager = LoginManager(restApi, sharedPreferences)
 }

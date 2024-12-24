@@ -14,21 +14,29 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreferenceCompat
 import com.cradleplatform.cradle_vsa_sms_relay.R
+import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
+import com.cradleplatform.cradle_vsa_sms_relay.managers.LoginManager
 import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService.Companion.isServiceRunningInForeground
 import javax.inject.Inject
+import kotlin.math.log
 
 
 class SettingsActivity : AppCompatActivity() {
     @Inject
     lateinit var urlManager: UrlManager
+
+    @Inject
+    lateinit var loginManager: LoginManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        (application as MyApp).component.inject(this)
         setContentView(R.layout.settings_activity)
         supportFragmentManager
             .beginTransaction()
-            .replace(R.id.settings, SettingsFragment())
+            .replace(R.id.settings, SettingsFragment(loginManager))
             .commit()
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         findViewById<ImageButton>(R.id.back_button).setOnClickListener {
@@ -47,8 +55,7 @@ class SettingsActivity : AppCompatActivity() {
         overridePendingTransition(R.anim.nothing, R.anim.slide_up)
     }
 
-    class SettingsFragment : PreferenceFragmentCompat() {
-
+    class SettingsFragment(private val loginManager: LoginManager) : PreferenceFragmentCompat() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey)
 
@@ -61,7 +68,7 @@ class SettingsActivity : AppCompatActivity() {
             val defaultSharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(this.requireContext())
 
-            val isLoggedIn = defaultSharedPreferences.contains("accessToken")
+            val isLoggedIn = loginManager.isLoggedIn()
 
             // show/ hide pref on default
             val syncNowPref = findPreference<Preference>(syncNowKey)
@@ -110,7 +117,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         fun signout() {
-            PreferenceManager.getDefaultSharedPreferences(this.requireContext()).edit().clear().apply()
+            loginManager.logout()
             // stop the service if running.
             if (isServiceRunningInForeground(
                     this.requireContext(),
