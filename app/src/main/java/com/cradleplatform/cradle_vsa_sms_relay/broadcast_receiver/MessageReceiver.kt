@@ -292,6 +292,7 @@ class MessageReceiver(
     }
 
     @Throws(RelayRequestFailedException::class)
+    @Suppress("MagicNumber")
     private suspend fun relayToMobile(
         request: RelayRequest,
         channel: Channel<RelayPacket>,
@@ -380,23 +381,6 @@ class MessageReceiver(
             }
 
             currPacketToMobileIdx = nextPacketToMobileIdx
-        }
-    }
-
-    private fun processHttpRelayResponseErrorBody(errorBody: String?): String {
-        if (errorBody == null) return "Unknown error"
-
-        try {
-            return JSONObject(errorBody).run {
-                when {
-                    has("msg") -> getString("msg")
-                    has("message") -> getString("message")
-                    else -> errorBody
-                }
-            }
-        } catch (e: org.json.JSONException) {
-            Log.d(TAG, "Error message is not valid JSON: $errorBody")
-            throw JsonProcessingException("Failed to process error body", e)
         }
     }
 

@@ -1,6 +1,5 @@
 package com.cradleplatform.cradle_vsa_sms_relay.network
 
-import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.core.content.edit
@@ -37,7 +36,6 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 @OptIn(ExperimentalSerializationApi::class)
 @Singleton
 class RestApi(
-    private val context: Context,
     private val sharedPreferences: SharedPreferences,
     private val urlManager: UrlManager,
     private val http: Http,

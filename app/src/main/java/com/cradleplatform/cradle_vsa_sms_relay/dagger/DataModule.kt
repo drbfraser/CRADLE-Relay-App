@@ -59,9 +59,8 @@ class DataModule {
     @Provides
     @Singleton
     fun provideRestApi(
-        context: MultiDexApplication,
         sharedPreferences: SharedPreferences,
         urlManager: UrlManager,
         http: Http
-    ): RestApi = RestApi(context, sharedPreferences, urlManager, http)
+    ): RestApi = RestApi(sharedPreferences, urlManager, http)
 }

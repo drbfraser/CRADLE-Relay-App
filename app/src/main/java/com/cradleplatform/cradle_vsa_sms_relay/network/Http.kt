@@ -181,6 +181,7 @@ class CradleCookieJar(private val sharedPreferences: SharedPreferences) : Cookie
  * Used for serialization of cookies.
  */
 @Serializable
+@Suppress("LongParameterList")
 class CookieData(
     val name: String,
     val value: String,

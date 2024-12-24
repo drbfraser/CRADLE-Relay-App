@@ -80,6 +80,7 @@ sealed interface NetworkResult<T> {
      * @throws RuntimeException if `this` is a [Success] variant
      * @return the same error result with an inner type of [U] instead of [T]
      */
+    @Suppress("TooGenericExceptionThrown")
     fun <U> cast(): NetworkResult<U> = when (this) {
         is Success -> throw RuntimeException("cast called on Success variant")
         is Failure -> Failure(body, statusCode)
