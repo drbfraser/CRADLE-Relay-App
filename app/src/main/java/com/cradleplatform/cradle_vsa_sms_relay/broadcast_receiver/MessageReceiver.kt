@@ -139,10 +139,10 @@ class MessageReceiver(
 
             // PHASE 2: Relay HTTP Request from CRADLE-Mobile to server (TODO: Useless phase)
             // AND PHASE 3: Receive HTTP Response from server
-            val response = relayToServer(request)
+            val serverNetworkResult = relayToServer(request)
 
             // PHASE 4: Relay the HTTP Response from server to CRADLE-Mobile
-            relayToMobile(request, channel, response)
+            relayToMobile(request, channel, serverNetworkResult)
 
             smsRelayRepository.markRelayRequestSuccess(request)
             Log.d(
@@ -258,7 +258,7 @@ class MessageReceiver(
     }
 
     @Throws(RelayRequestFailedException::class)
-    private suspend fun relayToServer(relayRequest: RelayRequest): HttpRelayResponseBody {
+    private suspend fun relayToServer(relayRequest: RelayRequest):  NetworkResult<HttpRelayResponseBody> {
         assert(relayRequest.dataPacketsFromMobile.all { it != null })
 
         smsRelayRepository.updateRequestPhase(relayRequest, RelayRequestPhase.RELAYING_TO_SERVER)
@@ -279,16 +279,7 @@ class MessageReceiver(
         )
 
         // Step 3: Send data to the server
-        val response = when (val result = restApi.relaySmsRequest(relayRequestBody)) {
-            is NetworkResult.Success -> result.value
-            else -> {
-                val errorMessage = result.getStatusMessage() ?: ""
-                Log.e(TAG, "Connection to server failed for phone number: ${relayRequest.phoneNumber}")
-                throw RelayRequestFailedException("Failed to connect to server: $errorMessage")
-            }
-        }
-
-        return response
+        return restApi.relaySmsRequest(relayRequestBody)
     }
 
     @Throws(RelayRequestFailedException::class)
@@ -296,18 +287,33 @@ class MessageReceiver(
     private suspend fun relayToMobile(
         request: RelayRequest,
         channel: Channel<RelayPacket>,
-        serverResponse: HttpRelayResponseBody
+        serverNetworkResult: NetworkResult<HttpRelayResponseBody>
     ) {
-        // Prepare the data to be sent to mobile as multiple SMS messages/packets
-        val base64EncodedResponse = Base64.getEncoder().encodeToString(serverResponse.body.toByteArray(Charsets.UTF_8))
-        val isSuccessful = serverResponse.code == 200 || serverResponse.code == 201
-        val dataPacketsToMobile =
+        val dataPacketsToMobile = if (serverNetworkResult is NetworkResult.Success) {
+            val serverResponse = serverNetworkResult.value
+            // Prepare the data to be sent to mobile as multiple SMS messages/packets
+            val base64EncodedResponse = Base64.getEncoder().encodeToString(serverResponse.body.toByteArray(Charsets.UTF_8))
             smsFormatter.formatSMS(
                 msg = base64EncodedResponse,
                 currentRequestCounter = request.requestId,
-                isSuccessful = isSuccessful,
+                isSuccessful = true,
                 statusCode = serverResponse.code
             )
+        } else if (serverNetworkResult is NetworkResult.Failure) {
+            smsFormatter.formatSMS(
+                msg = Base64.getEncoder().encodeToString(serverNetworkResult.body),
+                currentRequestCounter = request.requestId,
+                isSuccessful = false,
+                statusCode = serverNetworkResult.statusCode
+            )
+        } else {
+            smsFormatter.formatSMS(
+                msg = serverNetworkResult.getStatusMessage() ?: "An Exception Occurred!",
+                currentRequestCounter = request.requestId,
+                isSuccessful = false,
+                statusCode = 500
+            )
+        }
 
         // Note: We don't really need to store this in DB, but the UI uses it in the Details
         // activity. It's easier to let the UI use this data if we store it in the DB
