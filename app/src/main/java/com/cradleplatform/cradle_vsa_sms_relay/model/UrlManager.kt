@@ -22,4 +22,10 @@ class UrlManager @Inject constructor(val settings: Settings) {
 
     val readingUrl: String
         get() = "$base/api/readings"
+
+    val smsRelayUrl: String
+        get() = "$base/api/sms_relay"
+
+    val refreshTokenUrl: String
+        get() = "$base/api/user/auth/refresh_token"
 }

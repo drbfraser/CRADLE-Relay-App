@@ -6,13 +6,15 @@ import android.content.Intent
 import android.provider.Telephony
 import android.util.Log
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayResponse
+import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayRequestBody
+import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayResponseBody
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestData
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequest
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestResult
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestPhase
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayResponseData
-import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
+import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkResult
+import com.cradleplatform.cradle_vsa_sms_relay.network.RestApi
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.RelayPacket
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
@@ -46,7 +48,7 @@ class MessageReceiver(
     lateinit var smsRelayRepository: SmsRelayRepository
 
     @Inject
-    lateinit var httpsRequestRepository: HttpsRequestRepository
+    lateinit var restApi: RestApi
 
     private val requestChannels: ConcurrentHashMap<String, Channel<RelayPacket>> =
         ConcurrentHashMap()
@@ -137,10 +139,10 @@ class MessageReceiver(
 
             // PHASE 2: Relay HTTP Request from CRADLE-Mobile to server (TODO: Useless phase)
             // AND PHASE 3: Receive HTTP Response from server
-            val response = relayToServer(request)
+            val serverNetworkResult = relayToServer(request)
 
             // PHASE 4: Relay the HTTP Response from server to CRADLE-Mobile
-            relayToMobile(request, channel, response)
+            relayToMobile(request, channel, serverNetworkResult)
 
             smsRelayRepository.markRelayRequestSuccess(request)
             Log.d(
@@ -256,7 +258,7 @@ class MessageReceiver(
     }
 
     @Throws(RelayRequestFailedException::class)
-    private suspend fun relayToServer(relayRequest: RelayRequest): retrofit2.Response<HttpRelayResponse> {
+    private suspend fun relayToServer(relayRequest: RelayRequest):  NetworkResult<HttpRelayResponseBody> {
         assert(relayRequest.dataPacketsFromMobile.all { it != null })
 
         smsRelayRepository.updateRequestPhase(relayRequest, RelayRequestPhase.RELAYING_TO_SERVER)
@@ -271,45 +273,48 @@ class MessageReceiver(
 
         smsRelayRepository.updateRequestPhase(relayRequest, RelayRequestPhase.RECEIVING_FROM_SERVER)
 
-        // Step 3: Send data to the server
-        val response = try {
-            httpsRequestRepository.relayRequestToServer(
-                phoneNumber = relayRequest.phoneNumber,
-                data = String(aesEncryptedData, Charsets.UTF_8)
-            )
-        } catch (e: java.net.ConnectException) {
-            // TODO: Should we try to still complete the request by relaying a
-            // TODO: a message back to mobile (instead of giving up)
-            Log.e(TAG, "Connection to server failed for phone number: ${relayRequest.phoneNumber}", e)
-            throw RelayRequestFailedException("Failed to connect to server", e)
-        }
+        val relayRequestBody = HttpRelayRequestBody(
+            phoneNumber = relayRequest.phoneNumber,
+            encryptedData = String(aesEncryptedData, Charsets.UTF_8)
+        )
 
-        return response
+        // Step 3: Send data to the server
+        return restApi.relaySmsRequest(relayRequestBody)
     }
 
     @Throws(RelayRequestFailedException::class)
+    @Suppress("MagicNumber")
     private suspend fun relayToMobile(
         request: RelayRequest,
         channel: Channel<RelayPacket>,
-        response: retrofit2.Response<HttpRelayResponse>
+        serverNetworkResult: NetworkResult<HttpRelayResponseBody>
     ) {
-        // Prepare the data to be sent to mobile as multiple SMS messages/packets
-        val dataPacketsToMobile = if (response.isSuccessful && response.body() != null) {
-
-            val base64EncodedResponse = Base64.getEncoder().encodeToString(response.body()!!.body.toByteArray(Charsets.UTF_8))
-
+        val dataPacketsToMobile = if (serverNetworkResult is NetworkResult.Success) {
+            val serverResponse = serverNetworkResult.value
+            // Prepare the data to be sent to mobile as multiple SMS messages/packets
+            val base64EncodedResponse = Base64.getEncoder().encodeToString(serverResponse.body.toByteArray(Charsets.UTF_8))
             smsFormatter.formatSMS(
                 msg = base64EncodedResponse,
                 currentRequestCounter = request.requestId,
                 isSuccessful = true,
-                statusCode = response.code()
+                statusCode = serverResponse.code
+            )
+        } else if (serverNetworkResult is NetworkResult.Failure) {
+            val errorBody = serverNetworkResult.body.decodeToString()
+            val errorMessage = processHttpRelayResponseErrorBody(errorBody)
+            Log.e(TAG, "Failure: $errorMessage")
+            smsFormatter.formatSMS(
+                msg = errorMessage,
+                currentRequestCounter = request.requestId,
+                isSuccessful = false,
+                statusCode = serverNetworkResult.statusCode
             )
         } else {
             smsFormatter.formatSMS(
-                msg = processHttpRelayResponseErrorBody(response.errorBody()?.string()),
+                msg = serverNetworkResult.getStatusMessage() ?: "An Exception Occurred!",
                 currentRequestCounter = request.requestId,
                 isSuccessful = false,
-                statusCode = response.code()
+                statusCode = 500
             )
         }
 

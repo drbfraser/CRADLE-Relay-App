@@ -15,11 +15,13 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
+import androidx.lifecycle.lifecycleScope
 import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
-import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests.Companion.ACCESS_TOKEN
+import com.cradleplatform.cradle_vsa_sms_relay.managers.LoginManager
+import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkResult
 import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class LauncherActivity : AppCompatActivity() {
@@ -28,7 +30,7 @@ class LauncherActivity : AppCompatActivity() {
     lateinit var sharedPreferences: SharedPreferences
 
     @Inject
-    lateinit var networkManager: NetworkManager
+    lateinit var loginManager: LoginManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,28 +90,27 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     private fun checkForAuthentication() {
-        if (sharedPreferences.contains(ACCESS_TOKEN)) {
+        if (loginManager.isLoggedIn()) {
             startActivity()
         }
     }
 
     private fun setupLogin() {
         val emailEditText = findViewById<TextView>(R.id.emailEditText)
-        val passwordEdittext = findViewById<TextView>(R.id.passwordEditText)
+        val passwordEditText = findViewById<TextView>(R.id.passwordEditText)
         val progressBar = findViewById<ProgressBar>(R.id.progressBar)
 
         findViewById<MaterialButton>(R.id.loginButton).setOnClickListener {
             progressBar.visibility = View.VISIBLE
 
-            networkManager.authenticateTheUser(
-                emailEditText.text.toString(),
-                passwordEdittext.text.toString()
-            ) {
+            lifecycleScope.launch {
                 progressBar.visibility = View.GONE
-                if (it) {
-                    startActivity()
-                } else {
-                    findViewById<TextView>(R.id.invalidLoginText).visibility = View.VISIBLE
+                val username = emailEditText.text.toString()
+                val password = passwordEditText.text.toString()
+                val result = loginManager.login(username, password)
+                when (result) {
+                    is NetworkResult.Success -> startActivity()
+                    else -> findViewById<TextView>(R.id.invalidLoginText).visibility = View.VISIBLE
                 }
             }
         }

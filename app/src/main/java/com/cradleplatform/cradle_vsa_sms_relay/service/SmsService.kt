@@ -18,7 +18,6 @@ import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReceiver
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -33,9 +32,6 @@ class SmsService : LifecycleService(), CoroutineScope {
 
     @Inject
     lateinit var sharedPreferences: SharedPreferences
-
-    @Inject
-    lateinit var networkManager: NetworkManager
 
     // main sms broadcast listener
     private var smsReceiver: MessageReceiver? = null
