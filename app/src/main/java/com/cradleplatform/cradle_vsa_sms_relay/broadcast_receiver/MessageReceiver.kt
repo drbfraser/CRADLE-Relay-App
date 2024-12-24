@@ -6,13 +6,15 @@ import android.content.Intent
 import android.provider.Telephony
 import android.util.Log
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
-import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayResponse
+import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayRequestBody
+import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayResponseBody
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestData
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequest
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestResult
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestPhase
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayResponseData
-import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
+import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkResult
+import com.cradleplatform.cradle_vsa_sms_relay.network.RestApi
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.RelayPacket
 import com.cradleplatform.cradle_vsa_sms_relay.utilities.SMSFormatter
@@ -46,7 +48,7 @@ class MessageReceiver(
     lateinit var smsRelayRepository: SmsRelayRepository
 
     @Inject
-    lateinit var httpsRequestRepository: HttpsRequestRepository
+    lateinit var restApi: RestApi
 
     private val requestChannels: ConcurrentHashMap<String, Channel<RelayPacket>> =
         ConcurrentHashMap()
@@ -256,7 +258,7 @@ class MessageReceiver(
     }
 
     @Throws(RelayRequestFailedException::class)
-    private suspend fun relayToServer(relayRequest: RelayRequest): retrofit2.Response<HttpRelayResponse> {
+    private suspend fun relayToServer(relayRequest: RelayRequest): HttpRelayResponseBody {
         assert(relayRequest.dataPacketsFromMobile.all { it != null })
 
         smsRelayRepository.updateRequestPhase(relayRequest, RelayRequestPhase.RELAYING_TO_SERVER)
@@ -271,17 +273,19 @@ class MessageReceiver(
 
         smsRelayRepository.updateRequestPhase(relayRequest, RelayRequestPhase.RECEIVING_FROM_SERVER)
 
+        val relayRequestBody = HttpRelayRequestBody(
+            phoneNumber = relayRequest.phoneNumber,
+            encryptedData = String(aesEncryptedData, Charsets.UTF_8)
+        )
+
         // Step 3: Send data to the server
-        val response = try {
-            httpsRequestRepository.relayRequestToServer(
-                phoneNumber = relayRequest.phoneNumber,
-                data = String(aesEncryptedData, Charsets.UTF_8)
-            )
-        } catch (e: java.net.ConnectException) {
-            // TODO: Should we try to still complete the request by relaying a
-            // TODO: a message back to mobile (instead of giving up)
-            Log.e(TAG, "Connection to server failed for phone number: ${relayRequest.phoneNumber}", e)
-            throw RelayRequestFailedException("Failed to connect to server", e)
+        val response = when (val result = restApi.relaySmsRequest(relayRequestBody)) {
+            is NetworkResult.Success -> result.value
+            else -> {
+                val errorMessage = result.getStatusMessage() ?: ""
+                Log.e(TAG, "Connection to server failed for phone number: ${relayRequest.phoneNumber}")
+                throw RelayRequestFailedException("Failed to connect to server: $errorMessage")
+            }
         }
 
         return response
@@ -291,27 +295,18 @@ class MessageReceiver(
     private suspend fun relayToMobile(
         request: RelayRequest,
         channel: Channel<RelayPacket>,
-        response: retrofit2.Response<HttpRelayResponse>
+        serverResponse: HttpRelayResponseBody
     ) {
         // Prepare the data to be sent to mobile as multiple SMS messages/packets
-        val dataPacketsToMobile = if (response.isSuccessful && response.body() != null) {
-
-            val base64EncodedResponse = Base64.getEncoder().encodeToString(response.body()!!.body.toByteArray(Charsets.UTF_8))
-
+        val base64EncodedResponse = Base64.getEncoder().encodeToString(serverResponse.body.toByteArray(Charsets.UTF_8))
+        val isSuccessful = serverResponse.code == 200 || serverResponse.code == 201
+        val dataPacketsToMobile =
             smsFormatter.formatSMS(
                 msg = base64EncodedResponse,
                 currentRequestCounter = request.requestId,
-                isSuccessful = true,
-                statusCode = response.code()
+                isSuccessful = isSuccessful,
+                statusCode = serverResponse.code
             )
-        } else {
-            smsFormatter.formatSMS(
-                msg = processHttpRelayResponseErrorBody(response.errorBody()?.string()),
-                currentRequestCounter = request.requestId,
-                isSuccessful = false,
-                statusCode = response.code()
-            )
-        }
 
         // Note: We don't really need to store this in DB, but the UI uses it in the Details
         // activity. It's easier to let the UI use this data if we store it in the DB
