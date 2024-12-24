@@ -154,7 +154,6 @@ class Http(
  */
 class CradleCookieJar(private val sharedPreferences: SharedPreferences) : CookieJar {
 
-
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
         cookies.forEach {
             // Serialize cookies and store them in shared preferences.
