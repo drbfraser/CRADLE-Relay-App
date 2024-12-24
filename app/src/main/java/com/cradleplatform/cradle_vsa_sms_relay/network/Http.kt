@@ -139,7 +139,6 @@ class Http(
                         it.code
                     )
                 } else {
-                    Log.i(TAG, "$message - Failure ${it.code}")
                     return@use NetworkResult.Failure(it.body!!.bytes(), it.code)
                 }
             }
@@ -149,8 +148,6 @@ class Http(
         }
     }
 }
-
-
 
 /**
  * Cookie jar to handle cookies. Particularly for handling the refresh token.

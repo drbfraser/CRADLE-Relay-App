@@ -300,9 +300,11 @@ class MessageReceiver(
                 statusCode = serverResponse.code
             )
         } else if (serverNetworkResult is NetworkResult.Failure) {
-            val errorBody = serverNetworkResult.body.toString()
+            val errorBody = serverNetworkResult.body.decodeToString()
+            val errorMessage = processHttpRelayResponseErrorBody(errorBody)
+            Log.e(TAG, "Failure: $errorMessage")
             smsFormatter.formatSMS(
-                msg = processHttpRelayResponseErrorBody(errorBody),
+                msg = errorMessage,
                 currentRequestCounter = request.requestId,
                 isSuccessful = false,
                 statusCode = serverNetworkResult.statusCode
