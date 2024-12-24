@@ -8,13 +8,11 @@ import com.cradleplatform.cradle_vsa_sms_relay.managers.RefreshTokenResponse
 import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayRequestBody
 import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayResponseBody
 import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromStream
 import org.json.JSONObject
+import java.io.InputStreamReader
 import javax.inject.Singleton
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -33,7 +31,6 @@ import kotlin.io.encoding.ExperimentalEncodingApi
  * threw an exception when sending the request or handling the response.
  * A timeout is one such cause of an exception for example.
  */
-@OptIn(ExperimentalSerializationApi::class)
 @Singleton
 class RestApi(
     private val sharedPreferences: SharedPreferences,
@@ -47,10 +44,7 @@ class RestApi(
         private const val FIVE_MINUTES_IN_SECONDS = 300
     }
 
-    private val jsonBuilderWithIgnoreUnknownKeys = Json { ignoreUnknownKeys = true }
-
-    @OptIn(ExperimentalEncodingApi::class)
-    private val base64 = Base64.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL)
+    private val gson = GsonBuilder().setPrettyPrinting().create()
 
     /**
      * Sends a request to the authentication API endpoint to log a user in.
@@ -77,7 +71,7 @@ class RestApi(
             headers = headers,
             requestBody = buildJsonRequestBody(body),
             inputStreamReader = {
-                jsonBuilderWithIgnoreUnknownKeys.decodeFromStream<LoginResponse>(it)
+                gson.fromJson(InputStreamReader(it), LoginResponse::class.java)
             })
     }
 
@@ -87,7 +81,7 @@ class RestApi(
     suspend fun relaySmsRequest(
         httpRelayRequestBody: HttpRelayRequestBody
     ): NetworkResult<HttpRelayResponseBody> = withContext(IO) {
-        val body = Json.encodeToString(httpRelayRequestBody).encodeToByteArray()
+        val body = gson.toJson(httpRelayRequestBody).encodeToByteArray()
 
         http.makeRequest(
             method = Http.Method.POST,
@@ -95,7 +89,7 @@ class RestApi(
             headers = makeAuthorizationHeader(),
             requestBody = buildJsonRequestBody(body),
             inputStreamReader = {
-                Json.decodeFromStream<HttpRelayResponseBody>(it)
+                gson.fromJson(InputStreamReader(it), HttpRelayResponseBody::class.java)
             })
     }
 
@@ -119,7 +113,7 @@ class RestApi(
             requestBody = buildJsonRequestBody(body),
 
             inputStreamReader = {
-                Json.decodeFromStream<RefreshTokenResponse>(it)
+                gson.fromJson(InputStreamReader(it), RefreshTokenResponse::class.java)
             })
 
         if (result is NetworkResult.Success<RefreshTokenResponse>) {
@@ -132,7 +126,7 @@ class RestApi(
             val errorMessage = result.getStatusMessage()
             Log.e(TAG, "Failed to refresh access token:")
             if (errorMessage != null) {
-                Log.e(TAG, "$errorMessage")
+                Log.e(TAG, errorMessage)
             }
             return@withContext null
         }
@@ -145,7 +139,7 @@ class RestApi(
     private fun decodeAccessTokenExpiration(jwt: String): Long {
         val sections = jwt.split(".")
         val charset = charset("UTF-8")
-        val payloadString = String(base64.decode(sections[1].toByteArray(charset)), charset)
+        val payloadString = String(Base64.decode(sections[1].toByteArray(charset)), charset)
         val payload = JSONObject(payloadString)
         return payload.getLong("exp")
     }

@@ -9,7 +9,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
 import java.net.HttpURLConnection.HTTP_OK
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -97,13 +96,11 @@ class LoginManager @Inject constructor(
 /**
  * Models the response sent back by the server for /api/user/auth.
  */
-@Serializable
 data class LoginResponse(
     val accessToken: String,
     val user: LoginResponseUser
 )
 
-@Serializable
 data class LoginResponseUser(
     val id: Int,
     val username: String,
@@ -114,7 +111,6 @@ data class LoginResponseUser(
     val phoneNumbers: List<String>
 )
 
-@Serializable
 data class RefreshTokenResponse(
     val accessToken: String
 )
