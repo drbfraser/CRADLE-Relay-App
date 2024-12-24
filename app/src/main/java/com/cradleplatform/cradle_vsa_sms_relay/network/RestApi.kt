@@ -49,6 +49,9 @@ class RestApi(
 
     private val jsonBuilderWithIgnoreUnknownKeys = Json { ignoreUnknownKeys = true }
 
+    @OptIn(ExperimentalEncodingApi::class)
+    private val base64 = Base64.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL)
+
     /**
      * Sends a request to the authentication API endpoint to log a user in.
      *
@@ -142,7 +145,7 @@ class RestApi(
     private fun decodeAccessTokenExpiration(jwt: String): Long {
         val sections = jwt.split(".")
         val charset = charset("UTF-8")
-        val payloadString = String(Base64.UrlSafe.decode(sections[1].toByteArray(charset)), charset)
+        val payloadString = String(base64.decode(sections[1].toByteArray(charset)), charset)
         val payload = JSONObject(payloadString)
         return payload.getLong("exp")
     }
@@ -154,8 +157,8 @@ class RestApi(
         try {
             exp = decodeAccessTokenExpiration(accessToken)
         } catch (e: Exception) {
-            Log.e("verifyAccessToken", "Error parsing Access Token : $e")
-            return accessToken
+            Log.e("getAccessToken", "Error parsing Access Token : $e")
+            return null
         }
 
         // Get current timestamp in seconds.
