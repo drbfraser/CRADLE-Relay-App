@@ -300,8 +300,9 @@ class MessageReceiver(
                 statusCode = serverResponse.code
             )
         } else if (serverNetworkResult is NetworkResult.Failure) {
+            val errorBody = serverNetworkResult.body.toString()
             smsFormatter.formatSMS(
-                msg = Base64.getEncoder().encodeToString(serverNetworkResult.body),
+                msg = processHttpRelayResponseErrorBody(errorBody),
                 currentRequestCounter = request.requestId,
                 isSuccessful = false,
                 statusCode = serverNetworkResult.statusCode
@@ -387,6 +388,23 @@ class MessageReceiver(
             }
 
             currPacketToMobileIdx = nextPacketToMobileIdx
+        }
+    }
+
+    private fun processHttpRelayResponseErrorBody(errorBody: String?): String {
+        if (errorBody == null) return "Unknown error"
+
+        try {
+            return JSONObject(errorBody).run {
+                when {
+                    has("msg") -> getString("msg")
+                    has("message") -> getString("message")
+                    else -> errorBody
+                }
+            }
+        } catch (e: org.json.JSONException) {
+            Log.d(TAG, "Error message is not valid JSON: $errorBody")
+            throw JsonProcessingException("Failed to process error body", e)
         }
     }
 
