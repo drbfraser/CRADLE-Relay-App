@@ -3,7 +3,9 @@ package com.cradleplatform.cradle_vsa_sms_relay.dagger
 import com.cradleplatform.cradle_vsa_sms_relay.activities.LauncherActivity
 import com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity
 import com.cradleplatform.cradle_vsa_sms_relay.broadcast_receiver.MessageReceiver
+import com.cradleplatform.cradle_vsa_sms_relay.network.Http
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
+import com.cradleplatform.cradle_vsa_sms_relay.network.RestApi
 import com.cradleplatform.cradle_vsa_sms_relay.repository.HttpsRequestRepository
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
@@ -29,4 +31,6 @@ interface AppComponent {
     fun inject(httpsRequestRepository: HttpsRequestRepository)
     fun inject(smsRelayViewModel: SmsRelayViewModel)
     fun inject(detailsViewModel: DetailsViewModel)
+    fun inject(http: Http)
+    fun inject(restApi: RestApi)
 }
