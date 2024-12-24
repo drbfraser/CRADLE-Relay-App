@@ -19,7 +19,6 @@ import androidx.lifecycle.lifecycleScope
 import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.managers.LoginManager
-import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkManager
 import com.cradleplatform.cradle_vsa_sms_relay.network.NetworkResult
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
@@ -29,9 +28,6 @@ class LauncherActivity : AppCompatActivity() {
 
     @Inject
     lateinit var sharedPreferences: SharedPreferences
-
-    @Inject
-    lateinit var networkManager: NetworkManager
 
     @Inject
     lateinit var loginManager: LoginManager
