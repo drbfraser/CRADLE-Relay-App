@@ -90,5 +90,6 @@ dependencies {
     detekt "io.gitlab.arturbosch.detekt:detekt-formatting:$detekt_version"
     detekt("io.gitlab.arturbosch.detekt:detekt-cli:$detekt_version")
 
+    implementation 'com.google.code.gson:gson:2.8.2'
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3'
 }
