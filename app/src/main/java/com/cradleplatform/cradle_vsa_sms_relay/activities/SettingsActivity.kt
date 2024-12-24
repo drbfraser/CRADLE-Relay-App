@@ -15,7 +15,6 @@ import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreferenceCompat
 import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
-import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService.Companion.isServiceRunningInForeground
 import javax.inject.Inject
@@ -56,16 +55,16 @@ class SettingsActivity : AppCompatActivity() {
             val reuploadListKey = getString(R.string.reuploadListPrefKey)
             val reuploadSwitchKey = getString(R.string.reuploadSwitchPrefKey)
             val signoutKey = getString(R.string.signout)
-            val syncNowkey = getString(R.string.sync_now_key)
+            val syncNowKey = getString(R.string.sync_now_key)
             val accountSettingsKey = getString(R.string.key_account_settings)
 
             val defaultSharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(this.requireContext())
 
-            val isLoggedIn = defaultSharedPreferences.contains(VolleyRequests.ACCESS_TOKEN)
+            val isLoggedIn = defaultSharedPreferences.contains("accessToken")
 
             // show/ hide pref on default
-            val syncNowPref = findPreference<Preference>(syncNowkey)
+            val syncNowPref = findPreference<Preference>(syncNowKey)
             syncNowPref?.isVisible = defaultSharedPreferences.getBoolean(reuploadSwitchKey, true)
 
             val listPref = findPreference<ListPreference>(reuploadListKey)
@@ -100,11 +99,11 @@ class SettingsActivity : AppCompatActivity() {
                         Toast.LENGTH_LONG
                     ).show()
                 } else {
-                    val x = defaultSharedPreferences.getBoolean(syncNowkey, false)
+                    val x = defaultSharedPreferences.getBoolean(syncNowKey, false)
                     // always changing the value so service can listen for sharedpref change
                     // solution for now, otherwise SettingActivity needs to know about service..
                     // todo better achitecture? maybe its ok for activity to know about service?
-                    defaultSharedPreferences.edit().putBoolean(syncNowkey, !x).apply()
+                    defaultSharedPreferences.edit().putBoolean(syncNowKey, !x).apply()
                 }
                 true
             }

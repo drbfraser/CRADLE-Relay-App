@@ -9,7 +9,6 @@ import com.cradleplatform.cradle_vsa_sms_relay.managers.RefreshTokenResponse
 import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayRequestBody
 import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayResponseBody
 import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
-import com.cradleplatform.cradle_vsa_sms_relay.network.VolleyRequests.Companion.ACCESS_TOKEN
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -152,7 +151,7 @@ class RestApi(
 
     @Suppress("TooGenericExceptionCaught")
     private suspend fun getAccessToken(): String? {
-        val accessToken = sharedPreferences.getString(ACCESS_TOKEN, null) ?: return null
+        val accessToken = sharedPreferences.getString("accessToken", null) ?: return null
         val exp: Long
         try {
             exp = decodeAccessTokenExpiration(accessToken)

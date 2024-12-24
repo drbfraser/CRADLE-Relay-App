@@ -1,7 +1,5 @@
 package com.cradleplatform.cradle_vsa_sms_relay.network
 
-import android.content.Context
-
 /**
  * The result of a network request.
  *
