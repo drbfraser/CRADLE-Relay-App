@@ -42,15 +42,6 @@ class DataModule {
         return NetworkManager(app)
     }
 
-    @Provides
-    @Singleton
-    fun getHttpsRequestRepository(
-        sharedPreferences: SharedPreferences,
-        urlManager: UrlManager
-    ): HttpsRequestRepository {
-        return HttpsRequestRepository(token, baseUrl)
-    }
-
     @Singleton
     @Provides
     fun provideStringListConverter(): SmsListConverter {
