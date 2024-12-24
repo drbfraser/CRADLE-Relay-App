@@ -36,12 +36,6 @@ class DataModule {
         return PreferenceManager.getDefaultSharedPreferences(app)
     }
 
-    @Provides
-    @Singleton
-    fun getNetworkManager(app: MultiDexApplication): NetworkManager {
-        return NetworkManager(app)
-    }
-
     @Singleton
     @Provides
     fun provideStringListConverter(): SmsListConverter {
