@@ -129,7 +129,7 @@ class RestApi(
             }
             return@withContext newAccessToken
         } else {
-            val errorMessage = result.getStatusMessage(context)
+            val errorMessage = result.getStatusMessage()
             Log.e(TAG, "Failed to refresh access token:")
             if (errorMessage != null) {
                 Log.e(TAG, "$errorMessage")
