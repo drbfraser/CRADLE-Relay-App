@@ -61,7 +61,7 @@ sealed interface NetworkResult<T> {
      * @return A message describing the error contained in this result or null
      *  if this result is a [Success] variant.
      */
-    fun getStatusMessage(context: Context): String? = when (this) {
+    fun getStatusMessage(): String? = when (this) {
         is Success -> when (this.statusCode) {
             MULTI_STATUS -> PARTIAL_SUCCESS_MESSAGE
             else -> SUCCESS_MESSAGE
