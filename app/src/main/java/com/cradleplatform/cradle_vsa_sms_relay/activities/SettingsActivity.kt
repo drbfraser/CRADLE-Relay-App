@@ -16,16 +16,12 @@ import androidx.preference.SwitchPreferenceCompat
 import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.managers.LoginManager
-import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService.Companion.isServiceRunningInForeground
 import javax.inject.Inject
 
 
 class SettingsActivity : AppCompatActivity() {
-    @Inject
-    lateinit var urlManager: UrlManager
-
     @Inject
     lateinit var loginManager: LoginManager
 
