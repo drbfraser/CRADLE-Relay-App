@@ -20,7 +20,6 @@ import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService
 import com.cradleplatform.cradle_vsa_sms_relay.service.SmsService.Companion.isServiceRunningInForeground
 import javax.inject.Inject
-import kotlin.math.log
 
 
 class SettingsActivity : AppCompatActivity() {
