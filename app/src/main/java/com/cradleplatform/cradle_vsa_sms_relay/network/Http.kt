@@ -2,7 +2,6 @@ package com.cradleplatform.cradle_vsa_sms_relay.network
 
 import android.content.SharedPreferences
 import android.util.Log
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -131,14 +130,14 @@ class Http(
             // "Inappropriate blocking method call" should be fine if we do this in Dispatchers.IO.
             client.newCall(request).execute().use {
                 if (it.isSuccessful) {
-                    Log.i(TAG, "$message - Success ${it.code}")
+                    Log.i(TAG, "$message - Success ${it.code()}")
                     // The byte stream is closed by the `use` function above.
                     return@use NetworkResult.Success(
-                        inputStreamReader(it.body!!.byteStream()),
-                        it.code
+                        inputStreamReader(it.body()!!.byteStream()),
+                        it.code()
                     )
                 } else {
-                    return@use NetworkResult.Failure(it.body!!.bytes(), it.code)
+                    return@use NetworkResult.Failure(it.body()!!.bytes(), it.code())
                 }
             }
         } catch (e: IOException) {
@@ -159,7 +158,7 @@ class CradleCookieJar(private val sharedPreferences: SharedPreferences) : Cookie
             // Serialize cookies and store them in shared preferences.
             val cookieData = CookieData.fromCookie(it)
             val serializedCookie = gson.toJson(cookieData)
-            sharedPreferences.edit().putString(it.name, serializedCookie).apply()
+            sharedPreferences.edit().putString(it.name(), serializedCookie).apply()
         }
     }
 
@@ -188,13 +187,13 @@ class CookieData(
 ) {
     companion object {
         fun fromCookie(cookie: Cookie) = CookieData(
-            name = cookie.name,
-            value = cookie.value,
-            expiresAt = cookie.expiresAt,
-            domain = cookie.domain,
-            path = cookie.path,
-            secure = cookie.secure,
-            httpOnly = cookie.httpOnly
+            name = cookie.name(),
+            value = cookie.value(),
+            expiresAt = cookie.expiresAt(),
+            domain = cookie.domain(),
+            path = cookie.path(),
+            secure = cookie.secure(),
+            httpOnly = cookie.httpOnly()
         )
     }
 
