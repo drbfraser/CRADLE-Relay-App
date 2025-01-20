@@ -27,6 +27,7 @@ class LoginManager @Inject constructor(
         const val EMAIL_KEY = "email"
         const val USERNAME_KEY = "username"
         const val USER_ID_KEY = "userId"
+        const val REFRESH_TOKEN = "refresh_token"
     }
 
     private val loginMutex = Mutex()
@@ -87,7 +88,7 @@ class LoginManager @Inject constructor(
             remove(USER_ID_KEY)
             remove(EMAIL_KEY)
             remove(USERNAME_KEY)
-
+            remove(REFRESH_TOKEN)
         }
     }
 
