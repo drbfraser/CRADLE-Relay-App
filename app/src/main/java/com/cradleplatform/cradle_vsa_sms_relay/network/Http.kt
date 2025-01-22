@@ -187,13 +187,13 @@ class CookieData(
 ) {
     companion object {
         fun fromCookie(cookie: Cookie) = CookieData(
-            name = cookie.name(),
-            value = cookie.value(),
-            expiresAt = cookie.expiresAt(),
-            domain = cookie.domain(),
-            path = cookie.path(),
-            secure = cookie.secure(),
-            httpOnly = cookie.httpOnly()
+            name = cookie.name,
+            value = cookie.value,
+            expiresAt = cookie.expiresAt,
+            domain = cookie.domain,
+            path = cookie.path,
+            secure = cookie.secure,
+            httpOnly = cookie.httpOnly
         )
     }
 
