@@ -130,14 +130,14 @@ class Http(
             // "Inappropriate blocking method call" should be fine if we do this in Dispatchers.IO.
             client.newCall(request).execute().use {
                 if (it.isSuccessful) {
-                    Log.i(TAG, "$message - Success ${it.code()}")
+                    Log.i(TAG, "$message - Success ${it.code}")
                     // The byte stream is closed by the `use` function above.
                     return@use NetworkResult.Success(
-                        inputStreamReader(it.body()!!.byteStream()),
+                        inputStreamReader(it.body!!.byteStream()),
                         it.code
                     )
                 } else {
-                    return@use NetworkResult.Failure(it.body()!!.bytes(), it.code())
+                    return@use NetworkResult.Failure(it.body!!.bytes(), it.code)
                 }
             }
         } catch (e: IOException) {
@@ -158,7 +158,7 @@ class CradleCookieJar(private val sharedPreferences: SharedPreferences) : Cookie
             // Serialize cookies and store them in shared preferences.
             val cookieData = CookieData.fromCookie(it)
             val serializedCookie = gson.toJson(cookieData)
-            sharedPreferences.edit().putString(it.name(), serializedCookie).apply()
+            sharedPreferences.edit().putString(it.name, serializedCookie).apply()
         }
     }
 
