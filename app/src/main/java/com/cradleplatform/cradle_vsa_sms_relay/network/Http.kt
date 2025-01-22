@@ -134,7 +134,7 @@ class Http(
                     // The byte stream is closed by the `use` function above.
                     return@use NetworkResult.Success(
                         inputStreamReader(it.body()!!.byteStream()),
-                        it.code()
+                        it.code
                     )
                 } else {
                     return@use NetworkResult.Failure(it.body()!!.bytes(), it.code())
