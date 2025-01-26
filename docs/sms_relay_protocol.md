@@ -12,7 +12,7 @@
 5. Relay Server has a valid login credential for the server’s REST API. It authenticates via the REST API and then likely has an access token to communicate with the server.
 
 ## 2. Process
-1. Client builds HTTP request, and decides to use SMS to transmit the request and receive the response	
+1. Client builds HTTP request, and decides to use SMS to transmit the request and receive the response.	 
 2. Client creates a JSON Request Structure for HTTP request:  
 	_Field names may be truncated to “r”, “m”, “e”, “h”, and “b”; empty fields are omitted._
 	```
@@ -24,51 +24,39 @@
 	  "body": "..."			(May be a JSON object, or a quoted string; omitted if empty)
 	}
 	```
-3. Client compresses & encrypts data
+3. Client compresses & encrypts data.
 	1. Client uses GZip to compresses JSON format of HTTP request
 	2. Client encrypts the compressed request using shared AES key
 	3. Client encodes encrypted data into Base64
-
 4. Client constructs the full text to send by including additional headers:
 	1. Version of this HTTP over SMS Tunnel Protocol (“01”), and delimiter (“-”)
 	2. Magic string (“CRADLE”), and delimiter (“-”)
 	3. Request # (6 digits), and delimiter (“-”)
 	4. Total # of Fragments in this message (3 digits), and delimiter (“-”)
-	5. HTTP request data (compressed, encrypted, Base64-encoded JSON data)
-
-	Example (junk data):  
-	> 01-CRADLE-008581-003-Rm9yIHNoYW1lIGRlbnkgdGhhdCB0aG91IGJlYXLigJlzdCBsb3ZlIHRvIGFueSwKV2hvIGZvciB0aHkgc2VsZiBhcnQgc28gdW5wcm92aWRlbnQuCkdyYW50LCBpZiB0aG91IHdpbHQsIHRob3UgYXJ0IGJlbG92ZWQgb2YgbWFueSwKQnV0IHRoYXQgdGhvdSBub25lIGxvduKAmXN0IGlzIG1vc3QgZXZpZGVudDoKRm9yIHRob3UgYXJ0IHNvIHBvc3Nlc3NlZCB3aXRoIG11cmRlcm91cyBoYXRlLApUaGF0IOKAmGdhaW5zdCB0aHkgc2VsZiB0aG91IHN0aWNr4oCZc3Qgbm90IHRvIGNvbnNwaXJlLApTZWVraW5nIHRoYXQgYmVhdXRlb3VzIHJvb2YgdG8gcnVpbmF0ZQpXaGljaCB0byByZXBhaXIgc2hvdWxkIGJlIHRoeSBjaGllZiBkZXNpcmUuCk8hIGNoYW5nZSB0aHkgdGhvdWdodCwgdGhhdCBJIG1heSBjaGFuZ2UgbXkgbWluZDoKU2hhbGwgaGF0ZSBiZSBmYWlyZXIgbG9kZ2VkIHRoYW4gZ2VudGxlIGxvdmU/CkJlLCBhcyB0aHkgcHJlc2VuY2UgaXMsIGdyYWNpb3VzIGFuZCBraW5kLApPciB0byB0aHlzZWxmIGF0IGxlYXN0IGtpbmQtaGVhcnRlZCBwcm92ZToKTWFrZSB0aGVlIGFub3RoZXIgc2VsZiBmb3IgbG92ZSBvZiBtZSwKVGhhdCBiZWF1dHkgc3RpbGwgbWF5IGxpdmUgaW4gdGhpbmUgb3IgdGhlZS4g
-
+	5. HTTP request data (compressed, encrypted, Base64-encoded JSON data)  
+		_Example (junk data):_
+		> 01-CRADLE-008581-003-Rm9yIHNoYW1lIGRlbnkgdGhhdCB0aG91IGJlYXLigJlzdCBsb3ZlIHRvIGFueSwKV2hvIGZvciB0aHkgc2VsZiBhcnQgc28gdW5wcm92aWRlbnQuCkdyYW50LCBpZiB0aG91IHdpbHQsIHRob3UgYXJ0IGJlbG92ZWQgb2YgbWFueSwKQnV0IHRoYXQgdGhvdSBub25lIGxvduKAmXN0IGlzIG1vc3QgZXZpZGVudDoKRm9yIHRob3UgYXJ0IHNvIHBvc3Nlc3NlZCB3aXRoIG11cmRlcm91cyBoYXRlLApUaGF0IOKAmGdhaW5zdCB0aHkgc2VsZiB0aG91IHN0aWNr4oCZc3Qgbm90IHRvIGNvbnNwaXJlLApTZWVraW5nIHRoYXQgYmVhdXRlb3VzIHJvb2YgdG8gcnVpbmF0ZQpXaGljaCB0byByZXBhaXIgc2hvdWxkIGJlIHRoeSBjaGllZiBkZXNpcmUuCk8hIGNoYW5nZSB0aHkgdGhvdWdodCwgdGhhdCBJIG1heSBjaGFuZ2UgbXkgbWluZDoKU2hhbGwgaGF0ZSBiZSBmYWlyZXIgbG9kZ2VkIHRoYW4gZ2VudGxlIGxvdmU/CkJlLCBhcyB0aHkgcHJlc2VuY2UgaXMsIGdyYWNpb3VzIGFuZCBraW5kLApPciB0byB0aHlzZWxmIGF0IGxlYXN0IGtpbmQtaGVhcnRlZCBwcm92ZToKTWFrZSB0aGVlIGFub3RoZXIgc2VsZiBmb3IgbG92ZSBvZiBtZSwKVGhhdCBiZWF1dHkgc3RpbGwgbWF5IGxpdmUgaW4gdGhpbmUgb3IgdGhlZS4g
 5. Client fragments the message to fit into SMS messages. Max fragment size is 306 characters (an SMS MultiPart message using two segments) (TBD if a 2-segment multipart SMS message is best for reliability, and efficiency)
 	1. The first fragment can contain 306 characters, which includes our custom HTTP over SMS Tunnel Protocol header plus some data.
-	2. Later fragments reserve 4 characters for the fragment number, leaving 302 characters for data.
-
-	Example Fragmented Data (not including fragment numbers):
-	> 01-CRADLE-008581-003-Rm9yIHNoYW1lIGRlbnkgdGhhdCB0aG91IGJlYXLigJlzdCBsb3ZlIHRvIGFueSwKV2hvIGZvciB0aHkgc2VsZiBhcnQgc28gdW5wcm92aWRlbnQuCkdyYW50LCBpZiB0aG91IHdpbHQsIHRob3UgYXJ0IGJlbG92ZWQgb2YgbWFueSwKQnV0IHRoYXQgdGhvdSBub25lIGxvduKAmXN0IGlzIG1vc3QgZXZpZGVudDoKRm9yIHRob3UgYXJ0IHNvIHBvc3Nlc3NlZCB3aXRoIG11cmRl
-
-	> cm91cyBoYXRlLApUaGF0IOKAmGdhaW5zdCB0aHkgc2VsZiB0aG91IHN0aWNr4oCZc3Qgbm90IHRvIGNvbnNwaXJlLApTZWVraW5nIHRoYXQgYmVhdXRlb3VzIHJvb2YgdG8gcnVpbmF0ZQpXaGljaCB0byByZXBhaXIgc2hvdWxkIGJlIHRoeSBjaGllZiBkZXNpcmUuCk8hIGNoYW5nZSB0aHkgdGhvdWdodCwgdGhhdCBJIG1heSBjaGFuZ2UgbXkgbWluZDoKU2hhbGwgaGF0ZSBiZSBmYWlyZXIgbG9kZ
-
-	> 2VkIHRoYW4gZ2VudGxlIGxvdmU/CkJlLCBhcyB0aHkgcHJlc2VuY2UgaXMsIGdyYWNpb3VzIGFuZCBraW5kLApPciB0byB0aHlzZWxmIGF0IGxlYXN0IGtpbmQtaGVhcnRlZCBwcm92ZToKTWFrZSB0aGVlIGFub3RoZXIgc2VsZiBmb3IgbG92ZSBvZiBtZSwKVGhhdCBiZWF1dHkgc3RpbGwgbWF5IGxpdmUgaW4gdGhpbmUgb3IgdGhlZS4g
-
+	2. Later fragments reserve 4 characters for the fragment number, leaving 302 characters for data.  
+		_Example Fragmented Data (not including fragment numbers):_
+		> 01-CRADLE-008581-003-Rm9yIHNoYW1lIGRlbnkgdGhhdCB0aG91IGJlYXLigJlzdCBsb3ZlIHRvIGFueSwKV2hvIGZvciB0aHkgc2VsZiBhcnQgc28gdW5wcm92aWRlbnQuCkdyYW50LCBpZiB0aG91IHdpbHQsIHRob3UgYXJ0IGJlbG92ZWQgb2YgbWFueSwKQnV0IHRoYXQgdGhvdSBub25lIGxvduKAmXN0IGlzIG1vc3QgZXZpZGVudDoKRm9yIHRob3UgYXJ0IHNvIHBvc3Nlc3NlZCB3aXRoIG11cmRl
+		> cm91cyBoYXRlLApUaGF0IOKAmGdhaW5zdCB0aHkgc2VsZiB0aG91IHN0aWNr4oCZc3Qgbm90IHRvIGNvbnNwaXJlLApTZWVraW5nIHRoYXQgYmVhdXRlb3VzIHJvb2YgdG8gcnVpbmF0ZQpXaGljaCB0byByZXBhaXIgc2hvdWxkIGJlIHRoeSBjaGllZiBkZXNpcmUuCk8hIGNoYW5nZSB0aHkgdGhvdWdodCwgdGhhdCBJIG1heSBjaGFuZ2UgbXkgbWluZDoKU2hhbGwgaGF0ZSBiZSBmYWlyZXIgbG9kZ
+		> 2VkIHRoYW4gZ2VudGxlIGxvdmU/CkJlLCBhcyB0aHkgcHJlc2VuY2UgaXMsIGdyYWNpb3VzIGFuZCBraW5kLApPciB0byB0aHlzZWxmIGF0IGxlYXN0IGtpbmQtaGVhcnRlZCBwcm92ZToKTWFrZSB0aGVlIGFub3RoZXIgc2VsZiBmb3IgbG92ZSBvZiBtZSwKVGhhdCBiZWF1dHkgc3RpbGwgbWF5IGxpdmUgaW4gdGhpbmUgb3IgdGhlZS4g
 6. Client sends SMS messages (the fragments) one at a time to the Relay Server.
 	1. First fragment includes tunnel header info plus some of the data. No fragment number.
 	2. Format of 2nd (and later) fragments: `<3-digit fragment #>-<encrypted data; Base64 encoded>`  
-	First fragment has no fragment number; 2nd fragment and onward numbered 001, 002, 003, …
-	
-	Example Fragment Packets (including fragment numbers)  
-	_(Header and fragment numbers shown in bold)_
-	> **01-CRADLE-008581-003**-Rm9yIHNoYW1lIGRlbnkgdGhhdCB0aG91IGJlYXLigJlzdCBsb3ZlIHRvIGFueSwKV2hvIGZvciB0aHkgc2VsZiBhcnQgc28gdW5wcm92aWRlbnQuCkdyYW50LCBpZiB0aG91IHdpbHQsIHRob3UgYXJ0IGJlbG92ZWQgb2YgbWFueSwKQnV0IHRoYXQgdGhvdSBub25lIGxvduKAmXN0IGlzIG1vc3QgZXZpZGVudDoKRm9yIHRob3UgYXJ0IHNvIHBvc3Nlc3NlZCB3aXRoIG11cmRl
-
-	> **001**-cm91cyBoYXRlLApUaGF0IOKAmGdhaW5zdCB0aHkgc2VsZiB0aG91IHN0aWNr4oCZc3Qgbm90IHRvIGNvbnNwaXJlLApTZWVraW5nIHRoYXQgYmVhdXRlb3VzIHJvb2YgdG8gcnVpbmF0ZQpXaGljaCB0byByZXBhaXIgc2hvdWxkIGJlIHRoeSBjaGllZiBkZXNpcmUuCk8hIGNoYW5nZSB0aHkgdGhvdWdodCwgdGhhdCBJIG1heSBjaGFuZ2UgbXkgbWluZDoKU2hhbGwgaGF0ZSBiZSBmYWlyZXIgbG9kZ
-
-	> **002**-2VkIHRoYW4gZ2VudGxlIGxvdmU/CkJlLCBhcyB0aHkgcHJlc2VuY2UgaXMsIGdyYWNpb3VzIGFuZCBraW5kLApPciB0byB0aHlzZWxmIGF0IGxlYXN0IGtpbmQtaGVhcnRlZCBwcm92ZToKTWFrZSB0aGVlIGFub3RoZXIgc2VsZiBmb3IgbG92ZSBvZiBtZSwKVGhhdCBiZWF1dHkgc3RpbGwgbWF5IGxpdmUgaW4gdGhpbmUgb3IgdGhlZS4g
-	
+	First fragment has no fragment number; 2nd fragment and onward numbered 001, 002, 003, …  
+		_Example Fragment Packets (including fragment numbers)_  
+		_(Header and fragment numbers shown in bold)_
+		> **01-CRADLE-008581-003**-Rm9yIHNoYW1lIGRlbnkgdGhhdCB0aG91IGJlYXLigJlzdCBsb3ZlIHRvIGFueSwKV2hvIGZvciB0aHkgc2VsZiBhcnQgc28gdW5wcm92aWRlbnQuCkdyYW50LCBpZiB0aG91IHdpbHQsIHRob3UgYXJ0IGJlbG92ZWQgb2YgbWFueSwKQnV0IHRoYXQgdGhvdSBub25lIGxvduKAmXN0IGlzIG1vc3QgZXZpZGVudDoKRm9yIHRob3UgYXJ0IHNvIHBvc3Nlc3NlZCB3aXRoIG11cmRl
+		> **001**-cm91cyBoYXRlLApUaGF0IOKAmGdhaW5zdCB0aHkgc2VsZiB0aG91IHN0aWNr4oCZc3Qgbm90IHRvIGNvbnNwaXJlLApTZWVraW5nIHRoYXQgYmVhdXRlb3VzIHJvb2YgdG8gcnVpbmF0ZQpXaGljaCB0byByZXBhaXIgc2hvdWxkIGJlIHRoeSBjaGllZiBkZXNpcmUuCk8hIGNoYW5nZSB0aHkgdGhvdWdodCwgdGhhdCBJIG1heSBjaGFuZ2UgbXkgbWluZDoKU2hhbGwgaGF0ZSBiZSBmYWlyZXIgbG9kZ
+		> **002**-2VkIHRoYW4gZ2VudGxlIGxvdmU/CkJlLCBhcyB0aHkgcHJlc2VuY2UgaXMsIGdyYWNpb3VzIGFuZCBraW5kLApPciB0byB0aHlzZWxmIGF0IGxlYXN0IGtpbmQtaGVhcnRlZCBwcm92ZToKTWFrZSB0aGVlIGFub3RoZXIgc2VsZiBmb3IgbG92ZSBvZiBtZSwKVGhhdCBiZWF1dHkgc3RpbGwgbWF5IGxpdmUgaW4gdGhpbmUgb3IgdGhlZS4g
 7. Relay server receives a fragment and adds it to its data structure to later reassemble the complete request.
 8. Relay Server acknowledges the fragment by sending back an SMS message to the Client using the same header info as original message, but body is ACK:  
 	`01-CRADLE-008581-000-ACK` 	(response to initial message)  
 	`01-CRADLE-008581-001-ACK` 	(to fragment 001)  
 	`01-CRADLE-008581-002-ACK` 	(to fragment 002)  
-	
 9. If the Relay Server has now received all fragments of the full request, it reassembles them into a full (encrypted, compressed, Base64 encoded) message and sends it to the Server’s SMS relay endpoint (REST API).
 	1. Data transmitted to the server is still compressed, encrypted, and Base64 encoded.
 	2. Format of body of the request to the server:
@@ -86,39 +74,30 @@
 
 ## 3. Server Processing
 1. Server’s SMS endpoint receives the REST API request
-
 2. Server looks up the user by phone number and decrypts the encryptedData field using the stored AES key.
 	1. If the message fails to decode from Base64 encoding, then the server replies with an unencrypted error message:  
 	`“Server detected invalid message format (Base64); message may have been corrupted. Retry the action or contact your administrator.”`
-
 	2. If the message fails to decrypt, or unzip then the server replies with an error message in unencrypted data:  
 	`“Unable to verify message from {{phoneNumber}}. Either the phone number is not associated with a user, or the App and server don’t agree on the security key, or the message was corrupted. Retry the action or resync with the server using an internet connection (WiFi, 3G, …)”`
-
-
 3. Server processes the decrypted Json Request Structure. It will:
 	1. Check the request number to ensure it is valid. If invalid (see below Request Number section below) then reply with:
 		```
 		HTTP Response Status: 425 (“Too Early”).
 		Body: “Invalid request number; expected {{expected request number}}”
 		```
-		
 4. Using the decrypted JSON Request Structure, the server executes the request.
 	1. The request is executed using the Client user’s credentials; not the SMS Relay Server’s user’s credentials.
-
-
 5. Server completes the operation leading to either:
 	1. a successful conclusion and generates a successful HTTP status code, plus any required data (likely in JSON format).
-	2. an error condition and generates an HTTP error status code, plus a meaningful error message to show to the end user (if possible).
-
+	2. an error condition and generates an HTTP error status code, plus a meaningful error message to show to the end user (if possible).  
+	
 	Possible error conditions to be aware of include:  
-	* Authorization failure: user is not authorised to use this endpoint / operation.
-
-	**Response String**
+	- Authorization failure: user is not authorised to use this endpoint / operation.  
+	
+	**Response String**  
 	* If decryption failed, then we cannot encrypt the response because there is no agreed on encryption. Therefore the reply may be a single clear-text message:  
-	```Some unencrypted error message```
-
-
-	* All other response (success or failure) will be encoded in the following JSON structure:
+	```Some unencrypted error message```  
+	* All other response (success or failure) will be encoded in the following JSON structure:  
 		```
 		{
 		   "code": "200",
@@ -126,32 +105,29 @@
 		}
 		```
 	Then the message will be compressed, encrypted, and converted to Base64 yielding a string.
-
+	
 ## Response Process
 1. The Server’s HTTP response to the SMS Relay app may be:
 	- An HTTP error for the SMS Relay app, such as the SMS relay app’s REST API call failed because the SMS Relay app did not have a valid user logged in.
 	- An HTTP 200 response (OK) with a body that is a string to deliver to the Client. The body may be a plaintext error message (such as for an encryption failure), or it may be a (compressed, encrypted, and converted to Base64) JSON Response Structure. 
-
 2. Send a response to the Client
 	1. If the response was an HTTP error, or had a timeout (60s) trying to contact the Server  (i.e., the SMS Relay app had a problem talking to the Server), then it sends a reply to the Client with a plaintext error message: “ERROR: SMS Relay App unable to communicate with the server {{Server URL}}. Please contact an administrator.”
 	2. If the response was “success” (i.e., the Server processed the Client’s request and it either worked or failed), then the SMS Relay Server will fragment the data, and use the same request number as the Client used when sending in the request.
 		1. Relay Server will ignore replies which come in more than 60s after the Relay Server has sent a request to the server.  
+		Reply format for Error:  
+		```<Version>-CRADLE-<Request #>-REPLY_ERROR-<# Fragments total>-ERR<HTTP Status code>-<Base64 data>```
+
+		Reply format for Success:  
+		```<Version>-CRADLE-<Request #>-REPLY-<# Fragments total>-<Base64 data>```
+
+		Example for Error:  
+		```01-CRADLE-008581-REPLY_ERROR-001-ERR400-Sorry, something went wrong.```
+
+		Example for Success (reply big enough to need 2 fragments):  
+		```01-CRADLE-008581-REPLY-002-<Base64 data>```  
 		
-	Reply format for Error:  
-	```<Version>-CRADLE-<Request #>-REPLY_ERROR-<# Fragments total>-ERR<HTTP Status code>-<Base64 data>```
-
-	Reply format for Success:  
-	```<Version>-CRADLE-<Request #>-REPLY-<# Fragments total>-<Base64 data>```
-
-	Example for Error:  
-	```01-CRADLE-008581-REPLY_ERROR-001-ERR400-Sorry, something went wrong.```
-
-	Example for Success (reply big enough to need 2 fragments):  
-	```01-CRADLE-008581-REPLY-002-<Base64 data>```  
-	Messages are fragmented the same way as described above, if needed.
-	
+		Messages are fragmented the same way as described above, if needed.
 3. Client receives each fragment, one-by-one, and acknowledges it using the same protocol used to send SMS fragments from the Client to the SMS Relay App.
-
 4. Once Client has received full message:
 	1. Client tries to process the reply data (decode Base64, decrypt, and unzip).
 	2. If data cannot be decoded as Base64, it assumes data is plaintext and shows it to the user (perhaps limiting the length of what is shown).
