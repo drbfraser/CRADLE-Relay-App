@@ -135,11 +135,11 @@
 
 ## Request Numbers
 1. Initially, the Server sets the last received request number for a Client (user) to be the maximum request number; Client’s first message uses request number 0.
-2. Request number is in plain-text SMS header, and in encrypted message body.\
+2. Request number is in plain-text SMS header, and in encrypted message body.
 3. SMS Relay app uses plain-text SMS header’s request number to ensure it knows what request each received fragment goes with, and tracking when the user sends a new request.
 4. Server uses encrypted request number to guard against replay attacks:
 	1. Server stores the most recently used request number per user.
-	2. Each request from a user must have a request number that is…:
+	2. Each request from a user must have a request number that is:
 		1. higher than the previous request number for that user (so that old requests are ignored), and
 		2. must be within (max-request-number / 1000) of the previous request number for that user (so that if request numbers roll over, recent high-numbered requests cannot be replayed)
 	3. Request numbers may wrap-around after the max value. This wrap-around is treated as preserving the greater-than relationship.  
