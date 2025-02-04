@@ -2,7 +2,7 @@
 
 **Client:** The mobile device which wants to make an HTTP request using only SMS.  
 **Relay Server:** Listens for SMS messages from the Client, relays request to Server; and relays the Server’s response to the Client.  
-**Server:** Has a REST API the Client wants to use; provides special.  
+**Server:** Has a REST API the Client wants to use;
 
 ## 1. Preconditions
 1. Server knows phone number(s) of Client (Must support more than one phone number per user so that the user can work on multiple devices at once.)
