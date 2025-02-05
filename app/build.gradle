@@ -5,7 +5,6 @@ apply plugin: 'com.google.firebase.crashlytics'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'io.gitlab.arturbosch.detekt'
-apply plugin: 'kotlinx-serialization'
 
 android {
 
@@ -68,10 +67,10 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.0.0"
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.0.0'
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.core:core-ktx:1.13.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
     implementation 'androidx.preference:preference-ktx:1.2.1'
     testImplementation 'junit:junit:4.13.2'
@@ -91,5 +90,4 @@ dependencies {
     detekt("io.gitlab.arturbosch.detekt:detekt-cli:$detekt_version")
 
     implementation 'com.google.code.gson:gson:2.8.2'
-    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3'
 }

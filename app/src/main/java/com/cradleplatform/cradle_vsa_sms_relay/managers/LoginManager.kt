@@ -9,7 +9,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
 import java.net.HttpURLConnection.HTTP_OK
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,6 +27,7 @@ class LoginManager @Inject constructor(
         const val EMAIL_KEY = "email"
         const val USERNAME_KEY = "username"
         const val USER_ID_KEY = "userId"
+        const val REFRESH_TOKEN = "refresh_token"
     }
 
     private val loginMutex = Mutex()
@@ -81,12 +81,15 @@ class LoginManager @Inject constructor(
         }
     }
 
-    suspend fun logout(): Unit = withContext(Dispatchers.IO) {
+    fun logout() {
         // Clear all the user specific information from sharedPreferences
-        sharedPreferences.edit().remove(ACCESS_TOKEN_KEY).apply()
-        sharedPreferences.edit().remove(USER_ID_KEY).apply()
-        sharedPreferences.edit().remove(EMAIL_KEY).apply()
-        sharedPreferences.edit().remove(USERNAME_KEY).apply()
+        sharedPreferences.edit(commit = true) {
+            remove(ACCESS_TOKEN_KEY)
+            remove(USER_ID_KEY)
+            remove(EMAIL_KEY)
+            remove(USERNAME_KEY)
+            remove(REFRESH_TOKEN)
+        }
     }
 
 }
@@ -94,13 +97,11 @@ class LoginManager @Inject constructor(
 /**
  * Models the response sent back by the server for /api/user/auth.
  */
-@Serializable
 data class LoginResponse(
     val accessToken: String,
     val user: LoginResponseUser
 )
 
-@Serializable
 data class LoginResponseUser(
     val id: Int,
     val username: String,
@@ -111,7 +112,6 @@ data class LoginResponseUser(
     val phoneNumbers: List<String>
 )
 
-@Serializable
 data class RefreshTokenResponse(
     val accessToken: String
 )

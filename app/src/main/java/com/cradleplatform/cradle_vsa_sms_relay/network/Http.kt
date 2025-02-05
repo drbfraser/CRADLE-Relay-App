@@ -2,9 +2,9 @@ package com.cradleplatform.cradle_vsa_sms_relay.network
 
 import android.content.SharedPreferences
 import android.util.Log
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
 import okhttp3.CertificatePinner
 import okhttp3.ConnectionSpec
 import okhttp3.Cookie
@@ -14,8 +14,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import java.util.concurrent.TimeUnit
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 import java.io.IOException
 import java.io.InputStream
 import javax.inject.Singleton
@@ -153,12 +151,13 @@ class Http(
  * Cookie jar to handle cookies. Particularly for handling the refresh token.
  */
 class CradleCookieJar(private val sharedPreferences: SharedPreferences) : CookieJar {
+    private val gson = GsonBuilder().create()
 
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
         cookies.forEach {
             // Serialize cookies and store them in shared preferences.
             val cookieData = CookieData.fromCookie(it)
-            val serializedCookie = Json.encodeToString(cookieData)
+            val serializedCookie = gson.toJson(cookieData)
             sharedPreferences.edit().putString(it.name, serializedCookie).apply()
         }
     }
@@ -167,7 +166,7 @@ class CradleCookieJar(private val sharedPreferences: SharedPreferences) : Cookie
         // Get refresh token from shared preferences
         val serializedRefreshTokenCookie = sharedPreferences.getString("refresh_token", null)
             ?: return emptyList()
-        val refreshTokenCookieData: CookieData = Json.decodeFromString<CookieData>(serializedRefreshTokenCookie)
+        val refreshTokenCookieData: CookieData = gson.fromJson(serializedRefreshTokenCookie, CookieData::class.java)
         val refreshTokenCookie = refreshTokenCookieData.toCookie()
         return listOf(refreshTokenCookie)
     }
@@ -176,7 +175,6 @@ class CradleCookieJar(private val sharedPreferences: SharedPreferences) : Cookie
 /**
  * Used for serialization of cookies.
  */
-@Serializable
 @Suppress("LongParameterList")
 class CookieData(
     val name: String,
