@@ -20,7 +20,7 @@ class DetailsActivity : AppCompatActivity() {
     private var expandableListView: ExpandableListView? = null
     private var adapter: ExpandableListAdapter? = null
     private var titleList: List<String>? = null
-    private lateinit var cardDetailsViewModel: DetailsViewModel
+    private lateinit var detailsViewModel: DetailsViewModel
     private lateinit var expandableListData: ExpandableListData
     private val expandedStateMap = SparseBooleanArray()
 
@@ -30,7 +30,7 @@ class DetailsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_card_details)
 
-        cardDetailsViewModel =
+        detailsViewModel =
             ViewModelProvider(
                 this,
                 ViewModelProvider.AndroidViewModelFactory(application)
@@ -41,12 +41,13 @@ class DetailsActivity : AppCompatActivity() {
 
         val messageNoTextView = findViewById<TextView>(R.id.messageNoTextView)
         resendButton = findViewById(R.id.btn_resend)  // Initialize Resend Button
+        resendButton.visibility = View.GONE // Hide initially
 
         if (requestId != null) {
             Log.d("DetailsActivity", "requestId is not null")
             messageNoTextView.text = getString(R.string.message_number, requestId)
 
-            cardDetailsViewModel.getRelayEntity(requestId, phoneNumber)?.observe(this) { message ->
+            detailsViewModel.getRelayEntity(requestId, phoneNumber)?.observe(this) { message ->
                 expandableListData = ExpandableListData(message)
                 expandableListView = findViewById(R.id.detailsList)
 
@@ -100,11 +101,10 @@ class DetailsActivity : AppCompatActivity() {
             return
         }
 
-        // TODO: Implement actual resend logic here (e.g., API call)
         Toast.makeText(this, "Resending message to $phoneNumber...", Toast.LENGTH_SHORT).show()
 
-        // Example: Trigger API Call to Resend
-        cardDetailsViewModel.resendMessage(requestId, phoneNumber).observe(this) { success ->
+        // API Call to Resend SMS
+        detailsViewModel.resendMessage(requestId, phoneNumber).observe(this) { success ->
             if (success) {
                 Toast.makeText(this, "Message resent successfully!", Toast.LENGTH_SHORT).show()
                 resendButton.visibility = View.GONE // Hide button after resending
