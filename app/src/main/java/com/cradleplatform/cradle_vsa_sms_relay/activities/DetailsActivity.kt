@@ -1,13 +1,15 @@
 package com.cradleplatform.cradle_vsa_sms_relay.activities
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.util.SparseBooleanArray
+import android.view.View
 import android.widget.Button
 import android.widget.ExpandableListAdapter
 import android.widget.ExpandableListView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.adapters.DetailsExpandableListAdapter
@@ -21,6 +23,8 @@ class DetailsActivity : AppCompatActivity() {
     private lateinit var cardDetailsViewModel: DetailsViewModel
     private lateinit var expandableListData: ExpandableListData
     private val expandedStateMap = SparseBooleanArray()
+
+    private lateinit var resendButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,13 +40,14 @@ class DetailsActivity : AppCompatActivity() {
         val phoneNumber = intent.getStringExtra("phoneNumber")!!
 
         val messageNoTextView = findViewById<TextView>(R.id.messageNoTextView)
+        resendButton = findViewById(R.id.btn_resend)  // Initialize Resend Button
 
         if (requestId != null) {
             Log.d("DetailsActivity", "requestId is not null")
             messageNoTextView.text = getString(R.string.message_number, requestId)
 
-            cardDetailsViewModel.getRelayEntity(requestId, phoneNumber)?.observe(this) {
-                expandableListData = ExpandableListData(it)
+            cardDetailsViewModel.getRelayEntity(requestId, phoneNumber)?.observe(this) { message ->
+                expandableListData = ExpandableListData(message)
                 expandableListView = findViewById(R.id.detailsList)
 
                 if (expandableListView != null) {
@@ -57,7 +62,7 @@ class DetailsActivity : AppCompatActivity() {
                         }
                     }
 
-                    // listeners to track expanded/collapsed state
+                    // Track expanded/collapsed state
                     expandableListView!!.setOnGroupExpandListener { groupPosition ->
                         expandedStateMap.put(groupPosition, true)
                     }
@@ -65,26 +70,47 @@ class DetailsActivity : AppCompatActivity() {
                     expandableListView!!.setOnGroupCollapseListener { groupPosition ->
                         expandedStateMap.put(groupPosition, false)
                     }
+
+                    // 🔹 Check if the message failed and show the resend button
+                    if (message.status == "FAILED") {
+                        resendButton.visibility = View.VISIBLE
+                    }
                 }
             }
         } else {
             Log.d("DetailsActivity", "requestId is null")
         }
 
-        // Set up the back button
+        // Resend Button Click Listener
+        resendButton.setOnClickListener {
+            resendFailedMessage(requestId, phoneNumber)
+        }
+
+        // Back Button
         val backButton: Button = findViewById(R.id.backButton)
         backButton.setOnClickListener {
             finish()
         }
     }
-}
 
-object MessageDeconstructionConstants {
-    const val MESSAGE_NUMBER_INDEX = 1
-    const val MESSAGE_CONTENT_INDEX = 1
-    const val FIRST_MESSAGE_CONTENT_INDEX = 4
-    const val SECONDS_PER_MINUTE = 60
-    const val MINUTES_PER_HOUR = 60
-    const val HOURS_IN_DAY = 60
+    // 🔹 Function to Resend the Failed Message
+    private fun resendFailedMessage(requestId: Int?, phoneNumber: String) {
+        if (requestId == null) {
+            Toast.makeText(this, "Invalid request ID", Toast.LENGTH_SHORT).show()
+            return
+        }
 
+        // TODO: Implement actual resend logic here (e.g., API call)
+        Toast.makeText(this, "Resending message to $phoneNumber...", Toast.LENGTH_SHORT).show()
+
+        // Example: Trigger API Call to Resend
+        cardDetailsViewModel.resendMessage(requestId, phoneNumber).observe(this) { success ->
+            if (success) {
+                Toast.makeText(this, "Message resent successfully!", Toast.LENGTH_SHORT).show()
+                resendButton.visibility = View.GONE // Hide button after resending
+            } else {
+                Toast.makeText(this, "Failed to resend message. Try again.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 }
