@@ -74,6 +74,25 @@ class RestApi(
                 gson.fromJson(InputStreamReader(it), LoginResponse::class.java)
             })
     }
+    /**
+    * Sends a request to the server to resend a failed SMS.
+    */
+    suspend fun resendSmsRequest(requestId: Int, phoneNumber: String): NetworkResult<Unit> = withContext(IO) {
+        val body = JSONObject()
+        .put("requestId", requestId)
+        .put("phoneNumber", phoneNumber)
+        .toString()
+        .encodeToByteArray()
+
+    http.makeRequest(
+        method = Http.Method.POST,
+        url = urlManager.resendSmsUrl,  // Ensure this URL is defined in `UrlManager.kt`
+        headers = makeAuthorizationHeader(),
+        requestBody = buildJsonRequestBody(body),
+        inputStreamReader = { }
+    )
+}
+
 
     /**
      * Sends message that was received by SMS to the `/api/sms_relay` endpoint on the server.
