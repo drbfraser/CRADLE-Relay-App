@@ -294,11 +294,8 @@ class MessageReceiver(
             // Prepare the data to be sent to mobile as multiple SMS messages/packets
             val base64EncodedResponse = Base64.getEncoder().encodeToString(serverResponse.body.toByteArray(Charsets.UTF_8))
             smsFormatter.formatSMS(
-                msg = base64EncodedResponse,
-                currentRequestCounter = request.requestId,
-                isSuccessful = true,
-                statusCode = serverResponse.code,
-                isEncrypted = true
+                msg = base64EncodedResponse, currentRequestCounter = request.requestId, isSuccessful = true,
+                statusCode = serverResponse.code, isEncrypted = true
             )
         } else if (serverNetworkResult is NetworkResult.Failure) {
             val errorBody = serverNetworkResult.body.decodeToString()
@@ -310,19 +307,14 @@ class MessageReceiver(
                     processedErrorBody
             Log.e(TAG, "Failure: $errorMessage")
             smsFormatter.formatSMS(
-                msg = errorMessage,
-                currentRequestCounter = request.requestId,
-                isSuccessful = false,
-                statusCode = serverNetworkResult.statusCode,
-                isEncrypted = isEncrypted
+                msg = errorMessage, currentRequestCounter = request.requestId, isSuccessful = false,
+                statusCode = serverNetworkResult.statusCode, isEncrypted = isEncrypted
             )
         } else {
             smsFormatter.formatSMS(
                 msg = serverNetworkResult.getStatusMessage() ?: "An Exception Occurred!",
-                currentRequestCounter = request.requestId,
-                isSuccessful = false,
-                statusCode = 500,
-                isEncrypted = false
+                currentRequestCounter = request.requestId, isSuccessful = false,
+                statusCode = 500, isEncrypted = false
             )
         }
 
