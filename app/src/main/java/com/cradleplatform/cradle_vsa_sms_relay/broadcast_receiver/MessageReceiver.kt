@@ -297,24 +297,32 @@ class MessageReceiver(
                 msg = base64EncodedResponse,
                 currentRequestCounter = request.requestId,
                 isSuccessful = true,
-                statusCode = serverResponse.code
+                statusCode = serverResponse.code,
+                isEncrypted = true
             )
         } else if (serverNetworkResult is NetworkResult.Failure) {
             val errorBody = serverNetworkResult.body.decodeToString()
-            val errorMessage = processHttpRelayResponseErrorBody(errorBody)
+            val isEncrypted = isHttpRelayResponseErrorBodyEncrypted(errorBody)
+            val processedErrorBody = processHttpRelayResponseErrorBody(errorBody)
+            val errorMessage = if (isEncrypted)
+                    Base64.getEncoder().encodeToString(processedErrorBody.toByteArray(Charsets.UTF_8))
+                else
+                    processedErrorBody
             Log.e(TAG, "Failure: $errorMessage")
             smsFormatter.formatSMS(
                 msg = errorMessage,
                 currentRequestCounter = request.requestId,
                 isSuccessful = false,
-                statusCode = serverNetworkResult.statusCode
+                statusCode = serverNetworkResult.statusCode,
+                isEncrypted = isEncrypted
             )
         } else {
             smsFormatter.formatSMS(
                 msg = serverNetworkResult.getStatusMessage() ?: "An Exception Occurred!",
                 currentRequestCounter = request.requestId,
                 isSuccessful = false,
-                statusCode = 500
+                statusCode = 500,
+                isEncrypted = false
             )
         }
 
@@ -401,12 +409,30 @@ class MessageReceiver(
                 when {
                     has("msg") -> getString("msg")
                     has("message") -> getString("message")
+                    has("body") -> getString("body")
                     else -> errorBody
                 }
             }
         } catch (e: org.json.JSONException) {
             Log.d(TAG, "Error message is not valid JSON: $errorBody")
             throw JsonProcessingException("Failed to process error body", e)
+        }
+    }
+
+    private fun isHttpRelayResponseErrorBodyEncrypted(errorBody: String?): Boolean {
+        if (errorBody == null) return false
+
+        try {
+            return JSONObject(errorBody).run {
+                if (has("encrypted")) {
+                    getBoolean("encrypted")
+                } else {
+                    false
+                }
+            }
+        } catch (e: org.json.JSONException) {
+            Log.d(TAG, "Error message is not valid JSON: $errorBody")
+            throw JsonProcessingException("Failed to verify if error body is encrypted", e)
         }
     }
 

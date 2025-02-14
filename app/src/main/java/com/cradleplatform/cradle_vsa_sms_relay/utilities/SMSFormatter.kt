@@ -20,6 +20,7 @@ private const val SMS_ACK_SUFFIX = "ACK"
 private const val MAGIC_STRING = "CRADLE"
 private const val REPLY_SUCCESS = "REPLY"
 private const val REPLY_ERROR = "REPLY_ERROR"
+private const val REPLY_ERROR_ENCRYPTED = "REPLY_ERROR_ENC"
 private const val REPLY_ERROR_CODE_PREFIX = "ERR"
 
 // Lengths for different parts of the SMS Protocol
@@ -137,7 +138,8 @@ class SMSFormatter @Inject constructor() {
         msg: String,
         currentRequestCounter: Int,
         isSuccessful: Boolean,
-        statusCode: Int?
+        statusCode: Int?,
+        isEncrypted: Boolean
     ): MutableList<String> {
         val packets = mutableListOf<String>()
 
@@ -170,7 +172,9 @@ class SMSFormatter @Inject constructor() {
                     $SMS_TUNNEL_PROTOCOL_VERSION-
                     $MAGIC_STRING-
                     $currentRequestCounterPadded-
-                    ${if (isSuccessful) REPLY_SUCCESS else REPLY_ERROR}-
+                    ${if (isSuccessful) REPLY_SUCCESS 
+                        else if (isEncrypted) REPLY_ERROR_ENCRYPTED 
+                        else REPLY_ERROR}-
                     $fragmentCountPadded-
                     ${if (isSuccessful) "" else REPLY_ERROR_CODE_PREFIX + statusCode.toString() + "-"}
                 """.trimIndent().replace("\n", "")
