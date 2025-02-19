@@ -10,7 +10,6 @@ data class HttpRelayRequestBody(
 data class HttpRelayResponseBody(
     val code: Int,
     val body: String,
-    val encrypted: Boolean = false
 )
 
 
