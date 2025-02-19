@@ -9,7 +9,7 @@ data class HttpRelayRequestBody(
 // Response from the server for our relay request
 data class HttpRelayResponseBody(
     val code: Int,
-    val body: String,
+    val body: String
 )
 
 
