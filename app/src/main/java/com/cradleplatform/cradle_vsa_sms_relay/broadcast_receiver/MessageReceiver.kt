@@ -294,12 +294,14 @@ class MessageReceiver(
             // Prepare the data to be sent to mobile as multiple SMS messages/packets
             val base64EncodedResponse = Base64.getEncoder().encodeToString(serverResponse.body.toByteArray(Charsets.UTF_8))
             smsFormatter.formatSMS(
-                msg = base64EncodedResponse, currentRequestCounter = request.requestId, isSuccessful = true,
-                statusCode = serverResponse.code, isEncrypted = true
+                msg = base64EncodedResponse,
+                currentRequestCounter = request.requestId,
+                isSuccessful = true,
+                statusCode = serverResponse.code
             )
         } else if (serverNetworkResult is NetworkResult.Failure) {
             val errorBody = serverNetworkResult.body.decodeToString()
-            val isEncrypted = isHttpRelayResponseErrorBodyEncrypted(errorBody)
+            val isEncrypted = isHttpRelayResponseErrorBodyEncrypted(serverNetworkResult.statusCode)
             val processedErrorBody = processHttpRelayResponseErrorBody(errorBody)
             val errorMessage = if (isEncrypted)
                     Base64.getEncoder().encodeToString(processedErrorBody.toByteArray(Charsets.UTF_8))
@@ -307,14 +309,17 @@ class MessageReceiver(
                     processedErrorBody
             Log.e(TAG, "Failure: $errorMessage")
             smsFormatter.formatSMS(
-                msg = errorMessage, currentRequestCounter = request.requestId, isSuccessful = false,
-                statusCode = serverNetworkResult.statusCode, isEncrypted = isEncrypted
+                msg = errorMessage,
+                currentRequestCounter = request.requestId,
+                isSuccessful = false,
+                statusCode = serverNetworkResult.statusCode
             )
         } else {
             smsFormatter.formatSMS(
                 msg = serverNetworkResult.getStatusMessage() ?: "An Exception Occurred!",
-                currentRequestCounter = request.requestId, isSuccessful = false,
-                statusCode = 500, isEncrypted = false
+                currentRequestCounter = request.requestId,
+                isSuccessful = false,
+                statusCode = 500
             )
         }
 
@@ -411,21 +416,9 @@ class MessageReceiver(
         }
     }
 
-    private fun isHttpRelayResponseErrorBodyEncrypted(errorBody: String?): Boolean {
-        if (errorBody == null) return false
-
-        try {
-            return JSONObject(errorBody).run {
-                if (has("encrypted")) {
-                    getBoolean("encrypted")
-                } else {
-                    false
-                }
-            }
-        } catch (e: org.json.JSONException) {
-            Log.d(TAG, "Error message is not valid JSON: $errorBody")
-            throw JsonProcessingException("Failed to verify if error body is encrypted", e)
-        }
+    private fun isHttpRelayResponseErrorBodyEncrypted(errCode: Int): Boolean {
+        val encryptedErrorCodes = listOf(409)
+        return errCode in encryptedErrorCodes
     }
 
     companion object {
