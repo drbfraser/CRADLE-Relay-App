@@ -301,6 +301,7 @@ class MessageReceiver(
             )
         } else if (serverNetworkResult is NetworkResult.Failure) {
             val errorBody = serverNetworkResult.body.decodeToString()
+            Log.d("LCDEBUG", errorBody + " " + serverNetworkResult.body.toString())
             val isEncrypted = isHttpRelayResponseErrorBodyEncrypted(serverNetworkResult.statusCode)
             val processedErrorBody = processHttpRelayResponseErrorBody(errorBody)
             val errorMessage = if (isEncrypted) Base64.getEncoder().encodeToString(processedErrorBody.toByteArray(Charsets.UTF_8))
@@ -391,8 +392,7 @@ class MessageReceiver(
         try {
             return JSONObject(errorBody).run {
                 when {
-                    has("msg") -> getString("msg")
-                    has("message") -> getString("message")
+                    has("description") -> getString("description")
                     has("body") -> getString("body")
                     else -> errorBody
                 }
