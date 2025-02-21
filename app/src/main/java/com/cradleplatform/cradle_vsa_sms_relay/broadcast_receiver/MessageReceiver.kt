@@ -418,7 +418,7 @@ class MessageReceiver(
         private const val TIMEOUT_MS_FOR_RECEIVING_FROM_MOBILE = 20_000L
         private const val TIMEOUT_MS_FOR_RECEIVING_ACK_FROM_MOBILE = 8000L
 
-        private const val REQUEST_NUMBER_MISMATCH = 409
+        private const val REQUEST_NUMBER_MISMATCH = 425
     }
 }
 
