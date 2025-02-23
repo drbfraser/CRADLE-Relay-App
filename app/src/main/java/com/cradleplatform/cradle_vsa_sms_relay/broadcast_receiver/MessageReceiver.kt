@@ -301,7 +301,10 @@ class MessageReceiver(
             )
         } else if (serverNetworkResult is NetworkResult.Failure) {
             val errorBody = serverNetworkResult.body.decodeToString()
-            val errorMessage = processHttpRelayResponseErrorBody(errorBody)
+            val isEncrypted = isHttpRelayResponseErrorBodyEncrypted(serverNetworkResult.statusCode)
+            val processedErrorBody = processHttpRelayResponseErrorBody(errorBody)
+            val errorMessage = if (isEncrypted) Base64.getEncoder().encodeToString(processedErrorBody.toByteArray(Charsets.UTF_8))
+                else processedErrorBody
             Log.e(TAG, "Failure: $errorMessage")
             smsFormatter.formatSMS(
                 msg = errorMessage,
@@ -317,7 +320,6 @@ class MessageReceiver(
                 statusCode = 500
             )
         }
-
         // Note: We don't really need to store this in DB, but the UI uses it in the Details
         // activity. It's easier to let the UI use this data if we store it in the DB
         request.dataPacketsToMobile.addAll(dataPacketsToMobile.map {
@@ -326,7 +328,6 @@ class MessageReceiver(
                 ackedCount = 0
             )
         })
-
         // Phase change should be after dataPacketsToMobile is set or the UI could think we have no
         // packets to send for a split moment
         smsRelayRepository.updateRequestPhase(request, RelayRequestPhase.RELAYING_TO_MOBILE)
@@ -345,25 +346,21 @@ class MessageReceiver(
                 channel.receive()
             }
             Log.d(TAG, "Received ack packet from mobile (null is timeout): $pkt")
-
             when {
                 // CASE: We received a relevant ACK packet from mobile
                 pkt is RelayPacket.AckPacket && (pkt.packetNumber < request.dataPacketsToMobile.size) -> {
                     val acknowledgedPacket = request.dataPacketsToMobile[pkt.packetNumber]
                     acknowledgedPacket.ackedCount++
-
                     request.timeMsLastReceived = System.currentTimeMillis()
                     smsRelayRepository.updateRelayRequest(request)
                 }
                 // CASE: We timed out waiting for ACK from mobile
                 pkt == null -> {
                     retriesForPacket++
-
                     if (retriesForPacket >= MAX_RETRIES_FOR_DATA_PACKETS_TO_MOBILE) {
                         throw RelayRequestFailedException("Retries exceeded for relaying to mobile")
                     } else {
                         Log.d(TAG, "Timed out waiting for ACK, retrying")
-
                         smsFormatter.sendMessage(
                             phoneNumber = request.phoneNumber,
                             smsMessage = request.dataPacketsToMobile[currPacketToMobileIdx].data
@@ -371,16 +368,12 @@ class MessageReceiver(
                     }
                 }
                 // CASE: We received some random packet
-                else -> {
-                    Log.d(TAG, "Discarding unexpected packet: $pkt")
-                }
+                else -> Log.d(TAG, "Discarding unexpected packet: $pkt")
             }
-
             // Check if there is a change in total acks received (non-duplicate). If true, next packet
             // to mobile would be different from current, indicating that we are ready to send the
             // next packet to mobile
-            val nextPacketToMobileIdx =
-                request.dataPacketsToMobile.indexOfFirst { it.ackedCount == 0 }
+            val nextPacketToMobileIdx = request.dataPacketsToMobile.indexOfFirst { it.ackedCount == 0 }
             if (nextPacketToMobileIdx != -1 && nextPacketToMobileIdx != currPacketToMobileIdx) {
                 smsFormatter.sendMessage(
                     phoneNumber = request.phoneNumber,
@@ -388,7 +381,6 @@ class MessageReceiver(
                 )
                 retriesForPacket = 0 // Reset retries since its a fresh packet
             }
-
             currPacketToMobileIdx = nextPacketToMobileIdx
         }
     }
@@ -399,8 +391,8 @@ class MessageReceiver(
         try {
             return JSONObject(errorBody).run {
                 when {
-                    has("msg") -> getString("msg")
-                    has("message") -> getString("message")
+                    has("description") -> getString("description")
+                    has("body") -> getString("body")
                     else -> errorBody
                 }
             }
@@ -408,6 +400,11 @@ class MessageReceiver(
             Log.d(TAG, "Error message is not valid JSON: $errorBody")
             throw JsonProcessingException("Failed to process error body", e)
         }
+    }
+
+    private fun isHttpRelayResponseErrorBodyEncrypted(errCode: Int): Boolean {
+        val encryptedErrorCodes = listOf(REQUEST_NUMBER_MISMATCH)
+        return errCode in encryptedErrorCodes
     }
 
     companion object {
@@ -419,6 +416,8 @@ class MessageReceiver(
         private const val MAX_RETRIES_FOR_DATA_PACKETS_TO_MOBILE = 5
         private const val TIMEOUT_MS_FOR_RECEIVING_FROM_MOBILE = 20_000L
         private const val TIMEOUT_MS_FOR_RECEIVING_ACK_FROM_MOBILE = 8000L
+
+        private const val REQUEST_NUMBER_MISMATCH = 425
     }
 }
 
