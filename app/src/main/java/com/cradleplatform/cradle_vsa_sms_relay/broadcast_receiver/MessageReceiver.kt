@@ -7,7 +7,6 @@ import android.provider.Telephony
 import android.util.Log
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayRequestBody
-import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayResponseBody
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestData
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequest
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequestResult
@@ -32,7 +31,9 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.jvm.Throws
 
 
-class RelayRequestFailedException(message: String, cause: Throwable? = null) : Exception(message, cause)
+class RelayRequestFailedException(message: String, cause: Throwable? = null) :
+    Exception(message, cause)
+
 class JsonProcessingException(message: String, cause: Throwable) : Exception(message, cause)
 
 class MessageReceiver(
@@ -258,14 +259,15 @@ class MessageReceiver(
     }
 
     @Throws(RelayRequestFailedException::class)
-    private suspend fun relayToServer(relayRequest: RelayRequest):  NetworkResult<HttpRelayResponseBody> {
+    private suspend fun relayToServer(relayRequest: RelayRequest): NetworkResult<String> {
         assert(relayRequest.dataPacketsFromMobile.all { it != null })
 
         smsRelayRepository.updateRequestPhase(relayRequest, RelayRequestPhase.RELAYING_TO_SERVER)
 
         // Step 1: Concat all fragments into base64 string
         // we want to concat before decrypting due to base64 length requirements for full bytes
-        val base64EncodedMessage = relayRequest.dataPacketsFromMobile.joinToString(separator = "") { it!!.data }
+        val base64EncodedMessage =
+            relayRequest.dataPacketsFromMobile.joinToString(separator = "") { it!!.data }
 
         // Step 2: Decode Base64 to retrieve the AES-encrypted payload
         // similar payload that was originally being sent to server is now extracted
@@ -287,39 +289,51 @@ class MessageReceiver(
     private suspend fun relayToMobile(
         request: RelayRequest,
         channel: Channel<RelayPacket>,
-        serverNetworkResult: NetworkResult<HttpRelayResponseBody>
+        serverNetworkResult: NetworkResult<String>
     ) {
-        val dataPacketsToMobile = if (serverNetworkResult is NetworkResult.Success) {
-            val serverResponse = serverNetworkResult.value
-            // Prepare the data to be sent to mobile as multiple SMS messages/packets
-            val base64EncodedResponse = Base64.getEncoder().encodeToString(serverResponse.body.toByteArray(Charsets.UTF_8))
-            smsFormatter.formatSMS(
-                msg = base64EncodedResponse,
-                currentRequestCounter = request.requestId,
-                isSuccessful = true,
-                statusCode = serverResponse.code
-            )
-        } else if (serverNetworkResult is NetworkResult.Failure) {
-            val errorBody = serverNetworkResult.body.decodeToString()
-            val isEncrypted = isHttpRelayResponseErrorBodyEncrypted(serverNetworkResult.statusCode)
-            val processedErrorBody = processHttpRelayResponseErrorBody(errorBody)
-            val errorMessage = if (isEncrypted) Base64.getEncoder().encodeToString(processedErrorBody.toByteArray(Charsets.UTF_8))
-                else processedErrorBody
-            Log.e(TAG, "Failure: $errorMessage")
-            smsFormatter.formatSMS(
-                msg = errorMessage,
-                currentRequestCounter = request.requestId,
-                isSuccessful = false,
-                statusCode = serverNetworkResult.statusCode
-            )
-        } else {
-            smsFormatter.formatSMS(
-                msg = serverNetworkResult.getStatusMessage() ?: "An Exception Occurred!",
-                currentRequestCounter = request.requestId,
-                isSuccessful = false,
-                statusCode = 500
-            )
+        val dataPacketsToMobile = when (serverNetworkResult) {
+            is NetworkResult.Success -> {
+                val serverResponse = serverNetworkResult.value
+                // Prepare the data to be sent to mobile as multiple SMS messages/packets
+                val base64EncodedResponse =
+                    Base64.getEncoder().encodeToString(serverResponse.toByteArray(Charsets.UTF_8))
+
+                smsFormatter.formatSMS(
+                    msg = base64EncodedResponse,
+                    currentRequestCounter = request.requestId,
+                    isSuccessful = true,
+                    statusCode = 200
+                )
+            }
+            is NetworkResult.Failure -> {
+                val errorBody = serverNetworkResult.body.decodeToString()
+
+                val isEncrypted =
+                    isHttpRelayResponseErrorBodyEncrypted(serverNetworkResult.statusCode)
+
+                val errorMessage = if (isEncrypted) {
+                    val encoder = Base64.getEncoder()
+                    encoder.encodeToString(errorBody.toByteArray(Charsets.UTF_8))
+                } else processHttpRelayResponseErrorBody(errorBody)
+                Log.e(TAG, "Failure: $errorMessage")
+
+                smsFormatter.formatSMS(
+                    msg = errorMessage,
+                    currentRequestCounter = request.requestId,
+                    isSuccessful = false,
+                    statusCode = serverNetworkResult.statusCode
+                )
+            }
+            is NetworkResult.NetworkException -> {
+                smsFormatter.formatSMS(
+                    msg = serverNetworkResult.getStatusMessage() ?: "An Exception Occurred!",
+                    currentRequestCounter = request.requestId,
+                    isSuccessful = false,
+                    statusCode = 500
+                )
+            }
         }
+
         // Note: We don't really need to store this in DB, but the UI uses it in the Details
         // activity. It's easier to let the UI use this data if we store it in the DB
         request.dataPacketsToMobile.addAll(dataPacketsToMobile.map {
@@ -373,7 +387,8 @@ class MessageReceiver(
             // Check if there is a change in total acks received (non-duplicate). If true, next packet
             // to mobile would be different from current, indicating that we are ready to send the
             // next packet to mobile
-            val nextPacketToMobileIdx = request.dataPacketsToMobile.indexOfFirst { it.ackedCount == 0 }
+            val nextPacketToMobileIdx =
+                request.dataPacketsToMobile.indexOfFirst { it.ackedCount == 0 }
             if (nextPacketToMobileIdx != -1 && nextPacketToMobileIdx != currPacketToMobileIdx) {
                 smsFormatter.sendMessage(
                     phoneNumber = request.phoneNumber,
