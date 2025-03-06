@@ -322,19 +322,7 @@ class MessageReceiver(
             statusCode = serverNetworkResult.statusCode
         )
     }
-
-    private fun getDataPacketsForException(
-        request: RelayRequest,
-        serverNetworkResult: NetworkResult.NetworkException<String>
-    ): MutableList<String> {
-        return smsFormatter.formatSMS(
-            msg = serverNetworkResult.getStatusMessage() ?: "An Exception Occurred!",
-            currentRequestCounter = request.requestId,
-            isSuccessful = false,
-            statusCode = 500
-        )
-    }
-
+    
     @Throws(RelayRequestFailedException::class)
     @Suppress("MagicNumber")
     private suspend fun relayToMobile(
@@ -350,7 +338,12 @@ class MessageReceiver(
                 getDataPacketsForError(request, serverNetworkResult)
 
             is NetworkResult.NetworkException ->
-                getDataPacketsForException(request, serverNetworkResult)
+                smsFormatter.formatSMS(
+                    msg = serverNetworkResult.getStatusMessage() ?: "An Exception Occurred!",
+                    currentRequestCounter = request.requestId,
+                    isSuccessful = false,
+                    statusCode = 500
+                )
         }
 
         // Note: We don't really need to store this in DB, but the UI uses it in the Details
