@@ -284,6 +284,57 @@ class MessageReceiver(
         return restApi.relaySmsRequest(relayRequestBody)
     }
 
+    private fun getDataPacketsForSuccess(
+        request: RelayRequest,
+        serverNetworkResult: NetworkResult.Success<String>
+    ): MutableList<String> {
+        val serverResponse = serverNetworkResult.value
+        // Prepare the data to be sent to mobile as multiple SMS messages/packets
+        val base64EncodedResponse =
+            Base64.getEncoder().encodeToString(serverResponse.toByteArray(Charsets.UTF_8))
+
+        return smsFormatter.formatSMS(
+            msg = base64EncodedResponse,
+            currentRequestCounter = request.requestId,
+            isSuccessful = true,
+            statusCode = 200
+        )
+    }
+
+    private fun getDataPacketsForError(
+        request: RelayRequest,
+        serverNetworkResult: NetworkResult.Failure<String>
+    ): MutableList<String> {
+        val errorBody = serverNetworkResult.body.decodeToString()
+        val isEncrypted =
+            isHttpRelayResponseErrorBodyEncrypted(serverNetworkResult.statusCode)
+
+        val errorMessage = if (isEncrypted) {
+            val encoder = Base64.getEncoder()
+            encoder.encodeToString(errorBody.toByteArray(Charsets.UTF_8))
+        } else processHttpRelayResponseErrorBody(errorBody)
+        Log.e(TAG, "Failure: $errorMessage")
+
+        return smsFormatter.formatSMS(
+            msg = errorMessage,
+            currentRequestCounter = request.requestId,
+            isSuccessful = false,
+            statusCode = serverNetworkResult.statusCode
+        )
+    }
+
+    private fun getDataPacketsForException(
+        request: RelayRequest,
+        serverNetworkResult: NetworkResult.NetworkException<String>
+    ): MutableList<String> {
+        return smsFormatter.formatSMS(
+            msg = serverNetworkResult.getStatusMessage() ?: "An Exception Occurred!",
+            currentRequestCounter = request.requestId,
+            isSuccessful = false,
+            statusCode = 500
+        )
+    }
+
     @Throws(RelayRequestFailedException::class)
     @Suppress("MagicNumber")
     private suspend fun relayToMobile(
@@ -292,55 +343,20 @@ class MessageReceiver(
         serverNetworkResult: NetworkResult<String>
     ) {
         val dataPacketsToMobile = when (serverNetworkResult) {
-            is NetworkResult.Success -> {
-                val serverResponse = serverNetworkResult.value
-                // Prepare the data to be sent to mobile as multiple SMS messages/packets
-                val base64EncodedResponse =
-                    Base64.getEncoder().encodeToString(serverResponse.toByteArray(Charsets.UTF_8))
+            is NetworkResult.Success ->
+                getDataPacketsForSuccess(request, serverNetworkResult)
 
-                smsFormatter.formatSMS(
-                    msg = base64EncodedResponse,
-                    currentRequestCounter = request.requestId,
-                    isSuccessful = true,
-                    statusCode = 200
-                )
-            }
-            is NetworkResult.Failure -> {
-                val errorBody = serverNetworkResult.body.decodeToString()
+            is NetworkResult.Failure ->
+                getDataPacketsForError(request, serverNetworkResult)
 
-                val isEncrypted =
-                    isHttpRelayResponseErrorBodyEncrypted(serverNetworkResult.statusCode)
-
-                val errorMessage = if (isEncrypted) {
-                    val encoder = Base64.getEncoder()
-                    encoder.encodeToString(errorBody.toByteArray(Charsets.UTF_8))
-                } else processHttpRelayResponseErrorBody(errorBody)
-                Log.e(TAG, "Failure: $errorMessage")
-
-                smsFormatter.formatSMS(
-                    msg = errorMessage,
-                    currentRequestCounter = request.requestId,
-                    isSuccessful = false,
-                    statusCode = serverNetworkResult.statusCode
-                )
-            }
-            is NetworkResult.NetworkException -> {
-                smsFormatter.formatSMS(
-                    msg = serverNetworkResult.getStatusMessage() ?: "An Exception Occurred!",
-                    currentRequestCounter = request.requestId,
-                    isSuccessful = false,
-                    statusCode = 500
-                )
-            }
+            is NetworkResult.NetworkException ->
+                getDataPacketsForException(request, serverNetworkResult)
         }
 
         // Note: We don't really need to store this in DB, but the UI uses it in the Details
         // activity. It's easier to let the UI use this data if we store it in the DB
         request.dataPacketsToMobile.addAll(dataPacketsToMobile.map {
-            RelayResponseData(
-                data = it,
-                ackedCount = 0
-            )
+            RelayResponseData(data = it, ackedCount = 0)
         })
         // Phase change should be after dataPacketsToMobile is set or the UI could think we have no
         // packets to send for a split moment
