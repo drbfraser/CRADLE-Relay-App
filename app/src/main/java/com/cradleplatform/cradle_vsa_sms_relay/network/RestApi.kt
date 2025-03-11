@@ -6,7 +6,6 @@ import androidx.core.content.edit
 import com.cradleplatform.cradle_vsa_sms_relay.managers.LoginResponse
 import com.cradleplatform.cradle_vsa_sms_relay.managers.RefreshTokenResponse
 import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayRequestBody
-import com.cradleplatform.cradle_vsa_sms_relay.model.HttpRelayResponseBody
 import com.cradleplatform.cradle_vsa_sms_relay.model.UrlManager
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Dispatchers.IO
@@ -80,7 +79,7 @@ class RestApi(
      */
     suspend fun relaySmsRequest(
         httpRelayRequestBody: HttpRelayRequestBody
-    ): NetworkResult<HttpRelayResponseBody> = withContext(IO) {
+    ): NetworkResult<String> = withContext(IO) {
         val body = gson.toJson(httpRelayRequestBody).encodeToByteArray()
 
         http.makeRequest(
@@ -89,7 +88,7 @@ class RestApi(
             headers = makeAuthorizationHeader(),
             requestBody = buildJsonRequestBody(body),
             inputStreamReader = {
-                gson.fromJson(InputStreamReader(it), HttpRelayResponseBody::class.java)
+                InputStreamReader(it).readText()
             })
     }
 
