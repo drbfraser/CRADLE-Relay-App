@@ -41,8 +41,6 @@ import com.google.android.material.button.MaterialButton
 @Suppress("LargeClass", "TooManyFunctions")
 class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickListener {
 
-    private var isServiceStarted = false
-    private var selectedPhoneNumber: String? = null
     private var stopServiceDialog: AlertDialog? = null
 
     // our reference to the service
@@ -51,12 +49,10 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceDisconnected(p0: ComponentName?) {
             mService = null
-            isServiceStarted = false
         }
 
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
             val binder = p1 as SmsService.MyBinder
-            isServiceStarted = true
             mService = binder.service
         }
     }
@@ -75,7 +71,9 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
         setupStopService()
         setupStopServiceDialog()
         setupFilter()
+        observeServiceState()
     }
+
     override fun onItemClick(position: Int) {
         val relayRequest = mainRecyclerViewAdapter.sms[position] // Access the item from the list
         val intent = Intent(this, DetailsActivity::class.java).apply {
@@ -86,25 +84,24 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
         startActivity(intent)
     }
 
+    private fun observeServiceState() {
+        smsRelayViewModel.isServiceStarted.observe(this) { started ->
+            makeButtonUnclickable(started)
+        }
+    }
+
     private fun setupFilter() {
-        // Get reference to the spinner
         val phoneNumberSpinner: Spinner = findViewById(R.id.phoneNumberSpinner)
         val filterTypeSpinner: Spinner = findViewById(R.id.filterType)
 
-        // Create an ArrayAdapter using the MainRecyclerViewAdapter's phone numbers
         val adapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_item,
             mainRecyclerViewAdapter.getPhoneNumbers()
         )
-
-        // Set the layout for the dropdown list
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-
-        // Set the adapter to the spinner
         phoneNumberSpinner.adapter = adapter
 
-        // Set up filterTypeSpinner with options: None, Only Successful, and Only Failed
         val filterAdapter = ArrayAdapter.createFromResource(
             this,
             R.array.filter_options,
@@ -113,54 +110,52 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
         filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         filterTypeSpinner.adapter = filterAdapter
 
-        // Add a listener to the phoneNumberSpinner to filter the RecyclerView based on the selected phone number
+        // Restore saved spinner positions
+        val savedPhone = smsRelayViewModel.selectedPhoneNumber.value
+        if (savedPhone != null) {
+            val pos = (0 until adapter.count).firstOrNull { adapter.getItem(it) == savedPhone } ?: 0
+            phoneNumberSpinner.setSelection(pos)
+        }
+        val savedFilterIndex = smsRelayViewModel.selectedFilterIndex.value ?: 0
+        filterTypeSpinner.setSelection(savedFilterIndex)
+
         phoneNumberSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                // Get the selected phone number
-                selectedPhoneNumber = parent?.getItemAtPosition(position).toString()
-
-                // Filter the list of SMS relay entities based on the selected phone number and filter type
+                val phone = parent?.getItemAtPosition(position).toString()
+                smsRelayViewModel.setSelectedPhoneNumber(phone)
                 filterList()
             }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                // Do nothing when nothing is selected
-            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        // Add a listener to the filterTypeSpinner to filter the RecyclerView based on the selected filter type
         filterTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                // Filter the list of SMS relay entities based on the selected filter type
+                smsRelayViewModel.setSelectedFilterIndex(position)
                 filterList()
             }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                // Do nothing when nothing is selected
-            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
     }
 
     private fun filterList() {
-        // Get the selected filter type
-        val selectedFilter = findViewById<Spinner>(R.id.filterType).selectedItem.toString()
+        val selectedPhone = smsRelayViewModel.selectedPhoneNumber.value
+        val selectedFilterIndex = smsRelayViewModel.selectedFilterIndex.value ?: 0
+        val selectedFilter = resources.getStringArray(R.array.filter_options)
+            .getOrElse(selectedFilterIndex) { "None" }
 
-        // Filter the list of SMS relay entities based on the selected phone number and filter type
-        val filteredList = if (selectedPhoneNumber == "All") {
+        val filteredList = if (selectedPhone == null || selectedPhone == "All") {
             smsRelayViewModel.getAllRelayRequests().value.orEmpty()
         } else {
             smsRelayViewModel.getAllRelayRequests().value.orEmpty()
-                .filter { it.phoneNumber == selectedPhoneNumber }
+                .filter { it.phoneNumber == selectedPhone }
         }
 
-        // Apply additional filtering based on the selected filter type
         val finalFilteredList = when (selectedFilter) {
             "Only Successful" -> filteredList.filter { it.requestResult == RelayRequestResult.OK }
             "Only Failed" -> filteredList.filter { it.requestResult == RelayRequestResult.ERROR }
             else -> filteredList
         }
 
-        // Update the RecyclerView to display only the filtered SMS relay entities
         mainRecyclerViewAdapter.setRelayList(finalFilteredList)
     }
 
@@ -210,7 +205,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
 
     private fun setupStopService() {
         findViewById<MaterialButton>(R.id.btnStopService).setOnClickListener {
-            if (!isServiceStarted) {
+            if (smsRelayViewModel.isServiceStarted.value != true) {
                 Toast.makeText(this, "Service is not running", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
@@ -247,13 +242,13 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
     }
 
     private fun stopSmsService() {
-        if (mService != null && isServiceStarted) {
+        if (mService != null && smsRelayViewModel.isServiceStarted.value == true) {
             val intent: Intent = Intent(this, SmsService::class.java).also { _ ->
                 unbindService(serviceConnection)
             }
             intent.action = SmsService.STOP_SERVICE
             ContextCompat.startForegroundService(this, intent)
-            isServiceStarted = false
+            smsRelayViewModel.setServiceStarted(false)
             makeButtonUnclickable(false)
         }
     }
@@ -319,7 +314,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
             }
         } else {
             // permission already granted
-            if (!isServiceStarted) {
+            if (smsRelayViewModel.isServiceStarted.value != true) {
                 startService()
             }
         }
@@ -333,6 +328,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
         serviceIntent.action = SmsService.START_SERVICE
         ContextCompat.startForegroundService(this, serviceIntent)
         bindService(serviceIntent, serviceConnection, 0)
+        smsRelayViewModel.setServiceStarted(true)
         makeButtonUnclickable(true)
     }
 
@@ -350,7 +346,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
                 }
             }
             // do whatever when permissions are granted
-            if (!isServiceStarted) {
+            if (smsRelayViewModel.isServiceStarted.value != true) {
                 startService()
             }
         }
@@ -358,11 +354,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
 
     override fun onDestroy() {
         super.onDestroy()
-        if (SmsService.isServiceRunningInForeground(
-                this,
-                SmsService::class.java
-            )
-        ) {
+        if (SmsService.isServiceRunningInForeground(this, SmsService::class.java)) {
             unbindService(serviceConnection)
         }
     }
