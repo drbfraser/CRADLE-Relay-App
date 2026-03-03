@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
 
     private var isServiceStarted = false
     private var selectedPhoneNumber: String? = null
+    private var stopServiceDialog: AlertDialog? = null
 
     // our reference to the service
     var mService: SmsService? = null
@@ -72,6 +73,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
         setupToolBar()
         setupStartService()
         setupStopService()
+        setupStopServiceDialog()
         setupFilter()
     }
     override fun onItemClick(position: Int) {
@@ -212,17 +214,35 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
                 Toast.makeText(this, "Service is not running", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
-            val alertDialog = AlertDialog.Builder(this).create()
-            val view = layoutInflater.inflate(R.layout.stop_service_dialog, null)
-            alertDialog.setView(view)
-            view.findViewById<Button>(R.id.yesButton).setOnClickListener {
-                alertDialog.dismiss()
-                stopSmsService()
+            smsRelayViewModel.requestStopServiceDialog()
+        }
+    }
+
+    private fun setupStopServiceDialog() {
+        smsRelayViewModel.showStopServiceDialog.observe(this) { shouldShow ->
+            if (shouldShow) {
+                if (stopServiceDialog == null || stopServiceDialog?.isShowing == false) {
+                    val alertDialog = AlertDialog.Builder(this).create()
+                    val view = layoutInflater.inflate(R.layout.stop_service_dialog, null)
+                    alertDialog.setView(view)
+                    alertDialog.setOnDismissListener {
+                        smsRelayViewModel.dismissStopServiceDialog()
+                        stopServiceDialog = null
+                    }
+                    view.findViewById<Button>(R.id.yesButton).setOnClickListener {
+                        alertDialog.dismiss()
+                        stopSmsService()
+                    }
+                    view.findViewById<Button>(R.id.noButton).setOnClickListener {
+                        alertDialog.dismiss()
+                    }
+                    alertDialog.show()
+                    stopServiceDialog = alertDialog
+                }
+            } else {
+                stopServiceDialog?.dismiss()
+                stopServiceDialog = null
             }
-            view.findViewById<Button>(R.id.noButton).setOnClickListener {
-                alertDialog.dismiss()
-            }
-            alertDialog.show()
         }
     }
 

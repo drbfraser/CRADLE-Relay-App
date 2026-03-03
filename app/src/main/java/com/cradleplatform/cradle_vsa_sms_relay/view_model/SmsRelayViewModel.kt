@@ -3,6 +3,7 @@ package com.cradleplatform.cradle_vsa_sms_relay.view_model
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.model.RelayRequest
 import com.cradleplatform.cradle_vsa_sms_relay.repository.SmsRelayRepository
@@ -21,8 +22,20 @@ class SmsRelayViewModel(application: Application) :
 
     private val relayRequest: LiveData<List<RelayRequest>>
 
+    // Tracks whether the stop-service confirmation dialog should be shown
+    private val _showStopServiceDialog = MutableLiveData<Boolean>(false)
+    val showStopServiceDialog: LiveData<Boolean> = _showStopServiceDialog
+
     fun getAllRelayRequests(): LiveData<List<RelayRequest>> {
         return repository.relayRequests
+    }
+
+    fun requestStopServiceDialog() {
+        _showStopServiceDialog.value = true
+    }
+
+    fun dismissStopServiceDialog() {
+        _showStopServiceDialog.value = false
     }
 
     init {
