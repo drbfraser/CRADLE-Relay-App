@@ -26,6 +26,18 @@ class SmsRelayViewModel(application: Application) :
     private val _showStopServiceDialog = MutableLiveData<Boolean>(false)
     val showStopServiceDialog: LiveData<Boolean> = _showStopServiceDialog
 
+    // Tracks whether the SMS service is running
+    private val _isServiceStarted = MutableLiveData<Boolean>(false)
+    val isServiceStarted: LiveData<Boolean> = _isServiceStarted
+
+    // Tracks the selected phone number filter
+    private val _selectedPhoneNumber = MutableLiveData<String?>(null)
+    val selectedPhoneNumber: LiveData<String?> = _selectedPhoneNumber
+
+    // Tracks the selected filter type spinner index
+    private val _selectedFilterIndex = MutableLiveData<Int>(0)
+    val selectedFilterIndex: LiveData<Int> = _selectedFilterIndex
+
     fun getAllRelayRequests(): LiveData<List<RelayRequest>> {
         return repository.relayRequests
     }
@@ -36,6 +48,18 @@ class SmsRelayViewModel(application: Application) :
 
     fun dismissStopServiceDialog() {
         _showStopServiceDialog.value = false
+    }
+
+    fun setServiceStarted(started: Boolean) {
+        _isServiceStarted.value = started
+    }
+
+    fun setSelectedPhoneNumber(phone: String?) {
+        _selectedPhoneNumber.value = phone
+    }
+
+    fun setSelectedFilterIndex(index: Int) {
+        _selectedFilterIndex.value = index
     }
 
     init {
