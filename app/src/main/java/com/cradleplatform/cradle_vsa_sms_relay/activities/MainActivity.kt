@@ -19,6 +19,7 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.ScrollView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -72,6 +73,23 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
         setupStopServiceDialog()
         setupFilter()
         observeServiceState()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Re-bind to service every time activity becomes visible (handles rotation)
+        if (smsRelayViewModel.isServiceStarted.value == true) {
+            bindToRunningService()
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Unbind on every stop (rotation or navigating away) to avoid leaking connection
+        if (mService != null) {
+            unbindService(serviceConnection)
+            mService = null
+        }
     }
 
     override fun onItemClick(position: Int) {
@@ -174,7 +192,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
     }
 
     private fun setupRecyclerView(): MainRecyclerViewAdapter {
-        val emptyImageView: FrameLayout = findViewById(R.id.emptyRecyclerView)
+        val emptyImageView: ScrollView = findViewById(R.id.emptyRecyclerView)
         val smsRecyclerView: RecyclerView = findViewById(R.id.messageRecyclerview)
         val adapter = MainRecyclerViewAdapter()
         smsRecyclerView.adapter = adapter
@@ -216,40 +234,48 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
     private fun setupStopServiceDialog() {
         smsRelayViewModel.showStopServiceDialog.observe(this) { shouldShow ->
             if (shouldShow) {
-                if (stopServiceDialog == null || stopServiceDialog?.isShowing == false) {
-                    val alertDialog = AlertDialog.Builder(this).create()
-                    val view = layoutInflater.inflate(R.layout.stop_service_dialog, null)
-                    alertDialog.setView(view)
-                    alertDialog.setOnDismissListener {
+                // Dismiss any stale dialog instance before creating a new one
+                stopServiceDialog?.takeIf { it.isShowing }?.dismiss()
+                stopServiceDialog = null
+
+                val alertDialog = AlertDialog.Builder(this).create()
+                val view = layoutInflater.inflate(R.layout.stop_service_dialog, null)
+                alertDialog.setView(view)
+                alertDialog.setOnDismissListener {
+                    // Only reset ViewModel state if this activity is not being rotated.
+                    // On rotation the new Activity's observer will re-show the dialog.
+                    if (!isChangingConfigurations) {
                         smsRelayViewModel.dismissStopServiceDialog()
-                        stopServiceDialog = null
                     }
-                    view.findViewById<Button>(R.id.yesButton).setOnClickListener {
-                        alertDialog.dismiss()
-                        stopSmsService()
-                    }
-                    view.findViewById<Button>(R.id.noButton).setOnClickListener {
-                        alertDialog.dismiss()
-                    }
-                    alertDialog.show()
-                    stopServiceDialog = alertDialog
+                    stopServiceDialog = null
                 }
+                view.findViewById<Button>(R.id.yesButton).setOnClickListener {
+                    alertDialog.dismiss()
+                    stopSmsService()
+                }
+                view.findViewById<Button>(R.id.noButton).setOnClickListener {
+                    alertDialog.dismiss()
+                }
+                alertDialog.show()
+                stopServiceDialog = alertDialog
             } else {
-                stopServiceDialog?.dismiss()
+                stopServiceDialog?.takeIf { it.isShowing }?.dismiss()
                 stopServiceDialog = null
             }
         }
     }
 
     private fun stopSmsService() {
-        if (mService != null && smsRelayViewModel.isServiceStarted.value == true) {
-            val intent: Intent = Intent(this, SmsService::class.java).also { _ ->
+        if (smsRelayViewModel.isServiceStarted.value == true) {
+            // Unbind first if still connected
+            if (mService != null) {
                 unbindService(serviceConnection)
+                mService = null
             }
+            val intent = Intent(this, SmsService::class.java)
             intent.action = SmsService.STOP_SERVICE
             ContextCompat.startForegroundService(this, intent)
             smsRelayViewModel.setServiceStarted(false)
-            makeButtonUnclickable(false)
         }
     }
 
@@ -279,8 +305,15 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
         findViewById<MaterialButton>(R.id.btnStartService).setOnClickListener {
             checkPermissions()
         }
-        // start the service initially
-        checkPermissions()
+        // Only kick off the initial start if the service isn't already running
+        if (smsRelayViewModel.isServiceStarted.value != true) {
+            checkPermissions()
+        }
+    }
+
+    private fun bindToRunningService() {
+        val intent = Intent(this, SmsService::class.java)
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
     }
 
     private fun checkPermissions() {
@@ -321,15 +354,11 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
     }
 
     private fun startService() {
-        val serviceIntent = Intent(
-            this,
-            SmsService::class.java
-        ).also { intent -> bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE) }
+        val serviceIntent = Intent(this, SmsService::class.java)
         serviceIntent.action = SmsService.START_SERVICE
         ContextCompat.startForegroundService(this, serviceIntent)
-        bindService(serviceIntent, serviceConnection, 0)
+        // Do not call bindService here — onStart handles binding via bindToRunningService()
         smsRelayViewModel.setServiceStarted(true)
-        makeButtonUnclickable(true)
     }
 
     override fun onRequestPermissionsResult(
@@ -354,9 +383,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
 
     override fun onDestroy() {
         super.onDestroy()
-        if (SmsService.isServiceRunningInForeground(this, SmsService::class.java)) {
-            unbindService(serviceConnection)
-        }
+        // onStop already unbinds. Nothing extra needed here.
     }
 
     companion object {
