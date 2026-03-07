@@ -29,10 +29,12 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         (application as MyApp).component.inject(this)
         setContentView(R.layout.settings_activity)
-        supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.settings, SettingsFragment(loginManager))
-            .commit()
+        if (savedInstanceState == null) {
+            supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.settings, SettingsFragment())
+                .commit()
+        }
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         findViewById<ImageButton>(R.id.back_button).setOnClickListener {
             handleBackPress()
@@ -50,8 +52,12 @@ class SettingsActivity : AppCompatActivity() {
         overridePendingTransition(R.anim.nothing, R.anim.slide_up)
     }
 
-    class SettingsFragment(private val loginManager: LoginManager) : PreferenceFragmentCompat() {
+    class SettingsFragment : PreferenceFragmentCompat() {
+        @Inject
+        lateinit var loginManager: LoginManager
+
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+            (requireActivity().application as MyApp).component.inject(this)
             setPreferencesFromResource(R.xml.root_preferences, rootKey)
 
             val reuploadListKey = getString(R.string.reuploadListPrefKey)
