@@ -305,17 +305,10 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
         findViewById<MaterialButton>(R.id.btnStartService).setOnClickListener {
             checkPermissions()
         }
-        // Sync ViewModel with the real service state (handles process death / first launch / rotation)
+        // Always sync ViewModel to the real service running state — this is the single
+        // source of truth. Never auto-start here; that would restart the service on rotation.
         val serviceActuallyRunning = SmsService.isServiceRunningInForeground(this, SmsService::class.java)
-        if (serviceActuallyRunning && smsRelayViewModel.isServiceStarted.value != true) {
-            smsRelayViewModel.setServiceStarted(true)
-        } else if (!serviceActuallyRunning && smsRelayViewModel.isServiceStarted.value == true) {
-            smsRelayViewModel.setServiceStarted(false)
-        }
-        // Only auto-start the service if it is genuinely not running
-        if (!serviceActuallyRunning) {
-            checkPermissions()
-        }
+        smsRelayViewModel.setServiceStarted(serviceActuallyRunning)
     }
 
     private fun bindToRunningService() {
