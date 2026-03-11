@@ -142,7 +142,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
                 smsRelayViewModel.setSelectedPhoneNumber(phone)
                 filterList()
             }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
 
         filterTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -150,7 +150,7 @@ class MainActivity : AppCompatActivity(), MainRecyclerViewAdapter.OnItemClickLis
                 smsRelayViewModel.setSelectedFilterIndex(position)
                 filterList()
             }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
     }
 
