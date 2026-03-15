@@ -6,149 +6,159 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+    tools:context="com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:context="com.cradleplatform.cradle_vsa_sms_relay.activities.MainActivity">
+        android:orientation="vertical"
+        android:minHeight="500dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnStartService"
-            android:layout_width="0dp"
+        <!-- Start / Stop buttons row -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="8dp"
-            android:text="@string/start_service"
-            android:textColor="@color/green"
-            android:textColorHighlight="@color/green"
-            app:backgroundTint="@color/green_faded"
-            app:cornerRadius="16dp"
-            app:layout_constraintEnd_toStartOf="@+id/btnStopService"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:strokeColor="@color/green"
-            app:strokeWidth="2dp" />
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="12dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnStopService"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="16dp"
-            android:alpha=".2"
-            android:text="@string/stop_service"
-            android:textColor="@color/redDown"
-            app:backgroundTint="@color/red_faded"
-            app:cornerRadius="16dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/btnStartService"
-            app:layout_constraintTop_toTopOf="@+id/btnStartService"
-            app:strokeColor="@color/redDown"
-            app:strokeWidth="2dp" />
-
-        <FrameLayout
-            android:id="@+id/emptyRecyclerView"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="25dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/serviceStatusTxt" >
-
-            <ImageView
-                android:id="@+id/doctorImageView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginBottom="40dp"
-                android:src="@drawable/doctor" />
-
-            <TextView
-                android:id="@+id/notificationsTextView"
-                android:layout_width="wrap_content"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnStartService"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="85dp"
-                android:text="@string/notifications"
-                android:textColor="@color/black"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="@string/start_service"
+                android:textColor="@color/green"
+                app:backgroundTint="@color/green_faded"
+                app:cornerRadius="16dp"
+                app:strokeColor="@color/green"
+                app:strokeWidth="2dp" />
 
-            <TextView
-                android:id="@+id/noReferralsTextView"
-                android:layout_width="wrap_content"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnStopService"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom|center_horizontal"
-                android:layout_marginBottom="110dp"
-                android:text="@string/no_referrals"
-                android:textColor="@color/black"
-                android:textSize="14sp" />
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:alpha=".2"
+                android:text="@string/stop_service"
+                android:textColor="@color/redDown"
+                app:backgroundTint="@color/red_faded"
+                app:cornerRadius="16dp"
+                app:strokeColor="@color/redDown"
+                app:strokeWidth="2dp" />
 
-            <TextView
-                android:id="@+id/startButtonTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|center_horizontal"
-                android:layout_marginBottom="80dp"
-                android:text="@string/press_start_button"
-                android:textColor="@color/black"
-                android:textSize="17sp" />
+        </LinearLayout>
 
-        </FrameLayout>
-
+        <!-- Service status text -->
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/serviceStatusTxt"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="16dp"
             android:text="@string/stop_service_status"
             android:textColor="@color/redDown"
             android:textSize="14sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="@+id/btnStopService"
-            app:layout_constraintStart_toStartOf="@+id/btnStartService"
-            app:layout_constraintTop_toBottomOf="@id/btnStartService" />
+            android:textStyle="bold" />
 
-        <Spinner
-            android:id="@+id/phoneNumberSpinner"
-            android:layout_width="0dp"
+        <!-- Spinners row -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="30dp"
-            app:layout_constraintEnd_toStartOf="@+id/filterType"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/serviceStatusTxt"/>
+            android:orientation="horizontal"
+            android:paddingStart="10dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
 
-        <Spinner
-            android:id="@+id/filterType"
-            android:layout_width="0dp"
+            <Spinner
+                android:id="@+id/phoneNumberSpinner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp" />
+
+            <Spinner
+                android:id="@+id/filterType"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+
+        <!-- Empty state view -->
+        <ScrollView
+            android:id="@+id/emptyRecyclerView"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="30dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/phoneNumberSpinner"
-            app:layout_constraintTop_toBottomOf="@+id/serviceStatusTxt" />
+            android:fillViewport="true">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="16dp">
+
+                <TextView
+                    android:id="@+id/notificationsTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/notifications"
+                    android:textColor="@color/black"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/doctorImageView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/notifications"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/doctor" />
+
+                <TextView
+                    android:id="@+id/noReferralsTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/no_referrals"
+                    android:textColor="@color/black"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/startButtonTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="16dp"
+                    android:text="@string/press_start_button"
+                    android:textColor="@color/black"
+                    android:textSize="17sp" />
+
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- RecyclerView with a minimum height so it's always usable -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/messageRecyclerview"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="4dp"
             android:layout_marginEnd="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/filterType" />
+            android:layout_marginBottom="8dp"
+            android:minHeight="300dp"
+            android:nestedScrollingEnabled="false" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
+
 </androidx.core.widget.NestedScrollView>

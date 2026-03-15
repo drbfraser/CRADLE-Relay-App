@@ -10,3 +10,7 @@ detekt {
 //    Optional baseline, uncomment & run gradle command detektBaseline to exclude existing issues
     baseline = file("$rootDir/app/detekt-baseline.xml")
 }
+
+tasks.matching { it.class.name.contains('Detekt') }.configureEach {
+    it.jvmTarget = "17"
+}
