@@ -85,6 +85,9 @@
     <string name="default_list_item">Default list item</string>
     <string name="settings">Settings</string>
 
+    <!-- Biometric -->
+    <string name="biometric_prompt_title">Unlock Cradle SMS Relay</string>
+
     <!-- Common Words -->
     <string name="capitalized_yes">YES</string>
     <string name="capitalized_no">NO</string>
