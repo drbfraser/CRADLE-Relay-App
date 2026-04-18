@@ -2,10 +2,12 @@ package com.cradleplatform.cradle_vsa_sms_relay.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricManager
 import androidx.core.content.ContextCompat
 import androidx.preference.ListPreference
 import androidx.preference.Preference
@@ -111,6 +113,43 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }
             true
         }
+
+        val biometricKey = getString(R.string.key_biometric_enabled)
+        findPreference<SwitchPreferenceCompat>(biometricKey)?.setOnPreferenceChangeListener { _, newValue ->
+            val enabling = newValue as Boolean
+            if (!enabling) return@setOnPreferenceChangeListener true
+
+            val allowedAuthenticators =
+                BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                BiometricManager.Authenticators.DEVICE_CREDENTIAL
+
+            when (BiometricManager.from(requireContext()).canAuthenticate(allowedAuthenticators)) {
+                BiometricManager.BIOMETRIC_SUCCESS -> true
+                BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+                    showBiometricEnrollmentDialog()
+                    false
+                }
+                else -> {
+                    Toast.makeText(
+                        context,
+                        getString(R.string.biometric_unavailable),
+                        Toast.LENGTH_LONG
+                    ).show()
+                    false
+                }
+            }
+        }
+    }
+
+    private fun showBiometricEnrollmentDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.biometric_not_enrolled_title))
+            .setMessage(getString(R.string.biometric_not_enrolled_message))
+            .setPositiveButton(getString(R.string.biometric_go_to_settings)) { _, _ ->
+                startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS))
+            }
+            .setNegativeButton(getString(R.string.capitalized_no)) { _, _ -> }
+            .show()
     }
 
     fun signout() {

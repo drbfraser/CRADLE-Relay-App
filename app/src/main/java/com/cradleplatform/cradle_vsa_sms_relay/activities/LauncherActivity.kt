@@ -19,6 +19,7 @@ import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.managers.LoginManager
@@ -38,6 +39,16 @@ class LauncherActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         (application as MyApp).component.inject(this)
+
+        if (loginManager.isLoggedIn()) {
+            val biometricEnabled = PreferenceManager.getDefaultSharedPreferences(this)
+                .getBoolean(getString(R.string.key_biometric_enabled), false)
+            if (!biometricEnabled) {
+                startActivity()
+                return
+            }
+        }
+
         setContentView(R.layout.activity_launcher)
         setupLogin()
         setUpTogglePasswordButton()
