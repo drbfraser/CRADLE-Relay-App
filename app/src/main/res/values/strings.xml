@@ -90,10 +90,7 @@
     <string name="key_biometric_enabled">biometric_unlock_enabled</string>
     <string name="biometric_settings_title">Biometric unlock</string>
     <string name="biometric_settings_summary">Require fingerprint, face, or PIN when opening the app</string>
-    <string name="biometric_not_enrolled_title">No screen lock set up</string>
-    <string name="biometric_not_enrolled_message">To enable biometric unlock, set up a fingerprint, face, or PIN in your device Settings first.</string>
-    <string name="biometric_go_to_settings">Open Settings</string>
-    <string name="biometric_unavailable">Biometric hardware is not available on this device.</string>
+    <string name="biometric_enroll_to_enable">Enroll a fingerprint or face in your device Settings to enable this</string>
 
     <!-- Common Words -->
     <string name="capitalized_yes">YES</string>
