@@ -53,6 +53,19 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="Security">
+
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="@string/key_biometric_enabled"
+            app:title="@string/biometric_settings_title"
+            app:summary="@string/biometric_settings_summary" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:key="@string/key_account_settings"
         app:iconSpaceReserved="false"
         app:title="@string/accountSetting">
