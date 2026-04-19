@@ -14,8 +14,12 @@ import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import com.cradleplatform.cradle_vsa_sms_relay.R
 import com.cradleplatform.cradle_vsa_sms_relay.dagger.MyApp
 import com.cradleplatform.cradle_vsa_sms_relay.managers.LoginManager
@@ -35,11 +39,23 @@ class LauncherActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         (application as MyApp).component.inject(this)
-        checkForAuthentication()
+
+        if (loginManager.isLoggedIn()) {
+            val biometricEnabled = PreferenceManager.getDefaultSharedPreferences(this)
+                .getBoolean(getString(R.string.key_biometric_enabled), false)
+            if (!biometricEnabled) {
+                startActivity()
+                return
+            }
+        }
+
         setContentView(R.layout.activity_launcher)
         setupLogin()
         setUpTogglePasswordButton()
         setupSettings()
+        if (loginManager.isLoggedIn()) {
+            showBiometricPrompt()
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -89,10 +105,42 @@ class LauncherActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkForAuthentication() {
-        if (loginManager.isLoggedIn()) {
+    private fun showBiometricPrompt() {
+        val allowedAuthenticators =
+            BiometricManager.Authenticators.BIOMETRIC_STRONG or
+            BiometricManager.Authenticators.DEVICE_CREDENTIAL
+
+        val canAuthenticate = BiometricManager.from(this).canAuthenticate(allowedAuthenticators)
+        if (canAuthenticate != BiometricManager.BIOMETRIC_SUCCESS) {
+            // Device has no biometric or screen lock set up — go straight to main
             startActivity()
+            return
         }
+
+        val prompt = BiometricPrompt(
+            this,
+            ContextCompat.getMainExecutor(this),
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    startActivity()
+                }
+
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    // User cancelled or dismissed — login form remains visible
+                }
+
+                override fun onAuthenticationFailed() {
+                    // Biometric not recognised — BiometricPrompt handles retry UI
+                }
+            }
+        )
+
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle(getString(R.string.biometric_prompt_title))
+            .setAllowedAuthenticators(allowedAuthenticators)
+            .build()
+
+        prompt.authenticate(promptInfo)
     }
 
     private fun setupLogin() {

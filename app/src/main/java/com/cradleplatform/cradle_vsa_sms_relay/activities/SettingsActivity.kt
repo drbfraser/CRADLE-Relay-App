@@ -6,6 +6,7 @@ import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricManager
 import androidx.core.content.ContextCompat
 import androidx.preference.ListPreference
 import androidx.preference.Preference
@@ -110,6 +111,18 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 defaultSharedPreferences.edit().putBoolean(syncNowKey, !x).apply()
             }
             true
+        }
+
+        val biometricKey = getString(R.string.key_biometric_enabled)
+        val biometricPref = findPreference<SwitchPreferenceCompat>(biometricKey)
+        val biometricEnrolled = BiometricManager.from(requireContext())
+            .canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) ==
+            BiometricManager.BIOMETRIC_SUCCESS
+
+        if (!biometricEnrolled) {
+            biometricPref?.isEnabled = false
+            biometricPref?.isChecked = false
+            biometricPref?.summary = getString(R.string.biometric_enroll_to_enable)
         }
     }
 

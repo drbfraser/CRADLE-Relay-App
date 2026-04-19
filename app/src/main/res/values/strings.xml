@@ -85,6 +85,13 @@
     <string name="default_list_item">Default list item</string>
     <string name="settings">Settings</string>
 
+    <!-- Biometric -->
+    <string name="biometric_prompt_title">Unlock Cradle SMS Relay</string>
+    <string name="key_biometric_enabled">biometric_unlock_enabled</string>
+    <string name="biometric_settings_title">Biometric unlock</string>
+    <string name="biometric_settings_summary">Require fingerprint, face, or PIN when opening the app</string>
+    <string name="biometric_enroll_to_enable">Enroll a fingerprint or face in your device Settings to enable this</string>
+
     <!-- Common Words -->
     <string name="capitalized_yes">YES</string>
     <string name="capitalized_no">NO</string>
